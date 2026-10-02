@@ -55,6 +55,15 @@
     #view-leads:not([hidden]) { height: calc(100vh - 62px); }
 
     /* Status colours */
+    .web { border: 1px solid var(--line); border-radius: 16px; margin-top: 10px; overflow: hidden; }
+    .web .wh { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; background: #fff; border: 0; width: 100%; text-align: left; font: inherit; color: inherit; }
+    .web .wh b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .web .wb { padding: 4px 14px 14px; display: grid; gap: 12px; }
+    .stg { border-top: 1px dashed var(--line); padding-top: 10px; display: grid; gap: 6px; }
+    .stg h4 { margin: 0; font-size: .85rem; }
+    .stg label { display: flex; align-items: center; gap: 8px; font-size: .9rem; }
+    .stg .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .stg textarea.field { min-height: 60px; resize: vertical; }
     .pill { display: inline-block; font-size: .72rem; font-weight: 700; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
     .pill.new { background: #eef2ff; color: #4f46e5; }
     .pill.contacted { background: #fef3c7; color: #b45309; }
@@ -351,6 +360,7 @@
         <button class="tab" type="button" data-tab="calendar" aria-current="false"><i>▦</i>Calendar</button>
         <button class="tab" type="button" data-tab="tasks" aria-current="false"><i>✓</i>Tasks</button>
         <button class="tab" type="button" data-tab="forecast" aria-current="false"><i>◔</i>Forecast</button>
+        <button class="tab" type="button" data-tab="websites" aria-current="false"><i>◍</i>Websites</button>
         <button class="tab" type="button" data-tab="reports" aria-current="false"><i>▤</i>Reports</button>
       </nav>
       <div class="sp"></div>
@@ -444,6 +454,10 @@
     <div class="view" id="view-tasks" hidden>
       <div class="view-head"><h2>Tasks</h2><p>To-dos linked to your leads. Synced across your devices.</p></div>
       <div class="card" id="taskbox"></div>
+    </div>
+    <div class="view" id="view-websites" hidden>
+      <div class="view-head"><h2>Websites</h2><p>Track each client site from request to launch. Saved to Supabase.</p></div>
+      <div class="card" id="webbox"></div>
     </div>
     <div class="view" id="view-forecast" hidden>
       <div class="view-head"><h2>Forecast</h2><p>Open deals weighted by how likely each stage is to close.</p></div>
@@ -565,7 +579,7 @@
   function setTab(t) {
     tab = t;
     document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'true' : 'false'));
-    ['home', 'leads', 'pipeline', 'calendar', 'tasks', 'forecast', 'reports'].forEach(v => { $('view-' + v).hidden = v !== t; });
+    ['home', 'leads', 'pipeline', 'calendar', 'tasks', 'forecast', 'websites', 'reports'].forEach(v => { $('view-' + v).hidden = v !== t; });
     renderAll();
   }
   function openLead(id) {
@@ -581,6 +595,7 @@
     if (tab === 'home') renderHome();
     if (tab === 'tasks') renderTasks();
     if (tab === 'forecast') renderForecast();
+    if (tab === 'websites') renderWebsites();
     if (tab === 'pipeline') renderBoard();
     if (tab === 'calendar') renderCalendar();
     if (tab === 'reports') renderReports();
@@ -876,14 +891,15 @@
 
   // ---------- Salesforce-style extras (tasks, activity, quota are stored in this browser) ----------
   const PROB = { new: .1, contacted: .25, scheduled: .5, proposal: .75, won: 1, lost: 0 };
-  let acts = {}, tasks = [], quota = 0;
+  let acts = {}, tasks = [], quota = 0, websites = [], openWeb = null;
   const mapT = r => ({ id: r.id, title: r.title, due: r.due_on || '', lead: r.lead_id, done: r.done });
   async function loadExtras() {
-    const [t, a, c] = await Promise.all([
+    const [t, a, c, w] = await Promise.all([
       sb.from('tasks').select('*').order('created_at', { ascending: false }),
       sb.from('activities').select('*').order('created_at', { ascending: false }),
-      sb.from('crm_settings').select('monthly_quota, profile').eq('id', 1).maybeSingle()]);
-    const err = t.error || a.error || c.error;
+      sb.from('crm_settings').select('monthly_quota, profile').eq('id', 1).maybeSingle(),
+      sb.from('websites').select('*').order('created_at', { ascending: false })]);
+    const err = t.error || a.error || c.error || w.error; websites = w.data || [];
     if (err) banner('Could not load tasks/activity: ' + err.message);
     tasks = (t.data || []).map(mapT); acts = {};
     (a.data || []).forEach(r => (acts[r.lead_id] = acts[r.lead_id] || []).push({ t: new Date(r.created_at).getTime(), type: r.type, text: r.body }));
@@ -945,6 +961,67 @@
       c('Quota this month', quota ? money(mw) + ' of ' + money(quota) : 'Set a monthly target in Forecast', gauge),
       c('Needs attention', 'Leads going cold', ...(attn.length ? attn : [nothing('All caught up.')])),
       c('Top opportunities', 'Highest lead score first', ...(hot.length ? hot.map(l => lb(l, String(score(l)), l.service + (amt(l) ? ' · ' + money(amt(l)) : ''))) : [nothing('No open leads.')])));
+  }
+
+  // ---------- Websites pipeline (Supabase: websites table + payment-proofs bucket) ----------
+  const WTYPES = ['Portfolio', 'Business', 'E-commerce', 'Landing page', 'Blog', 'Other'];
+  async function updWeb(w, patch) {
+    const { data, error } = await sb.from('websites').update(patch).eq('id', w.id).select().single();
+    if (error) { banner('Could not save website: ' + error.message); return false; }
+    banner(''); Object.assign(w, data); return true;
+  }
+  function renderWebsites() {
+    const name = h('input', { class: 'field', placeholder: 'Client name…' }),
+      type = h('select', { class: 'field' }, WTYPES.map(t => h('option', { value: t, text: t }))),
+      link = h('input', { class: 'field', placeholder: 'Site link (optional)' });
+    const add = async () => {
+      if (!name.value.trim()) { name.focus(); return; }
+      const { data, error } = await sb.from('websites').insert({ client_name: name.value.trim(), website_type: type.value, site_link: link.value.trim() || null }).select().single();
+      if (error) { banner('Could not add website: ' + error.message); return; }
+      websites.unshift(data); openWeb = data.id; renderWebsites();
+    };
+    name.addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
+    const cards = websites.map(w => {
+      const open = openWeb === w.id;
+      const chk = (col, label, extra) => h('label', {}, h('input', { type: 'checkbox', checked: !!w[col], onchange: async e => { if (await updWeb(w, { [col]: e.target.checked })) renderWebsites(); else e.target.checked = !e.target.checked; } }), label, extra);
+      const txt = (col, ph, save) => { const i = h('input', { class: 'field', placeholder: ph, value: w[col] || '' }); i.addEventListener('change', async () => { await updWeb(w, { [col]: i.value.trim() || null }); }); return i; };
+      const pay = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp,application/pdf', onchange: async e => {
+        const f = e.target.files[0]; if (!f) return;
+        const path = w.id + '/' + Date.now() + '-' + f.name.replace(/[^\w.-]/g, '_');
+        const up = await sb.storage.from('payment-proofs').upload(path, f);
+        if (up.error) { banner('Upload failed: ' + up.error.message); return; }
+        if (await updWeb(w, { payment_screenshot_path: path, payment_collected: true })) renderWebsites();
+      } });
+      const view = w.payment_screenshot_path ? h('button', { class: 'btn btn-ghost', type: 'button', text: 'View screenshot', onclick: async () => {
+        const win = window.open('', '_blank');
+        const { data, error } = await sb.storage.from('payment-proofs').createSignedUrl(w.payment_screenshot_path, 3600);
+        if (error) { if (win) win.close(); banner('Could not open screenshot: ' + error.message); return; }
+        if (win) win.location = data.signedUrl;
+      } }) : null;
+      const notes = h('textarea', { class: 'field', placeholder: 'Request notes…', text: w.request_notes || '' });
+      notes.addEventListener('change', () => updWeb(w, { request_notes: notes.value }));
+      const wtype = h('select', { class: 'field', onchange: e => updWeb(w, { website_type: e.target.value }) }, [...new Set([...WTYPES, w.website_type].filter(Boolean))].map(t => h('option', { value: t, text: t, selected: t === w.website_type })));
+      const body = open ? h('div', { class: 'wb' },
+        h('div', { class: 'stg' }, h('h4', { text: '1 · Client request' }), h('div', { class: 'row' }, wtype, txt('site_link', 'Site link')), notes),
+        h('div', { class: 'stg' }, h('h4', { text: '2 · Payment collected' }), chk('payment_collected', 'Payment received'), h('div', { class: 'row' }, pay, view)),
+        h('div', { class: 'stg' }, h('h4', { text: '3 · Domain allocation' }), txt('domain_name', 'example.com'), chk('domain_allocated', 'Domain allocated')),
+        h('div', { class: 'stg' }, h('h4', { text: '4 · HTML' }), chk('client_approved', 'Client approved'), chk('html_ready', 'HTML ready')),
+        h('div', { class: 'stg' }, h('h4', { text: '5 · CRM for client access' }), txt('client_crm_url', 'Client CRM link'), chk('client_crm_created', 'Client CRM created')),
+        h('div', { class: 'stg' }, h('h4', { text: '6 · Published' }), chk('published', 'Published'), chk('seo_done', 'SEO done'), chk('search_console_connected', 'Google Search Console connected'), txt('search_console_property', 'Search Console property URL')),
+        h('div', { class: 'row' }, h('button', { class: 'btn btn-ghost', type: 'button', text: 'Delete website', onclick: async () => {
+          if (!confirm('Delete ' + w.client_name + '?')) return;
+          const { error } = await sb.from('websites').delete().eq('id', w.id);
+          if (error) { banner('Could not delete: ' + error.message); return; }
+          websites = websites.filter(x => x !== w); openWeb = null; renderWebsites();
+        } }))) : null;
+      return h('div', { class: 'web' },
+        h('button', { class: 'wh', type: 'button', onclick: () => { openWeb = open ? null : w.id; renderWebsites(); } },
+          h('b', { text: w.client_name }), h('small', { text: w.website_type || '' }),
+          h('span', { class: 'pill ' + (w.stage === 6 ? 'won' : w.stage === 1 ? 'new' : 'contacted'), text: 'Stage ' + w.stage + '/6' })),
+        body);
+    });
+    $('webbox').replaceChildren(h('div', { class: 'mrow' }, name, type, link, h('button', { class: 'btn btn-primary', type: 'button', text: 'Add website', onclick: add })),
+      ...(cards.length ? cards : [nothing('No websites yet.')]));
   }
 
   function renderTasks() {
