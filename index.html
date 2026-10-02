@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
   <title>Orchid · CRM</title>
   <link rel="icon" type="image/png" href="favicon.png">
@@ -298,6 +298,16 @@
     @media (max-width: 960px) {
       .tabs { width: auto; top: auto; bottom: auto; flex-direction: row; flex-wrap: wrap; margin: 4px 20px 0; }
       .pc { width: 100%; } .ci { display: none; }
+    }
+
+    /* ===== Phone / tablet: header scrolls away, menu becomes a bottom tab bar ===== */
+    @media (max-width: 960px) {
+      .topbar { position: static; }
+      nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: auto; margin: 0; transform: none; flex-direction: row; flex-wrap: nowrap; justify-content: space-around; align-items: stretch; gap: 0; border-radius: 18px 18px 0 0; padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px)); overflow-x: auto; overflow-y: hidden; background: rgba(255,255,255,.97); border: 1px solid var(--line); border-bottom: 0; box-shadow: 0 -6px 24px rgba(20,18,46,.12); z-index: 20; }
+      nav.tabs .pc { display: none; }
+      nav.tabs .tab { flex: 1 1 0; flex-direction: column; justify-content: center; align-items: center; gap: 2px; min-width: 0; padding: 6px 2px; font-size: .64rem; line-height: 1.2; border-radius: 12px; }
+      nav.tabs .tab i { width: auto; font-size: 1.15rem; }
+      .view { margin-left: 0; padding-bottom: 110px; }
     }
   </style>
 </head>
@@ -940,7 +950,17 @@
   function renderTasks() {
     const t = todayStr(), title = h('input', { class: 'field', placeholder: 'New task…' }), due = h('input', { class: 'field', type: 'date' });
     const who = h('select', { class: 'field' }, h('option', { value: '', text: 'No lead' }), leads.map(l => h('option', { value: l.id, text: l.name })));
-    const add = async () => { if (!title.value.trim()) return; if (await addTask(title.value.trim(), due.value, who.value ? Number(who.value) : null)) renderTasks(); };
+    const msg = h('div', { class: 'err', role: 'alert', hidden: true });
+    const add = async () => {
+      if (!title.value.trim()) { title.focus(); return; }
+      const picked = who.value ? (leads.find(l => String(l.id) === who.value) || {}).id : null;
+      addBtn.disabled = true; addBtn.textContent = 'Saving…'; msg.hidden = true;
+      const ok = await addTask(title.value.trim(), due.value, picked == null ? null : picked);
+      if (ok) { renderTasks(); return; }
+      addBtn.disabled = false; addBtn.textContent = 'Add';
+      msg.textContent = $('banner').textContent || 'Could not save the task.'; msg.hidden = false;
+    };
+    const addBtn = h('button', { class: 'btn btn-primary', type: 'button', text: 'Add', onclick: add });
     const rows = tasks.slice().sort((a, b) => a.done - b.done || (a.due || '9').localeCompare(b.due || '9')).map(x => {
       const l = leads.find(y => y.id === x.lead);
       return h('div', { class: 'tk' + (x.done ? ' done' : '') + (!x.done && x.due && x.due < t ? ' late' : '') },
@@ -948,7 +968,7 @@
         h('span', { text: x.title }), l ? h('button', { class: 'linkbtn', type: 'button', text: l.name, onclick: () => openLead(l.id) }) : null, h('small', { text: x.due || 'No date' }),
         h('button', { class: 'linkbtn', type: 'button', text: '✕', 'aria-label': 'Delete', onclick: async () => { await delTask(x); renderTasks(); } }));
     });
-    $('taskbox').replaceChildren(h('div', { class: 'mrow' }, title, who, due, h('button', { class: 'btn btn-primary', type: 'button', text: 'Add', onclick: add })), ...(rows.length ? rows : [nothing('No tasks yet.')]));
+    $('taskbox').replaceChildren(h('div', { class: 'mrow' }, title, who, due, addBtn), msg, ...(rows.length ? rows : [nothing('No tasks yet.')]));
     title.addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
   }
 
