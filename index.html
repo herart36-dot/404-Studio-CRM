@@ -215,6 +215,9 @@
       .panel2 { grid-template-columns: 1fr; } .gq { display: none; }
     }
 
+
+    #websites-box{padding:20px}.website-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin:15px 0}.website-stage{padding:10px 5px;border:0;border-radius:10px;background:#e2e8f0;font-size:11px;font-weight:800;cursor:pointer}.website-stage.active{background:#1b1a2e;color:#fff}.website-stage.done{background:#c4b5fd}.website-card{border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:14px}.website-fields{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.website-fields label{display:block;font-size:12px;font-weight:700;color:var(--muted)}.website-fields input,.website-fields textarea,.website-fields select{width:100%;margin-top:5px}.website-checks{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}.website-check{padding:7px}.website-progress{height:8px;background:#e2e8f0;border-radius:9px;overflow:hidden}.website-progress i{display:block;height:100%;background:var(--grad)}@media(max-width:900px){.website-grid{grid-template-columns:repeat(3,1fr)}.website-fields,.website-checks{grid-template-columns:1fr}}
+
     /* ===== Orchid theme ===== */
     :root { --bg:#eef1fb; --ink:#14122e; --line:rgba(20,18,46,.09); --brand:#7c3aed; --grad:linear-gradient(135deg,#7c3aed,#d946ef); --glass:rgba(255,255,255,.62); --sh:0 10px 40px rgba(60,70,140,.10); }
     body { background: radial-gradient(900px 520px at 6% 0%,#cfe3ff 0,transparent 60%), radial-gradient(800px 600px at 96% 8%,#ead7ff 0,transparent 55%), radial-gradient(900px 600px at 50% 100%,#c8f1e5 0,transparent 60%), #eef1fb; background-attachment: fixed; }
@@ -352,6 +355,7 @@
         <button class="tab" type="button" data-tab="tasks" aria-current="false"><i>✓</i>Tasks</button>
         <button class="tab" type="button" data-tab="forecast" aria-current="false"><i>◔</i>Forecast</button>
         <button class="tab" type="button" data-tab="reports" aria-current="false"><i>▤</i>Reports</button>
+        <button class="tab" type="button" data-tab="websites" aria-current="false"><i>⌘</i>Websites</button>
       </nav>
       <div class="sp"></div>
       <span class="who" id="who"></span>
@@ -445,7 +449,14 @@
       <div class="view-head"><h2>Tasks</h2><p>To-dos linked to your leads. Synced across your devices.</p></div>
       <div class="card" id="taskbox"></div>
     </div>
-    <div class="view" id="view-forecast" hidden>
+
+    <!-- WEBSITES WORKFLOW -->
+    <div class="view" id="view-websites" hidden>
+      <div class="view-head"><h2>Websites</h2><p>Client request → payment → domain → HTML approval → CRM → published & SEO.</p><button id="btn-new-website" class="btn btn-primary" type="button">+ New website</button></div>
+      <div class="card" id="websites-box"><div class="empty">Loading website projects…</div></div>
+    </div>
+
+    <div class="view" id="view-forecast" hidden
       <div class="view-head"><h2>Forecast</h2><p>Open deals weighted by how likely each stage is to close.</p></div>
       <div class="kpis" id="fkpis"></div>
       <div class="card" id="ftable"></div>
@@ -540,6 +551,7 @@
     show('v-app');
     $('tz').textContent = 'Times shown in your local time (' + (Intl.DateTimeFormat().resolvedOptions().timeZone || 'local') + ').';
     await loadLeads();
+    await loadWebsites();
   }
 
   async function loadLeads(quiet) {
@@ -565,7 +577,7 @@
   function setTab(t) {
     tab = t;
     document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'true' : 'false'));
-    ['home', 'leads', 'pipeline', 'calendar', 'tasks', 'forecast', 'reports'].forEach(v => { $('view-' + v).hidden = v !== t; });
+    ['home', 'leads', 'pipeline', 'calendar', 'tasks', 'forecast', 'reports', 'websites'].forEach(v => { $('view-' + v).hidden = v !== t; });
     renderAll();
   }
   function openLead(id) {
@@ -584,6 +596,7 @@
     if (tab === 'pipeline') renderBoard();
     if (tab === 'calendar') renderCalendar();
     if (tab === 'reports') renderReports();
+    if (tab === 'websites') renderWebsites();
   }
 
   // ---------- Leads: filters ----------
@@ -1121,6 +1134,23 @@
         h('button', { class: 'btn btn-ghost', type: 'button', text: 'Cancel', onclick: () => { editing = false; renderProfile(); } })));
   }
 
+
+  // ---------- Websites ----------
+  const WEBSITE_STAGES=['Client request','Payment collected','Domain allocation','HTML / approval','CRM creation','Published / SEO'];
+  const WEBSITE_CHECKS=[['live','Website is live'],['domain','Custom domain connected'],['https','HTTPS verified'],['title','Page title added'],['meta','Meta description added'],['og','Social preview added'],['favicon','Favicon added'],['robots','robots.txt'],['sitemap','sitemap.xml'],['gsc','Google Search Console'],['submit','Sitemap submitted'],['inspect','URL inspected'],['index','Indexing requested'],['analytics','Google Analytics'],['handover','Client handover']];
+  let websites=[],selectedWebsiteId=null;
+  async function loadWebsites(){const r=await sb.from('websites').select('*').order('created_at',{ascending:false});if(r.error){banner('Run supabase_websites.sql first: '+r.error.message);return}websites=r.data||[];renderWebsites()}
+  async function patchWebsite(id,p){const r=await sb.from('websites').update({...p,updated_at:new Date().toISOString()}).eq('id',id).select().single();if(r.error){banner('Website save failed: '+r.error.message);return}websites=websites.map(x=>x.id===id?r.data:x);renderWebsites()}
+  function renderWebsites(){const box=$('websites-box');if(!box)return;if(!websites.length){box.replaceChildren(h('div',{class:'empty',text:'No website projects yet. Click + New website.'}));return}const w=websites.find(x=>x.id===selectedWebsiteId)||websites[0];selectedWebsiteId=w.id;const checks=w.stage_checklist||{};const pct=Math.round(WEBSITE_CHECKS.filter(x=>checks[x[0]]).length/WEBSITE_CHECKS.length*100);
+    const stages=h('div',{class:'website-grid'},WEBSITE_STAGES.map((s,i)=>h('button',{class:'website-stage '+(i+1===w.current_stage?'active ':'')+(i+1<w.current_stage?'done':''),text:(i+1)+'. '+s,onclick:()=>patchWebsite(w.id,{current_stage:i+1})})));
+    const field=(key,label,multi=false)=>{const e=h(multi?'textarea':'input',{value:w[key]||'',placeholder:label});e.addEventListener('change',()=>patchWebsite(w.id,{[key]:e.value}));return h('label',{text:label},e)};
+    const checklist=h('div',{class:'website-checks'},WEBSITE_CHECKS.map(([k,l])=>h('label',{class:'website-check'},h('input',{type:'checkbox',checked:!!checks[k],onchange:e=>patchWebsite(w.id,{stage_checklist:{...checks,[k]:e.target.checked}})}),h('span',{text:' '+l}))));
+    const file=h('input',{type:'file',accept:'image/*,application/pdf',hidden:true,onchange:async e=>{const f=e.target.files[0];if(!f)return;const path=w.id+'/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');const up=await sb.storage.from('website-payments').upload(path,f,{upsert:false});if(up.error){banner(up.error.message);return}patchWebsite(w.id,{payment_screenshot_path:up.data.path})}});
+    box.replaceChildren(stages,h('div',{class:'website-progress'},h('i',{style:'width:'+pct+'%'})),h('p',{class:'sub',text:'Launch checklist: '+pct+'%'}),h('div',{class:'website-card'},h('h3',{text:'Stage 1 · Client request'}),h('div',{class:'website-fields'},field('client_name','Client name'),field('client_email','Client email'),field('website_name','Website name'),field('website_type','Website type'),field('client_request','Client request / requirements',true),field('reference_links','Reference links',true))),h('div',{class:'website-card'},h('h3',{text:'Stage 2 · Payment collected'}),h('div',{class:'website-fields'},field('payment_status','Payment status'),field('payment_amount','Payment amount'),field('payment_reference','Payment reference')),h('button',{class:'btn btn-ghost',text:'Upload payment screenshot',onclick:()=>file.click()})),h('div',{class:'website-card'},h('h3',{text:'Stage 3 · Domain allocation'}),h('div',{class:'website-fields'},field('domain_name','Domain'),field('domain_provider','Domain provider'),field('domain_status','Domain status'),field('dns_status','DNS status'))),h('div',{class:'website-card'},h('h3',{text:'Stage 4 · HTML / approval'}),h('div',{class:'website-fields'},field('preview_url','HTML preview URL'),field('revision_notes','Revision notes',true)),h('label',{class:'check'},h('input',{type:'checkbox',checked:!!w.client_approved,onchange:e=>patchWebsite(w.id,{client_approved:e.target.checked,approval_date:e.target.checked?new Date().toISOString():null})}),h('span',{text:' Client approved HTML'})),h('div',{class:'website-card'},h('h3',{text:'Stage 5 · CRM creation / client access'}),h('div',{class:'website-fields'},field('client_access_status','Client access status'),field('client_dashboard_url','Client dashboard URL'))),h('div',{class:'website-card'},h('h3',{text:'Stage 6 · Published / SEO / integrations'}),h('div',{class:'website-fields'},field('live_url','Live URL'),field('seo_notes','SEO notes',true),field('sitemap_url','Sitemap URL'),field('indexing_status','Indexing status'),field('analytics_status','Analytics status')),checklist));
+  }
+  async function newWebsite(){const name=prompt('Website name');if(!name)return;const client=prompt('Client name');if(!client)return;const r=await sb.from('websites').insert({website_name:name,client_name:client,current_stage:1,stage_checklist:{},payment_status:'pending'}).select().single();if(r.error){banner('Could not create website: '+r.error.message);return}websites.unshift(r.data);selectedWebsiteId=r.data.id;renderWebsites()}
+
+
   // ---------- Wiring ----------
   if (CLIENT_URL) { $('client-link').href = CLIENT_URL; $('client-link').hidden = false; }
   $('btn-signin').addEventListener('click', async e => {
@@ -1134,7 +1164,8 @@
   const out = async () => { await sb.auth.signOut(); leads = []; selectedId = null; show('v-signin'); };
   $('btn-out').addEventListener('click', out);
   $('btn-denied-out').addEventListener('click', out);
-  $('btn-refresh').addEventListener('click', () => loadLeads());
+  $('btn-refresh').addEventListener('click', () => { loadLeads(); loadWebsites(); });
+  $('btn-new-website').addEventListener('click', newWebsite);
   document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => { selectedId = tab === 'leads' && b.dataset.tab === 'leads' ? selectedId : null; setTab(b.dataset.tab); }));
   const refresh = () => { renderStats(); renderList(); };
   $('q').addEventListener('input', e => { query = e.target.value.trim().toLowerCase(); refresh(); });
