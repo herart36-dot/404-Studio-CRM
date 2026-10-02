@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #f4f5fb; --card: #ffffff; --ink: #1e1b4b; --muted: #64748b; --line: #e2e8f0;
@@ -17,7 +17,7 @@
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; }
-    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; }
+    body { font-family: 'IBM Plex Sans', system-ui, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; }
     button, input, select, textarea { font: inherit; color: inherit; }
     [hidden] { display: none !important; }
     :focus-visible { outline: 3px solid rgba(99,102,241,.45); outline-offset: 2px; }
@@ -274,6 +274,7 @@
     }
 
     /* ===== Profile sidebar + grey gradient ===== */
+    .topbar { backdrop-filter: none; background: rgba(238,240,246,.88); } /* blur here trapped the fixed sidebar inside the header */
     body { background: linear-gradient(135deg, #f6f7f9 0%, #dfe2e8 40%, #b4bac6 100%); background-attachment: fixed; }
     .who { display: none; }
     .app { --sw: 292px; }
@@ -298,6 +299,31 @@
     @media (max-width: 960px) {
       .tabs { width: auto; top: auto; bottom: auto; flex-direction: row; flex-wrap: wrap; margin: 4px 20px 0; }
       .pc { width: 100%; } .ci { display: none; }
+    }
+
+    /* ===== Corporate type + mobile fixes ===== */
+    html { background: #cfd3dc; }
+    body { font-weight: 400; }
+    .view-head h2 { font-weight: 600; letter-spacing: -.01em; }
+    .card h3, .kpi b, .hc b { font-weight: 600; }
+    .wm { letter-spacing: -.02em; padding-top: 8px; }
+    .pri { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 2px 8px; border-radius: 6px; flex: none; }
+    .pri.high { background: #fee2e2; color: #b91c1c; } .pri.medium { background: #fef3c7; color: #b45309; } .pri.low { background: #e2e8f0; color: #475569; }
+    .tadd { flex-wrap: wrap; } .tadd .field { flex: 1 1 130px; min-width: 0; } .tadd .field:first-child { flex: 3 1 240px; }
+    .tk { flex-wrap: wrap; } .tk > span:first-of-type { min-width: 120px; }
+    .card, .kpi, .hc { min-width: 0; }
+    @media (max-width: 960px) {
+      body { background-attachment: scroll; }
+      #hgrid, .two, .reports { grid-template-columns: minmax(0, 1fr); }
+      .hcards { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+      .topbar { padding: 10px 14px; gap: 8px; } .topbar .sp { display: none; } #btn-k, #btn-refresh { display: none; } .gq { display: none; }
+      .topbar .btn { padding: 7px 12px; font-size: .8rem; } .crmtag { display: none; } .topbar .wm { margin-right: auto; } .tabs { flex: 0 0 100%; width: auto; }
+      .tabs { margin: 0 14px; padding: 12px; border-radius: 22px; justify-content: center; gap: 4px; flex-wrap: wrap; }
+      .pc { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 2px 12px; border-bottom: 0; margin: 0 0 8px; padding: 0; text-align: left; width: 100%; }
+      .pic { width: 44px; height: 44px; font-size: 1rem; border-width: 2px; } .pst { display: none; } .pc .field { width: 100%; }
+      .tab { font-size: 0; width: 38px; height: 38px; padding: 0; justify-content: center; } .tab i { font-size: 1.15rem; width: auto; }
+      .view { padding: 14px; } .view-head h2 { font-size: 1.5rem; } .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } .detail { padding: 14px; } .card { padding: 14px; border-radius: 22px; }
     }
   </style>
 </head>
@@ -432,7 +458,7 @@
     </div>
 
     <div class="view" id="view-tasks" hidden>
-      <div class="view-head"><h2>Tasks</h2><p>To-dos linked to your leads. Synced across your devices.</p></div>
+      <div class="view-head"><h2>Tasks</h2><p>Plan your work: priorities, categories, due dates and a ready-made website checklist.</p></div>
       <div class="card" id="taskbox"></div>
     </div>
     <div class="view" id="view-forecast" hidden>
@@ -867,7 +893,7 @@
   // ---------- Salesforce-style extras (tasks, activity, quota are stored in this browser) ----------
   const PROB = { new: .1, contacted: .25, scheduled: .5, proposal: .75, won: 1, lost: 0 };
   let acts = {}, tasks = [], quota = 0;
-  const mapT = r => ({ id: r.id, title: r.title, due: r.due_on || '', lead: r.lead_id, done: r.done });
+  const mapT = r => ({ id: r.id, title: r.title, due: r.due_on || '', lead: r.lead_id, done: r.done, priority: r.priority || 'medium', category: r.category || 'General' });
   async function loadExtras() {
     const [t, a, c] = await Promise.all([
       sb.from('tasks').select('*').order('created_at', { ascending: false }),
@@ -880,8 +906,8 @@
     quota = Number(c.data && c.data.monthly_quota) || 0;
     profile = (c.data && c.data.profile) || {}; if (!editing) renderProfile();
   }
-  async function addTask(title, due, lead) {
-    const { data, error } = await sb.from('tasks').insert({ title, due_on: due || null, lead_id: lead }).select().single();
+  async function addTask(title, due, lead, x) {
+    const { data, error } = await sb.from('tasks').insert({ title, due_on: due || null, lead_id: lead, ...(x || {}) }).select().single();
     if (error) { banner('Could not save task: ' + error.message); return false; }
     tasks.unshift(mapT(data)); return true;
   }
@@ -937,19 +963,46 @@
       c('Top opportunities', 'Highest lead score first', ...(hot.length ? hot.map(l => lb(l, String(score(l)), l.service + (amt(l) ? ' · ' + money(amt(l)) : ''))) : [nothing('No open leads.')])));
   }
 
+  let tf = 'all';
+  const TEMPLATE = ['Register domain and set up DNS', 'Enable HTTPS / SSL', 'Set up Google Analytics', 'Submit sitemap to Google Search Console', 'Write meta titles and descriptions', 'Compress images and test page speed', 'Test on mobile and tablet', 'Add contact form and test it', 'Add privacy policy and terms', 'Set up business email', 'Back up the site and database'];
   function renderTasks() {
-    const t = todayStr(), title = h('input', { class: 'field', placeholder: 'New task…' }), due = h('input', { class: 'field', type: 'date' });
-    const who = h('select', { class: 'field' }, h('option', { value: '', text: 'No lead' }), leads.map(l => h('option', { value: l.id, text: l.name })));
-    const add = async () => { if (!title.value.trim()) return; if (await addTask(title.value.trim(), due.value, who.value ? Number(who.value) : null)) renderTasks(); };
-    const rows = tasks.slice().sort((a, b) => a.done - b.done || (a.due || '9').localeCompare(b.due || '9')).map(x => {
-      const l = leads.find(y => y.id === x.lead);
+    const t = todayStr();
+    const title = h('input', { class: 'field', placeholder: 'Add a task and press Enter…' });
+    const pri = h('select', { class: 'field' }, ['medium', 'high', 'low'].map(x => h('option', { value: x, text: x[0].toUpperCase() + x.slice(1) })));
+    const cats = [...new Set(['General', 'Website', 'Marketing', 'Clients', 'Finance', 'Admin', ...tasks.map(x => x.category)])];
+    const cat = h('input', { class: 'field', list: 'cats', value: 'General', 'aria-label': 'Category' });
+    const dl = h('datalist', { id: 'cats' }, cats.map(c => h('option', { value: c })));
+    const due = h('input', { class: 'field', type: 'date', 'aria-label': 'Due date' });
+    const who = h('select', { class: 'field', 'aria-label': 'Lead' }, h('option', { value: '', text: 'No lead' }), leads.map(l => h('option', { value: l.id, text: l.name })));
+    const add = async () => { if (!title.value.trim()) return;
+      if (await addTask(title.value.trim(), due.value, who.value ? Number(who.value) : null, { priority: pri.value, category: cat.value.trim().slice(0, 40) || 'General' })) renderTasks(); };
+    title.addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
+    const filters = { all: ['All', () => true], today: ['Due today', x => !x.done && x.due && x.due <= t], upcoming: ['Upcoming', x => !x.done && x.due > t], done: ['Completed', x => x.done] };
+    const chips = h('div', { class: 'seg', style: 'flex-wrap:wrap' }, Object.entries(filters).map(([k, [lab, fn]]) =>
+      h('button', { type: 'button', class: k === tf ? 'on' : '', text: lab + ' (' + tasks.filter(fn).length + ')', onclick: () => { tf = k; renderTasks(); } })));
+    const done = tasks.filter(x => x.done).length, pct = tasks.length ? Math.round(done / tasks.length * 100) : 0;
+    const list = tasks.filter(filters[tf][1]).sort((a, b) => a.done - b.done || ({ high: 0, medium: 1, low: 2 }[a.priority] - { high: 0, medium: 1, low: 2 }[b.priority]) || (a.due || '9').localeCompare(b.due || '9'));
+    const byCat = {}; list.forEach(x => (byCat[x.category] = byCat[x.category] || []).push(x));
+    const row = x => { const l = leads.find(y => y.id === x.lead);
       return h('div', { class: 'tk' + (x.done ? ' done' : '') + (!x.done && x.due && x.due < t ? ' late' : '') },
         h('input', { type: 'checkbox', checked: x.done, 'aria-label': 'Done', onchange: async e => { await setDone(x, e.target.checked); renderTasks(); } }),
-        h('span', { text: x.title }), l ? h('button', { class: 'linkbtn', type: 'button', text: l.name, onclick: () => openLead(l.id) }) : null, h('small', { text: x.due || 'No date' }),
-        h('button', { class: 'linkbtn', type: 'button', text: '✕', 'aria-label': 'Delete', onclick: async () => { await delTask(x); renderTasks(); } }));
-    });
-    $('taskbox').replaceChildren(h('div', { class: 'mrow' }, title, who, due, h('button', { class: 'btn btn-primary', type: 'button', text: 'Add', onclick: add })), ...(rows.length ? rows : [nothing('No tasks yet.')]));
-    title.addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
+        h('span', { text: x.title }), h('span', { class: 'pri ' + x.priority, text: x.priority }),
+        l ? h('button', { class: 'linkbtn', type: 'button', text: l.name, onclick: () => openLead(l.id) }) : null, h('small', { text: x.due ? new Date(x.due + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '' }),
+        h('button', { class: 'linkbtn', type: 'button', text: '✕', 'aria-label': 'Delete', onclick: async () => { await delTask(x); renderTasks(); } })); };
+    const groups = Object.entries(byCat).map(([c, xs]) => h('div', {}, h('div', { class: 'day', text: c + ' · ' + xs.filter(x => x.done).length + '/' + xs.length }), ...xs.map(row)));
+    const tpl = h('button', { class: 'btn btn-ghost', type: 'button', text: 'Add website launch checklist', onclick: async () => {
+      const have = new Set(tasks.map(x => x.title)), rows = TEMPLATE.filter(x => !have.has(x)).map(x => ({ title: x, category: 'Website', priority: 'medium' }));
+      if (!rows.length) { banner('Website checklist is already on your list.'); return; }
+      const { data, error } = await sb.from('tasks').insert(rows).select();
+      if (error) { banner('Could not add checklist: ' + error.message); return; } banner(''); tasks = [...(data || []).map(mapT), ...tasks]; renderTasks(); } });
+    const clr = h('button', { class: 'btn btn-danger', type: 'button', text: 'Clear completed', disabled: !done, onclick: async () => {
+      if (!confirm('Delete ' + done + ' completed task(s)?')) return;
+      const { error } = await sb.from('tasks').delete().eq('done', true); if (error) { banner('Could not clear: ' + error.message); return; } tasks = tasks.filter(x => !x.done); renderTasks(); } });
+    $('taskbox').replaceChildren(h('div', { class: 'mrow tadd' }, title, pri, cat, due, who, h('button', { class: 'btn btn-primary', type: 'button', text: 'Add', onclick: add }), dl),
+      h('div', { class: 'trow', style: 'justify-content:space-between;flex-wrap:wrap;margin:12px 0' }, chips, h('span', { class: 'sub', style: 'margin:0', text: done + ' of ' + tasks.length + ' done · ' + pct + '%' })),
+      h('div', { class: 'ht', style: 'margin-bottom:14px' }, h('div', { class: 'hb', style: 'width:' + pct + '%' })),
+      ...(groups.length ? groups : [nothing(tasks.length ? 'Nothing in this view.' : 'No tasks yet. Add one above, or start with the website launch checklist.')]),
+      h('div', { class: 'actions', style: 'margin-top:16px' }, tpl, clr));
   }
 
   function renderForecast() {
