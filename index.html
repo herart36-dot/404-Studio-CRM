@@ -272,6 +272,33 @@
       .tabs { position: static; transform: none; width: auto; flex-direction: row; border-radius: 24px; margin: 4px 20px 0; justify-content: center; }
       .tab::after { display: none; } .view { margin-left: 0; } .banner { margin-left: 20px; } #hgrid { grid-template-columns: 1fr; }
     }
+
+    /* ===== Profile sidebar + grey gradient ===== */
+    body { background: linear-gradient(135deg, #f6f7f9 0%, #dfe2e8 40%, #b4bac6 100%); background-attachment: fixed; }
+    .who { display: none; }
+    .app { --sw: 292px; }
+    .tabs { left: 16px; top: 72px; bottom: 16px; transform: none; width: 260px; background: rgba(255,255,255,.55); backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,.8); border-radius: 28px; padding: 18px 14px; align-items: stretch; overflow-y: auto; box-shadow: var(--sh); gap: 4px; }
+    .tab { font-size: .92rem; width: auto; height: auto; padding: 10px 14px; display: flex; justify-content: flex-start; align-items: center; gap: 6px; border-radius: 14px; color: var(--ink); }
+    .tab i { width: 22px; opacity: .75; font-size: 1rem; }
+    .tab:hover { background: rgba(255,255,255,.75); }
+    .tab[aria-current="true"] { background: #1b1a2e; color: #fff; }
+    .tab::after { display: none; }
+    .pc { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding-bottom: 14px; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
+    .pic { width: 84px; height: 84px; border-radius: 50%; background: var(--grad) center/cover; color: #fff; font-weight: 800; font-size: 1.6rem; display: grid; place-items: center; border: 3px solid #fff; box-shadow: 0 6px 18px rgba(20,18,46,.2); cursor: default; }
+    .pn { font-size: 1.05rem; } .pr { font-size: .8rem; color: var(--muted); }
+    .ci { width: 100%; margin-top: 8px; text-align: left; display: flex; flex-direction: column; gap: 6px; }
+    .cr { display: flex; gap: 8px; align-items: center; font-size: .8rem; overflow: hidden; }
+    .cr i { font-style: normal; opacity: .6; width: 16px; flex-shrink: 0; }
+    .cr a, .cr span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); text-decoration: none; }
+    .cr .nil { color: var(--muted); }
+    .pst { display: flex; gap: 6px; margin: 8px 0 4px; flex-wrap: wrap; justify-content: center; }
+    .pst span { background: #fff; border-radius: 999px; padding: 3px 10px; font-size: .72rem; font-weight: 700; }
+    .pc .field { padding: 6px 10px; font-size: .82rem; margin-top: 4px; }
+    .pc .btn { padding: 7px 14px; font-size: .8rem; }
+    @media (max-width: 960px) {
+      .tabs { width: auto; top: auto; bottom: auto; flex-direction: row; flex-wrap: wrap; margin: 4px 20px 0; }
+      .pc { width: 100%; } .ci { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -307,6 +334,7 @@
       <h1 class="crmtag">CRM</h1>
       <input id="gq" class="gq" type="search" placeholder="Search all leads…" aria-label="Global search">
       <nav class="tabs" aria-label="Sections">
+        <div id="profile" class="pc"></div>
         <button class="tab" type="button" data-tab="home" aria-current="true"><i>⌂</i>Home</button>
         <button class="tab" type="button" data-tab="leads" aria-current="false"><i>☰</i>Leads</button>
         <button class="tab" type="button" data-tab="pipeline" aria-current="false"><i>▥</i>Pipeline</button>
@@ -495,7 +523,7 @@
 
   async function enter(session) {
     const email = session.user.email || 'this account';
-    $('who').textContent = email;
+    $('who').textContent = email; userEmail = email;
     $('denied-who').textContent = email;
     const { data, error } = await sb.rpc('is_admin');
     if (error || data !== true) return show('v-denied');
@@ -539,6 +567,7 @@
   function renderAll(skipDetail) {
     if (tab === 'leads') { renderStats(); renderList(); if (!skipDetail) renderDetail(); $('v-app').classList.toggle('has-sel', !!selectedId); }
     else { $('v-app').classList.remove('has-sel'); }
+    if (!editing) renderProfile();
     if (tab === 'home') renderHome();
     if (tab === 'tasks') renderTasks();
     if (tab === 'forecast') renderForecast();
@@ -843,12 +872,13 @@
     const [t, a, c] = await Promise.all([
       sb.from('tasks').select('*').order('created_at', { ascending: false }),
       sb.from('activities').select('*').order('created_at', { ascending: false }),
-      sb.from('crm_settings').select('monthly_quota').eq('id', 1).maybeSingle()]);
+      sb.from('crm_settings').select('monthly_quota, profile').eq('id', 1).maybeSingle()]);
     const err = t.error || a.error || c.error;
     if (err) banner('Could not load tasks/activity: ' + err.message);
     tasks = (t.data || []).map(mapT); acts = {};
     (a.data || []).forEach(r => (acts[r.lead_id] = acts[r.lead_id] || []).push({ t: new Date(r.created_at).getTime(), type: r.type, text: r.body }));
     quota = Number(c.data && c.data.monthly_quota) || 0;
+    profile = (c.data && c.data.profile) || {}; if (!editing) renderProfile();
   }
   async function addTask(title, due, lead) {
     const { data, error } = await sb.from('tasks').insert({ title, due_on: due || null, lead_id: lead }).select().single();
@@ -1038,6 +1068,38 @@
   document.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && !$('v-app').hidden) { e.preventDefault(); openPalette(); } });
   $('btn-new').addEventListener('click', newLead);
   $('btn-k').addEventListener('click', openPalette);
+
+  // ---------- Profile (saved to crm_settings.profile) ----------
+  let profile = {}, userEmail = '', editing = false, draft = {};
+  function renderProfile() {
+    const el = $('profile'); if (!el) return;
+    const p = editing ? draft : profile, name = p.name || userEmail.split('@')[0] || 'Your name';
+    const pic = h('span', { class: 'pic', style: p.avatar ? 'background-image:url(' + p.avatar + ')' : false, text: p.avatar ? '' : initials(name) });
+    if (!editing) {
+      const ci = (ic, v, href) => h('div', { class: 'cr' }, h('i', { text: ic }), v ? h(href ? 'a' : 'span', { href, text: v }) : h('span', { class: 'nil', text: 'Not set' }));
+      const openN = leads.filter(l => OPEN.includes(l.status)).length, due = tasks.filter(x => !x.done && x.due && x.due <= todayStr()).length;
+      el.replaceChildren(pic, h('b', { class: 'pn', text: name }), h('span', { class: 'pr', text: profile.role || 'Add your position' }),
+        h('div', { class: 'ci' }, ci('✉', userEmail, 'mailto:' + userEmail), ci('☎', profile.phone, 'tel:' + profile.phone), ci('⚲', profile.location), ci('▣', profile.company)),
+        h('div', { class: 'pst' }, h('span', { text: openN + ' open deals' }), h('span', { text: due + ' tasks due' })),
+        h('button', { class: 'linkbtn', type: 'button', text: 'Edit profile', onclick: () => { draft = { ...profile }; editing = true; renderProfile(); } }));
+      return;
+    }
+    const file = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: e => {
+      const f = e.target.files[0]; if (!f) return; const img = new Image();
+      img.onload = () => { const c = document.createElement('canvas'); c.width = c.height = 256; const m = Math.min(img.width, img.height);
+        c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, 256, 256);
+        draft.avatar = c.toDataURL('image/jpeg', .85); URL.revokeObjectURL(img.src); renderProfile(); };
+      img.src = URL.createObjectURL(f); } });
+    const inp = (k, ph, type) => h('input', { class: 'field', type: type || 'text', placeholder: ph, value: draft[k] || '', maxlength: '80', oninput: e => { draft[k] = e.target.value; } });
+    el.replaceChildren(pic, file, h('button', { class: 'linkbtn', type: 'button', text: 'Change photo', onclick: () => file.click() }),
+      inp('name', 'Full name'), inp('role', 'Position / title'), inp('phone', 'Phone', 'tel'), inp('location', 'Location'), inp('company', 'Company'),
+      h('div', { class: 'actions', style: 'justify-content:center' },
+        h('button', { class: 'btn btn-primary', type: 'button', text: 'Save', onclick: async () => {
+          const { error } = await sb.from('crm_settings').update({ profile: draft, updated_at: new Date().toISOString() }).eq('id', 1);
+          if (error) { banner('Could not save profile: ' + error.message); return; }
+          profile = draft; editing = false; renderProfile(); } }),
+        h('button', { class: 'btn btn-ghost', type: 'button', text: 'Cancel', onclick: () => { editing = false; renderProfile(); } })));
+  }
 
   // ---------- Wiring ----------
   if (CLIENT_URL) { $('client-link').href = CLIENT_URL; $('client-link').hidden = false; }
