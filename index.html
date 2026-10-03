@@ -475,6 +475,17 @@
   const STATUSES = ['new', 'contacted', 'scheduled', 'proposal', 'won', 'lost'];
   const LABEL = { new: 'New', contacted: 'Contacted', scheduled: 'Appointment set', proposal: 'Proposal sent', won: 'Won', lost: 'Lost' };
   const OPEN = ['new', 'contacted', 'scheduled', 'proposal'];
+  // Address of your portfolio, used in reply templates (leave '' to show a placeholder)
+  const PORTFOLIO_URL = '';
+  const SOURCES = ['Website form', 'Reddit', 'Facebook', 'Instagram', 'Referral', 'Other'];
+  const LOST_REASONS = ['Price too high', 'No response', 'Chose someone else', 'Not ready yet', 'Out of scope', 'Other'];
+  const FOLLOW_DAYS = { contacted: 3, proposal: 3 }; // auto follow-up date when a lead moves to these stages
+  const SETUP_SQL = "alter table public.leads\n  add column if not exists source text not null default 'Website form',\n  add column if not exists source_detail text,\n  add column if not exists source_url text,\n  add column if not exists lost_reason text;";
+  let hasSrc = false;
+  const isRedditPh = e => /@reddit\.invalid$/i.test(e || '');
+  const redditUser = l => (l.email || '').replace(/@reddit\.invalid$/i, '');
+  const safeUrl = u => /^https?:\/\//i.test(u || '') ? u : '';
+  const addDaysStr = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString('en-CA'); };
   const $ = id => document.getElementById(id);
 
   let sb = null, leads = [], filter = 'all', query = '', range = 'all', sortDir = 'new', fromDate = '', toDate = '';
@@ -561,12 +572,15 @@
     const { data, error } = await sb.from('leads').select('*').order('created_at', { ascending: false });
     if (error) { banner('Could not load leads: ' + error.message); return; }
     leads = data || [];
+    hasSrc = leads.length ? ('source' in leads[0]) : !(await sb.from('leads').select('source').limit(1)).error;
     await loadExtras();
     if (selectedId && !leads.some(l => l.id === selectedId)) selectedId = null;
     renderAll(quiet === true);
   }
 
   async function updateLead(id, patch) {
+    const cur = leads.find(x => x.id === id);
+    if (patch.status && cur && !('follow_up_on' in patch) && !cur.follow_up_on && FOLLOW_DAYS[patch.status]) patch = { ...patch, follow_up_on: addDaysStr(FOLLOW_DAYS[patch.status]) };
     const { data, error } = await sb.from('leads').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', id).select().single();
     if (error) { banner('Could not save: ' + error.message); return null; }
     banner('');
@@ -652,7 +666,7 @@
         onclick: () => { selectedId = l.id; backTo = 'leads'; renderAll(); }
       },
         h('div', { class: 'top' }, h('span', { class: 'nm', text: l.name }), h('span', { class: 'when', text: ago(l.created_at) })),
-        h('div', { class: 'svc', text: l.service }),
+        h('div', { class: 'svc', text: l.service + (hasSrc && l.source && l.source !== 'Website form' ? ' · ' + l.source + (l.source_detail ? ' ' + l.source_detail : '') : '') }),
         l.appointment_at ? h('div', { class: 'appt', text: 'Appointment: ' + dayLabel(l.appointment_at) + ', ' + timeLabel(l.appointment_at) }) : null,
         h('div', { class: 'snip', text: l.concern }),
         h('div', { style: 'margin-top:8px' }, h('span', { class: 'pill ' + l.status, text: LABEL[l.status] || l.status }))
@@ -669,7 +683,10 @@
     const subject = 'Re: ' + l.service + ' | 404 Studio';
     const body = 'Hi ' + first + ',\n\nThanks for reaching out to 404 Studio about ' + l.service + '.\n\n\n\nBest,\n404 Studio';
     const gmail = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(l.email) + '&su=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
-    const mailto = 'mailto:' + encodeURIComponent(l.email) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    let mailto = 'mailto:' + encodeURIComponent(l.email) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    const ph = isRedditPh(l.email);
+    const redditDm = 'https://www.reddit.com/message/compose/?to=' + encodeURIComponent(redditUser(l));
+    if (ph) mailto = 'https://www.reddit.com/user/' + encodeURIComponent(redditUser(l));
 
     const pill = h('span', { class: 'pill ' + l.status, text: LABEL[l.status] || l.status });
     const statusSel = h('select', { class: 'field', id: 'd-status', 'aria-label': 'Stage' },
@@ -677,12 +694,17 @@
     const appt = h('input', { class: 'field', id: 'd-appt', type: 'datetime-local' }); appt.value = toLocalInput(l.appointment_at);
     const val = h('input', { class: 'field', id: 'd-val', type: 'number', min: '0', step: '0.01', placeholder: '0.00' }); val.value = l.deal_value == null ? '' : l.deal_value;
     const fup = h('input', { class: 'field', id: 'd-fup', type: 'date' }); fup.value = l.follow_up_on || '';
+    const srcSel = h('select', { class: 'field', id: 'd-src', 'aria-label': 'Source' }, SOURCES.map(x => h('option', { value: x, text: x, selected: x === (l.source || 'Website form') })));
+    const srcDet = h('input', { class: 'field', id: 'd-srcd', placeholder: 'r/forhire or u/username' }); srcDet.value = l.source_detail || '';
+    const srcUrl = h('input', { class: 'field', id: 'd-srcu', type: 'url', placeholder: 'https://reddit.com/r/…' }); srcUrl.value = l.source_url || '';
+    const lostSel = h('select', { class: 'field', id: 'd-lost', 'aria-label': 'Lost reason' }, [h('option', { value: '', text: '—' }), ...LOST_REASONS.map(x => h('option', { value: x, text: x, selected: x === l.lost_reason }))]);
     const notes = h('textarea', { class: 'field', id: 'd-notes', placeholder: 'Quote, what you agreed on, next step…' }); notes.value = l.notes || '';
     const saved = h('span', { class: 'saved', role: 'status' });
     const flash = msg => { saved.textContent = msg; setTimeout(() => { if (saved.textContent === msg) saved.textContent = ''; }, 2500); };
 
     statusSel.addEventListener('change', async () => {
-      if (await updateLead(l.id, { status: statusSel.value })) { pill.className = 'pill ' + l.status; pill.textContent = LABEL[l.status]; renderStats(); renderList(); flash('Stage updated'); }
+      const had = l.follow_up_on;
+      if (await updateLead(l.id, { status: statusSel.value })) { pill.className = 'pill ' + l.status; pill.textContent = LABEL[l.status]; fup.value = l.follow_up_on || ''; renderStats(); renderList(); flash(!had && l.follow_up_on ? 'Stage updated · follow-up set for ' + l.follow_up_on : 'Stage updated'); }
     });
     const saveBtn = h('button', { class: 'btn btn-primary', type: 'button', text: 'Save details', onclick: async () => {
       saveBtn.disabled = true;
@@ -692,12 +714,14 @@
         follow_up_on: fup.value || null,
         notes: notes.value
       };
-      if (await updateLead(l.id, patch)) { renderStats(); renderList(); flash('Saved'); }
+      if (hasSrc) Object.assign(patch, { source: srcSel.value, source_detail: srcDet.value.trim() || null, source_url: srcUrl.value.trim() || null, lost_reason: lostSel.value || null });
+      const hadUrl = safeUrl(l.source_url);
+      if (await updateLead(l.id, patch)) { renderStats(); renderList(); if (hasSrc && safeUrl(l.source_url) !== hadUrl) renderDetail(); else flash('Saved'); }
       saveBtn.disabled = false;
     } });
 
-    const copyBtn = h('button', { class: 'btn btn-ghost', type: 'button', text: 'Copy email', onclick: async () => {
-      try { await navigator.clipboard.writeText(l.email); flash('Email copied'); } catch (_) { flash('Copy failed'); }
+    const copyBtn = h('button', { class: 'btn btn-ghost', type: 'button', text: ph ? 'Copy username' : 'Copy email', onclick: async () => {
+      try { await navigator.clipboard.writeText(ph ? 'u/' + redditUser(l) : l.email); flash('Email copied'); } catch (_) { flash('Copy failed'); }
     } });
     const delBtn = h('button', { class: 'btn btn-danger', type: 'button', text: 'Delete lead', onclick: async () => {
       if (!confirm('Delete the lead from ' + l.name + '? This cannot be undone.')) return;
@@ -709,26 +733,104 @@
     $('detail').replaceChildren(
       h('button', { class: 'btn btn-ghost back', type: 'button', text: '← Back', onclick: () => { selectedId = null; if (backTo !== 'leads') setTab(backTo); else renderAll(); } }),
       h('div', { class: 'd-head' }, h('h2', { text: l.name }), pill),
-      h('div', { class: 'd-sub' }, h('a', { href: mailto, text: l.email }), ' · ' + l.service + ' · received ' + fmtDate(l.created_at)),
+      h('div', { class: 'd-sub' }, h('a', { href: mailto, text: ph ? 'u/' + redditUser(l) + ' (Reddit)' : l.email, target: ph ? '_blank' : null, rel: ph ? 'noopener' : null }), ' · ' + l.service + ' · received ' + fmtDate(l.created_at)),
       h('span', { class: 'label', text: 'Their message' }),
       h('div', { class: 'concern', text: l.concern }),
       h('div', { class: 'actions' },
-        h('a', { class: 'btn btn-primary', href: gmail, target: '_blank', rel: 'noopener', text: 'Reply in Gmail' }),
-        copyBtn
+        ph ? h('a', { class: 'btn btn-primary', href: redditDm, target: '_blank', rel: 'noopener', text: 'Message on Reddit' })
+           : h('a', { class: 'btn btn-primary', href: gmail, target: '_blank', rel: 'noopener', text: 'Reply in Gmail' }),
+        copyBtn,
+        safeUrl(l.source_url) ? h('a', { class: 'btn btn-ghost', href: safeUrl(l.source_url), target: '_blank', rel: 'noopener', text: 'Open original post ↗' }) : null
       ),
+      templatesCard(l),
       h('div', { class: 'grid3' },
         h('div', {}, h('label', { class: 'label', for: 'd-status', text: 'Stage' }), statusSel),
         h('div', {}, h('label', { class: 'label', for: 'd-appt', text: 'Appointment' }), appt),
         h('div', {}, h('label', { class: 'label', for: 'd-val', text: 'Deal value ($)' }), val)
       ),
       h('div', { class: 'grid3' },
-        h('div', {}, h('label', { class: 'label', for: 'd-fup', text: 'Follow up on' }), fup)
+        h('div', {}, h('label', { class: 'label', for: 'd-fup', text: 'Follow up on' }), fup),
+        hasSrc ? h('div', {}, h('label', { class: 'label', for: 'd-lost', text: 'Lost reason (if lost)' }), lostSel) : null
       ),
+      hasSrc ? h('div', { class: 'grid3' },
+        h('div', {}, h('label', { class: 'label', for: 'd-src', text: 'Lead source' }), srcSel),
+        h('div', {}, h('label', { class: 'label', for: 'd-srcd', text: 'Subreddit / username' }), srcDet),
+        h('div', {}, h('label', { class: 'label', for: 'd-srcu', text: 'Post link' }), srcUrl)
+      ) : setupNote(),
       h('label', { class: 'label', for: 'd-notes', text: 'Your notes (only you can see these)' }), notes,
       h('div', { class: 'actions' }, saveBtn, saved),
       h('div', { class: 'actions', style: 'margin-top:28px;padding-top:18px;border-top:1px solid var(--line)' }, delBtn)
     );
     enhanceDetail(l);
+  }
+
+
+  // ---------- Lead source: setup note + report cards ----------
+  const copySql = async () => { try { await navigator.clipboard.writeText(SETUP_SQL); banner('SQL copied. Paste it in Supabase > SQL Editor and click Run, then refresh this page.'); } catch (_) { banner('Copy failed. The SQL is in the README next to this file.'); } };
+  const setupNote = () => h('div', { class: 'card', style: 'margin-top:18px;padding:14px 16px' },
+    h('h3', { text: 'Turn on lead source tracking' }),
+    h('p', { class: 'sub', style: 'margin-bottom:10px', text: 'One-time database update: adds source, subreddit/username, post link and lost reason to leads. Copy the SQL, run it in Supabase > SQL Editor, then refresh.' }),
+    h('button', { class: 'btn btn-ghost', type: 'button', text: 'Copy setup SQL', onclick: copySql }));
+  function sourceCard(pool) {
+    if (!hasSrc) { const c = h('div', { class: 'card wide' }, h('h3', { text: 'Where leads come from' }), h('p', { class: 'sub', text: 'See which channels bring leads and revenue, like Reddit versus your website form.' }), h('button', { class: 'btn btn-ghost', type: 'button', text: 'Copy setup SQL', onclick: copySql })); return c; }
+    const by = {};
+    pool.forEach(l => { const k = l.source || 'Website form'; const o = by[k] = by[k] || { n: 0, won: 0, rev: 0 }; o.n++; if (l.status === 'won') { o.won++; o.rev += Number(l.deal_value) || 0; } });
+    const rows = Object.entries(by).sort((a, b) => b[1].n - a[1].n);
+    const best = rows.filter(r => r[1].rev > 0).sort((a, b) => b[1].rev - a[1].rev)[0];
+    const c = card('Where leads come from', 'Leads per source, with wins and won revenue',
+      best ? h('p', { class: 'insight', text: 'Best earner: ' + best[0] + ' (' + money(best[1].rev) + ')' }) : null,
+      rows.length ? rowChart(rows.map(([k, o]) => ({ label: k, value: o.n }))) : h('div', { class: 'empty', text: 'No leads in this period.' }),
+      ...rows.map(([k, o]) => h('p', { class: 'sub', style: 'margin:8px 0 0', text: k + ': ' + o.n + (o.n === 1 ? ' lead' : ' leads') + ' · ' + o.won + ' won · ' + money(o.rev) + ' won revenue' + (o.n ? ' · ' + Math.round(o.won / o.n * 100) + '% of leads won' : '') })));
+    c.classList.add('wide'); return c;
+  }
+  function lostCard(lost) {
+    const by = {}; lost.forEach(l => { const k = l.lost_reason || 'No reason recorded'; by[k] = (by[k] || 0) + 1; });
+    const items = Object.entries(by).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value }));
+    return card('Why leads were lost', 'Reasons you recorded on lost leads', items.length ? rowChart(items) : h('div', { class: 'empty', text: 'No lost leads in this period.' }));
+  }
+
+  // ---------- Reply templates (saved in this browser) ----------
+  const TPL_KEY = 'orchid_reply_templates';
+  const DEFAULT_TPLS = [
+    { t: 'Reddit: first DM', b: "Hi {first}, saw your post and I'd love to help with {service}. I run 404 Studio, a small studio that builds fast, clean websites. Could you tell me a bit about your goals and timeline? Here's my work: {portfolio}" },
+    { t: 'Reddit: public comment', b: "This is right up my alley. Sending you a DM with a few ideas and some examples of similar work." },
+    { t: 'Send portfolio + next step', b: "Hi {first}, thanks for getting back to me. You can see samples of my work here: {portfolio}\\n\\nIf anything looks close to what you want, tell me which one and I'll send a quote for {service}." },
+    { t: 'Follow-up (3 days)', b: "Hi {first}, just checking in about {service}. Still interested? Happy to answer any questions or jump on a quick call." },
+    { t: 'Polite close', b: "Hi {first}, I'll close this out for now so I don't keep bugging you. If {service} comes back on your list, message me anytime." }
+  ];
+  const loadTpls = () => { try { const v = JSON.parse(localStorage.getItem(TPL_KEY)); if (Array.isArray(v) && v.length) return v; } catch (_) {} return DEFAULT_TPLS.map(x => ({ ...x })); };
+  const saveTpls = v => { try { localStorage.setItem(TPL_KEY, JSON.stringify(v)); } catch (_) {} };
+  const fillTpl = (b, l) => b.replace(/\{first\}/g, (l.name || '').trim().split(/\s+/)[0] || 'there').replace(/\{name\}/g, l.name || '').replace(/\{service\}/g, l.service || 'your project').replace(/\{portfolio\}/g, PORTFOLIO_URL || '[your portfolio link]');
+  function templatesCard(l) {
+    let tpls = loadTpls();
+    const sel = h('select', { class: 'field', 'aria-label': 'Reply template' });
+    const box = h('textarea', { class: 'field', style: 'min-height:96px', 'aria-label': 'Reply text' });
+    const msg = h('span', { class: 'saved', role: 'status' });
+    const fillSel = () => { sel.replaceChildren(...tpls.map((x, i) => h('option', { value: String(i), text: x.t }))); box.value = tpls[0] ? fillTpl(tpls[0].b, l) : ''; };
+    sel.addEventListener('change', () => { const x = tpls[Number(sel.value)]; box.value = x ? fillTpl(x.b, l) : ''; });
+    fillSel();
+    const copy = h('button', { class: 'btn btn-primary', type: 'button', text: 'Copy reply', onclick: async () => { try { await navigator.clipboard.writeText(box.value); msg.textContent = 'Copied'; } catch (_) { msg.textContent = 'Copy failed'; } setTimeout(() => { msg.textContent = ''; }, 2000); } });
+    const edit = h('button', { class: 'btn btn-ghost', type: 'button', text: 'Edit templates', onclick: () => editTpls(() => { tpls = loadTpls(); fillSel(); }) });
+    return h('div', { class: 'card', style: 'margin-top:18px;padding:14px 16px' }, h('h3', { text: 'Reply templates' }),
+      h('p', { class: 'sub', style: 'margin-bottom:10px', text: 'Pick one, tweak the text, copy it. {first}, {service} and {portfolio} fill in automatically.' }),
+      h('div', { class: 'mrow' }, sel), box, h('div', { class: 'actions' }, copy, edit, msg));
+  }
+  function editTpls(done) {
+    let tpls = loadTpls();
+    const wrap = h('div', { style: 'max-height:60vh;overflow:auto' });
+    const draw = () => wrap.replaceChildren(...tpls.map((x, i) => h('div', { style: 'margin-top:12px' },
+      h('div', { class: 'mrow' },
+        h('input', { class: 'field', value: x.t, 'aria-label': 'Template name', oninput: e => { tpls[i].t = e.target.value; } }),
+        h('button', { class: 'btn btn-danger', type: 'button', text: 'Delete', onclick: () => { tpls.splice(i, 1); draw(); } })),
+      h('textarea', { class: 'field', style: 'min-height:84px', 'aria-label': 'Template text', oninput: e => { tpls[i].b = e.target.value; } }, x.b))));
+    draw();
+    const ov = overlay(h('div', { class: 'pbox', style: 'padding:22px;width:min(620px,94vw)' }, h('h3', { text: 'Edit reply templates' }),
+      h('p', { class: 'sub', text: 'Saved in this browser only. Use {first}, {name}, {service} and {portfolio}.' }), wrap,
+      h('div', { class: 'actions' },
+        h('button', { class: 'btn btn-primary', type: 'button', text: 'Save', onclick: () => { saveTpls(tpls.filter(x => x.t.trim() && x.b.trim())); ov.remove(); done(); } }),
+        h('button', { class: 'btn btn-ghost', type: 'button', text: 'Add template', onclick: () => { tpls.push({ t: 'New template', b: 'Hi {first}, ' }); draw(); } }),
+        h('button', { class: 'btn btn-ghost', type: 'button', text: 'Reset to defaults', onclick: () => { if (confirm('Replace all templates with the defaults?')) { tpls = DEFAULT_TPLS.map(y => ({ ...y })); draw(); } } }),
+        h('button', { class: 'btn btn-ghost', type: 'button', text: 'Cancel', onclick: () => ov.remove() }))));
   }
 
   // ---------- Export ----------
@@ -739,11 +841,11 @@
       if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // stop spreadsheet formula injection
       return '"' + s.replace(/"/g, '""') + '"';
     };
-    const head = ['Received', 'Name', 'Email', 'Service', 'Stage', 'Appointment', 'Deal value', 'Follow up on', 'Message', 'Notes'];
+    const head = ['Received', 'Name', 'Email', 'Service', 'Stage', 'Appointment', 'Deal value', 'Follow up on', 'Message', 'Notes'].concat(hasSrc ? ['Source', 'Source detail', 'Source link', 'Lost reason'] : []);
     const lines = [head.map(safe).join(',')].concat(rows.map(l => [
       fmtDate(l.created_at), l.name, l.email, l.service, LABEL[l.status] || l.status,
       l.appointment_at ? fmtDate(l.appointment_at) : '', l.deal_value == null ? '' : l.deal_value, l.follow_up_on || '', l.concern, l.notes || ''
-    ].map(safe).join(',')));
+    ].concat(hasSrc ? [l.source, l.source_detail, l.source_url, l.lost_reason] : []).map(safe).join(',')));
     const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
     const a = h('a', { href: URL.createObjectURL(blob), download: '404studio-leads-' + todayStr() + '.csv' });
     document.body.append(a); a.click(); a.remove();
@@ -885,6 +987,8 @@
         ap.length ? [h('p', { class: 'insight', text: 'Most popular time: ' + hourLabel(peakHour) + ' (' + byHour[peakHour] + ')' }), colChart(hours)] : none),
       card('Busiest days', 'Which days of the week customers book',
         ap.length ? [h('p', { class: 'insight', text: 'Most popular day: ' + ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][peakDow] + ' (' + byDow[peakDow] + ')' }), colChart(days)] : none),
+      sourceCard(pool),
+      hasSrc ? lostCard(lost) : '',
       (() => { const c = card('What customers ask for', 'The services and packages people choose, most popular first', svc.length ? rowChart(svc) : h('div', { class: 'empty', text: 'No leads in this period.' })); c.classList.add('wide'); return c; })()
     );
   }
@@ -1085,7 +1189,7 @@
     draw();
     const mail = d.querySelector('.d-sub a'), rb = (t, tl2, fn) => h('button', { type: 'button', class: 'rb', title: tl2, text: t, onclick: fn });
     d.querySelector('.d-head').before(h('div', { class: 'prof' }, h('span', { class: 'av big', text: initials(l.name) }), h('div', { class: 'rbs' },
-      h('a', { class: 'rb', href: mail.href, title: 'Email', text: '✉' }), rb('⧉', 'Copy email', () => navigator.clipboard.writeText(l.email).catch(() => {})),
+      h('a', { class: 'rb', href: mail.href, title: 'Email', text: '✉' }), rb('⧉', 'Copy email', () => navigator.clipboard.writeText(isRedditPh(l.email) ? 'u/' + redditUser(l) : l.email).catch(() => {})),
       rb('▦', 'Set appointment', () => $('d-appt').focus()), rb('✓', 'Add task', () => tt.focus()))));
     d.lastElementChild.before(h('div', { class: 'panel2' },
       h('div', { class: 'card' }, h('h3', { text: 'Activity' }), h('div', { class: 'mrow', style: 'margin-top:10px' }, type, txt, logBtn), tl),
@@ -1138,9 +1242,19 @@
   function newLead() {
     const f = { name: h('input', { class: 'field', placeholder: 'Name' }), email: h('input', { class: 'field', type: 'email', placeholder: 'Email' }), service: h('input', { class: 'field', placeholder: 'Service' }), concern: h('textarea', { class: 'field', placeholder: 'What do they need? (10+ characters)' }) };
     const err = h('div', { class: 'err' });
-    const ov = overlay(h('div', { class: 'pbox', style: 'padding:22px' }, h('h3', { text: 'New lead' }), ...Object.values(f).map(x => h('div', { style: 'margin-top:10px' }, x)), err,
+    if (hasSrc) f.email.placeholder = 'Email (optional for Reddit leads)';
+    const x = { url: h('input', { class: 'field', type: 'url', placeholder: 'Paste Reddit post link (optional)' }), src: h('select', { class: 'field', 'aria-label': 'Source' }, SOURCES.map(o => h('option', { value: o, text: o }))), det: h('input', { class: 'field', placeholder: 'Subreddit / username, e.g. u/jane' }) };
+    x.src.value = 'Website form';
+    x.url.addEventListener('input', () => { const m = x.url.value.match(/reddit\.com\/r\/([A-Za-z0-9_]+)/i); if (m) { x.src.value = 'Reddit'; if (!x.det.value.trim()) x.det.value = 'r/' + m[1]; } });
+    const ov = overlay(h('div', { class: 'pbox', style: 'padding:22px' }, h('h3', { text: 'New lead' }), ...Object.values(f).map(y => h('div', { style: 'margin-top:10px' }, y)),
+      ...(hasSrc ? [h('div', { style: 'margin-top:10px' }, x.url), h('div', { class: 'mrow', style: 'margin-top:10px;margin-bottom:0' }, x.src, x.det)] : []), err,
       h('div', { class: 'actions' }, h('button', { class: 'btn btn-primary', type: 'button', text: 'Create lead', onclick: async () => {
         const row = {}; for (const k in f) row[k] = f[k].value.trim();
+        if (hasSrc) {
+          const un = x.det.value.trim().replace(/^\/?u\//i, '');
+          if (!row.email && x.src.value === 'Reddit' && /^[A-Za-z0-9_-]{3,20}$/.test(un)) row.email = un + '@reddit.invalid';
+          Object.assign(row, { source: x.src.value, source_detail: x.det.value.trim() || null, source_url: x.url.value.trim() || null });
+        }
         const { data, error } = await sb.from('leads').insert(row).select().single();
         if (error) { err.textContent = error.message; return; }
         ov.remove(); leads.unshift(data); openLead(data.id);
