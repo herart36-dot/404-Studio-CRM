@@ -208,6 +208,24 @@
     .panel2 .card { padding: 14px 16px; }
     .mrow { display: flex; gap: 6px; margin-bottom: 10px; }
     .mrow .field { padding: 7px 10px; }
+    .em-list { display: flex; flex-direction: column; }
+    .em-row { display: flex; gap: 10px; align-items: flex-start; width: 100%; padding: 10px 12px; border: 0; border-bottom: 1px solid var(--line); background: none; font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
+    .em-row:hover, .em-row.sel { background: rgba(99,102,241,.07); }
+    .em-row .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex: none; background: transparent; }
+    .em-row.unread .dot { background: var(--brand); }
+    .em-row.unread b { font-weight: 800; }
+    .em-row .em-main { min-width: 0; flex: 1; }
+    .em-row .em-top { display: flex; justify-content: space-between; gap: 8px; font-size: .86rem; }
+    .em-row .em-sub { font-size: .82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .em-row small { color: var(--muted); font-size: .74rem; white-space: nowrap; }
+    .em-split { display: grid; grid-template-columns: minmax(240px, 380px) 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 800px) { .em-split { grid-template-columns: 1fr; } }
+    .em-body { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: .9rem; margin: 12px 0 0; max-height: 60vh; overflow-y: auto; }
+    .em-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+    .em-lead details { border-bottom: 1px solid var(--line); padding: 8px 0; font-size: .84rem; }
+    .em-lead summary { cursor: pointer; }
+    .em-lead small { color: var(--muted); }
+    .tab .nbadge { margin-left: 4px; background: var(--brand); color: #fff; border-radius: 99px; font-size: .62rem; padding: 1px 6px; font-style: normal; }
     .tl { border-left: 2px solid var(--line); margin-left: 6px; padding-left: 12px; max-height: 220px; overflow-y: auto; }
     .tl div { font-size: .84rem; margin-bottom: 8px; overflow-wrap: anywhere; }
     .tl small { display: block; color: var(--muted); font-size: .72rem; }
@@ -356,6 +374,7 @@
         <div id="profile" class="pc"></div>
         <button class="tab" type="button" data-tab="home" aria-current="true"><i>⌂</i>Home</button>
         <button class="tab" type="button" data-tab="leads" aria-current="false"><i>☰</i>Leads</button>
+        <button class="tab" type="button" data-tab="inbox" aria-current="false"><i>✉</i>Inbox<span class="nbadge" id="inbox-n" hidden></span></button>
         <button class="tab" type="button" data-tab="pipeline" aria-current="false"><i>▥</i>Pipeline</button>
         <button class="tab" type="button" data-tab="calendar" aria-current="false"><i>▦</i>Calendar</button>
         <button class="tab" type="button" data-tab="tasks" aria-current="false"><i>✓</i>Tasks</button>
@@ -451,6 +470,10 @@
       <div class="reports" id="reports"></div>
     </div>
 
+    <div class="view" id="view-inbox" hidden>
+      <div class="view-head"><h2>Inbox</h2><p>Emails sent to keandonato@404studio.click. Matched to leads by email address.</p></div>
+      <div id="inbox"></div>
+    </div>
     <div class="view" id="view-tasks" hidden>
       <div class="view-head"><h2>Tasks</h2><p>To-dos linked to your leads. Synced across your devices.</p></div>
       <div class="card" id="taskbox"></div>
@@ -593,7 +616,7 @@
   function setTab(t) {
     tab = t;
     document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'true' : 'false'));
-    ['home', 'leads', 'pipeline', 'calendar', 'tasks', 'forecast', 'websites', 'reports'].forEach(v => { $('view-' + v).hidden = v !== t; });
+    ['home', 'leads', 'inbox', 'pipeline', 'calendar', 'tasks', 'forecast', 'websites', 'reports'].forEach(v => { $('view-' + v).hidden = v !== t; });
     renderAll();
   }
   function openLead(id) {
@@ -610,6 +633,8 @@
     if (tab === 'tasks') renderTasks();
     if (tab === 'forecast') renderForecast();
     if (tab === 'websites') renderWebsites();
+    if (tab === 'inbox') renderInbox();
+    updateInboxBadge();
     if (tab === 'pipeline') renderBoard();
     if (tab === 'calendar') renderCalendar();
     if (tab === 'reports') renderReports();
@@ -1009,6 +1034,7 @@
     (a.data || []).forEach(r => (acts[r.lead_id] = acts[r.lead_id] || []).push({ t: new Date(r.created_at).getTime(), type: r.type, text: r.body }));
     quota = Number(c.data && c.data.monthly_quota) || 0;
     profile = (c.data && c.data.profile) || {}; if (!editing) renderProfile();
+    await loadEmails();
   }
   async function addTask(title, due, lead) {
     const { data, error } = await sb.from('tasks').insert({ title, due_on: due || null, lead_id: lead }).select().single();
@@ -1166,6 +1192,70 @@
       h('div', { class: 'label', text: 'Monthly quota' }), q);
   }
 
+  // ---------- Email (Supabase: emails table, filled from the Titan mailbox) ----------
+  let emails = [], openEmailId = null;
+  async function loadEmails() {
+    const { data, error } = await sb.from('emails')
+      .select('id,received_at,lead_id,direction,from_email,from_name,to_email,subject,body_text,is_read')
+      .order('received_at', { ascending: false }).limit(300);
+    emails = error ? [] : (data || []);
+  }
+  const unreadCount = () => emails.filter(e => e.direction === 'in' && !e.is_read).length;
+  function updateInboxBadge() {
+    const n = unreadCount(), b = $('inbox-n');
+    b.textContent = n > 99 ? '99+' : String(n); b.hidden = !n;
+  }
+  async function markRead(e) {
+    if (e.is_read || e.direction !== 'in') return;
+    e.is_read = true; updateInboxBadge();
+    const { error } = await sb.from('emails').update({ is_read: true }).eq('id', e.id);
+    if (error) { e.is_read = false; updateInboxBadge(); }
+  }
+  const emailWho = e => e.direction === 'in' ? (e.from_name || e.from_email) : 'To: ' + e.to_email;
+  const snippet = t => (t || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+  const replyHref = e => 'mailto:' + encodeURIComponent(e.direction === 'in' ? e.from_email : e.to_email).replace('%40', '@') + '?subject=' + encodeURIComponent(/^re:/i.test(e.subject) ? e.subject : 'Re: ' + e.subject);
+  function emailPane(e) {
+    const lead = e.lead_id && leads.find(l => l.id === e.lead_id);
+    return h('div', { class: 'card' },
+      h('h3', { text: e.subject || '(no subject)' }),
+      h('div', { class: 'sub', text: (e.direction === 'in' ? 'From ' + (e.from_name ? e.from_name + ' <' + e.from_email + '>' : e.from_email) : 'To ' + e.to_email) + ' · ' + fmtDate(e.received_at) }),
+      h('div', { class: 'em-head' },
+        h('a', { class: 'btn btn-primary', href: replyHref(e), text: 'Reply' }),
+        lead ? h('button', { class: 'btn btn-ghost', type: 'button', text: 'Open lead: ' + lead.name, onclick: () => openLead(lead.id) }) : h('small', { style: 'color:var(--muted)', text: 'No matching lead' })),
+      h('pre', { class: 'em-body', text: e.body_text || '(empty message)' }));
+  }
+  function renderInbox() {
+    const box = $('inbox');
+    if (!emails.length) { box.replaceChildren(h('div', { class: 'card' }, nothing('No emails yet. Once your Titan mailbox is connected, incoming messages appear here.'))); return; }
+    const pane = h('div');
+    const rows = emails.map(e => {
+      const row = h('button', { type: 'button', class: 'em-row' + (e.direction === 'in' && !e.is_read ? ' unread' : '') + (e.id === openEmailId ? ' sel' : '') },
+        h('span', { class: 'dot' }),
+        h('span', { class: 'em-main' },
+          h('span', { class: 'em-top' }, h('b', { text: emailWho(e) }), h('small', { text: ago(e.received_at) })),
+          h('span', { class: 'em-sub', text: (e.subject || '(no subject)') + ' — ' + snippet(e.body_text) })));
+      row.addEventListener('click', () => {
+        openEmailId = e.id; markRead(e);
+        rows.forEach(r => r.classList.remove('sel')); row.classList.add('sel'); row.classList.remove('unread');
+        pane.replaceChildren(emailPane(e));
+      });
+      return row;
+    });
+    const cur = emails.find(e => e.id === openEmailId);
+    if (cur) pane.replaceChildren(emailPane(cur)); else pane.replaceChildren(h('div', { class: 'card' }, nothing('Select a message to read it.')));
+    box.replaceChildren(h('div', { class: 'em-split' }, h('div', { class: 'card', style: 'padding:0;overflow:hidden' }, h('div', { class: 'em-list' }, rows)), pane));
+  }
+  function leadEmailCard(l) {
+    const mine = emails.filter(e => e.lead_id === l.id);
+    return h('div', { class: 'card em-lead' }, h('h3', { text: 'Emails' + (mine.length ? ' (' + mine.length + ')' : '') }),
+      ...(mine.length ? mine.map(e => {
+        const det = h('details', {}, h('summary', {}, h('b', { text: (e.direction === 'in' ? '← ' : '→ ') + (e.subject || '(no subject)') }), ' ', h('small', { text: fmtDate(e.received_at) })),
+          h('pre', { class: 'em-body', style: 'max-height:240px', text: e.body_text || '(empty message)' }));
+        det.addEventListener('toggle', () => { if (det.open) markRead(e); });
+        return det;
+      }) : [nothing('No emails with this lead yet.')]));
+  }
+
   function enhanceDetail(l) {
     const d = $('detail'), sc = score(l), idx = STATUSES.indexOf(l.status);
     d.querySelector('.d-head').append(h('span', { class: 'pill ' + scoreCls(sc), title: 'Based on stage, appointment, deal value and recent activity', text: 'Score ' + sc }));
@@ -1194,6 +1284,7 @@
     d.lastElementChild.before(h('div', { class: 'panel2' },
       h('div', { class: 'card' }, h('h3', { text: 'Activity' }), h('div', { class: 'mrow', style: 'margin-top:10px' }, type, txt, logBtn), tl),
       h('div', { class: 'card' }, h('h3', { text: 'Tasks' }), h('div', { class: 'mrow', style: 'margin-top:10px' }, tt, td, addT), tkl)));
+    d.lastElementChild.before(h('div', { class: 'panel2', style: 'margin-top:14px;grid-template-columns:1fr' }, leadEmailCard(l)));
   }
 
   $('gq').addEventListener('input', e => {
@@ -1265,7 +1356,7 @@
     const inp = h('input', { class: 'field', placeholder: 'Jump to a page, action or lead…' }), list = h('div', { class: 'pl' }); let sel = 0;
     const ov = overlay(h('div', { class: 'pbox' }, inp, list));
     const items = () => { const q = inp.value.toLowerCase();
-      return [...['home', 'leads', 'pipeline', 'calendar', 'tasks', 'forecast', 'reports'].map(t => ({ t: 'Go to ' + t[0].toUpperCase() + t.slice(1), f: () => { selectedId = null; setTab(t); } })),
+      return [...['home', 'leads', 'inbox', 'pipeline', 'calendar', 'tasks', 'forecast', 'reports'].map(t => ({ t: 'Go to ' + t[0].toUpperCase() + t.slice(1), f: () => { selectedId = null; setTab(t); } })),
         { t: 'New lead', f: newLead }, { t: 'Refresh data', f: () => loadLeads() }, { t: 'Export leads CSV', f: exportCsv },
         ...leads.map(l => ({ t: l.name + ' · ' + l.service, f: () => openLead(l.id) }))].filter(x => x.t.toLowerCase().includes(q)).slice(0, 8); };
     const draw = () => { const it = items(); sel = Math.max(0, Math.min(sel, it.length - 1));
