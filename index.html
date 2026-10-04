@@ -612,7 +612,7 @@
         <button class="tab sec" type="button" data-tab="websites" aria-current="false"><i>◍</i>Websites</button>
         <button class="tab sec" type="button" data-tab="reports" aria-current="false"><i>▤</i>Reports</button>
         <button class="tab" type="button" data-tab="chat" aria-current="false"><i>✦</i>Chat</button>
-        <button class="tab sec" type="button" data-tab="students" aria-current="false"><i>☺</i>Students</button>
+        <button class="tab sec" type="button" data-tab="students" aria-current="false"><i>☺</i>Members</button>
         <button class="tab sec" type="button" data-tab="help" aria-current="false"><i>?</i>Guide</button>
         <button class="tab more" type="button" data-tab="more" aria-current="false"><i>⋯</i>More</button>
       </nav>
@@ -732,7 +732,7 @@
     </div>
 
     <div class="view" id="view-students" hidden>
-      <div class="view-head"><h2>Students</h2><p>Only you (admin) can edit a student's profile and photo. Students see theirs read-only.</p></div>
+      <div class="view-head"><h2>Members</h2><p>Everyone in your organization. Only you can add people and edit profiles and photos; students see theirs read-only.</p></div>
       <div class="card" id="students-box"></div>
     </div>
 
@@ -762,6 +762,7 @@
           <dt>Websites</dt><dd>Tracks each client site from request to launch.</dd>
           <dt>Chat</dt><dd>Live chat with your student: a General room and private messages.</dd>
           <dt>Reports</dt><dd>Charts and totals. Use the period dropdown to change the date range.</dd>
+          <dt>Members</dt><dd>Everyone in your organization. Add a student by their Google email, message them, edit their profile and photo, or remove them.</dd>
         </dl>
         <h3>Leads tab</h3>
         <dl>
@@ -918,6 +919,7 @@
     if (p.error || m.error) { el.querySelector('.hc-msgs').innerHTML = '<p class="hc-err">Could not load chat: ' + esc((p.error || m.error).message) + '</p>'; return; }
     C.people = {}; (p.data || []).forEach(x => { C.people[x.id] = x; });
     C.msgs = (m.data || []).slice().reverse();
+    if (C.want && C.people[C.want]) C.peer = C.want; C.want = null;
     drawPeople(); drawMsgs();
     el.querySelector('.hc-btn').addEventListener('click', send);
     el.querySelector('.hc-in').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
@@ -1139,7 +1141,7 @@
     leave,
     student: { enter: studentEnter },
     sheet,
-    chat: { mount: chatMount, unmount: chatUnmount }
+    chat: { mount: chatMount, unmount: chatUnmount, open: id => { C.want = id; } }
   };
 })();
 </script>
@@ -1284,14 +1286,36 @@
   async function renderStudents() {
     const box = $('students-box'); if (!box || stuBusy) return;
     if (stuDraft) return drawStuForm(box);
-    box.replaceChildren(h('p', { class: 'sub', text: 'Loading students…' }));
-    const { data, error } = await sb.from('profiles').select('*').neq('id', hubUser.id).order('name');
-    if (error) { box.replaceChildren(h('p', { class: 'err', text: 'Could not load students: ' + error.message })); return; }
-    const av = p => { const im = safeImg(p.avatar); return h('span', { class: 'pic', style: im ? 'background-image:url("' + im + '")' : false, text: im ? '' : initials(p.name || 'S') }); };
-    box.replaceChildren(...((data || []).map(p => h('div', { class: 'stu' }, av(p),
-      h('span', { class: 'n' }, h('b', { text: p.name || 'Student' }), h('small', { text: [p.course, p.year, p.school].filter(Boolean).join(' · ') || 'No details yet' })),
-      h('button', { class: 'btn btn-ghost', type: 'button', text: 'Edit', onclick: () => { stuDraft = { ...p }; renderStudents(); } })))),
-      ...(data && data.length ? [] : [h('p', { class: 'sub', text: 'No students yet. A student appears here after you add them and they sign in once.' })]));
+    box.replaceChildren(h('p', { class: 'sub', text: 'Loading members…' }));
+    const [mr, ir] = await Promise.all([sb.rpc('admin_members'), sb.rpc('admin_invites')]);
+    if (mr.error) { box.replaceChildren(h('p', { class: 'err', text: 'Could not load members: ' + mr.error.message })); return; }
+    const av = p => { const im = safeImg(p.avatar); return h('span', { class: 'pic', style: im ? 'background-image:url("' + im + '")' : false, text: im ? '' : initials(p.name || p.email || 'S') }); };
+    const msg = h('p', { class: 'sub', text: '' });
+    const say = (t, bad) => { msg.textContent = t; msg.style.color = bad ? '#be123c' : '#047857'; };
+    const em = h('input', { class: 'field', type: 'email', placeholder: 'student@gmail.com (the Google account they sign in with)', maxlength: '320', style: 'flex:1;min-width:220px' });
+    const add = h('div', { class: 'mrow' }, em, h('button', { class: 'btn btn-primary', type: 'button', text: 'Add student', onclick: async () => {
+      if (!em.value.trim()) return; const { data, error } = await sb.rpc('admin_add_student', { p_email: em.value.trim() });
+      if (error) { say('Could not add: ' + error.message, true); return; }
+      if (data === 'invited') say('Invited. They get student access automatically the first time they sign in with that Google account.');
+      else if (data === 'already_admin') say('That account is already an admin.', true); else say('Added. They can now open the student workspace.');
+      if (data !== 'already_admin') { em.value = ''; setTimeout(renderStudents, 900); } } }));
+    const ago = d => d ? new Date(d).toLocaleDateString() : 'never';
+    const rows = (mr.data || []).map(m => {
+      const isMe = m.id === hubUser.id, adm = m.member_role === 'admin', acts = [];
+      if (!isMe) acts.push(h('button', { class: 'btn btn-ghost', type: 'button', text: '✎ Message', onclick: () => { Hub.chat.open(m.id); setTab('chat'); } }));
+      if (!adm) {
+        acts.push(h('button', { class: 'btn btn-ghost', type: 'button', text: 'Edit', onclick: () => { stuDraft = { ...m }; renderStudents(); } }));
+        acts.push(h('button', { class: 'btn btn-danger', type: 'button', text: 'Remove', onclick: async () => {
+          if (!confirm('Remove ' + (m.name || m.email) + ' from the organization? They lose access immediately. Their chat history is kept.')) return;
+          const { error } = await sb.rpc('admin_remove_student', { p_user: m.id }); if (error) say('Could not remove: ' + error.message, true); else renderStudents(); } }));
+      }
+      return h('div', { class: 'stu' }, av(m),
+        h('span', { class: 'n' }, h('b', { text: (m.name || m.email) + (isMe ? ' (you)' : '') + (adm ? ' · Admin' : '') }), h('small', { text: m.email + ' · ' + ([m.course, m.year, m.school].filter(Boolean).join(' · ') || (adm ? (m.role || 'Admin') : 'No details yet')) + ' · last seen ' + ago(m.last_sign_in_at) })),
+        ...acts); });
+    const inv = (ir.data || []).map(i => h('div', { class: 'stu' }, h('span', { class: 'n' }, h('b', { text: i.email }), h('small', { text: 'Invited · waiting for first sign-in' })),
+      h('button', { class: 'btn btn-ghost', type: 'button', text: 'Cancel invite', onclick: async () => { await sb.rpc('admin_cancel_invite', { p_email: i.email }); renderStudents(); } })));
+    box.replaceChildren(h('h3', { text: 'Add a student' }), add, msg, h('h3', { text: 'Members (' + (mr.data || []).length + ')' }), ...rows,
+      ...(inv.length ? [h('h3', { style: 'margin-top:16px', text: 'Pending invites' }), ...inv] : []));
   }
   function drawStuForm(box) {
     const d = stuDraft, im = safeImg(d.avatar);
