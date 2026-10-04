@@ -450,6 +450,8 @@
     .hc { display: grid; grid-template-columns: 220px 1fr; gap: 12px; height: calc(100vh - 230px); min-height: 380px; }
     .hc-people, .hc-win { background: #fff; border: 1px solid var(--line, #dddbda); border-radius: 4px; box-shadow: 0 2px 2px rgba(0,0,0,.1); }
     .hc-people { overflow: auto; padding: 8px; }
+    .hc-search { width: 100%; padding: 8px 10px; margin-bottom: 6px; border: 1px solid var(--line, #dddbda); border-radius: 4px; background: #fff; color: inherit; }
+    .hc-people button small { display: block; font-weight: 400; color: #64748b; font-size: .72rem; }
     .hc-people button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 9px; border-radius: 4px; cursor: pointer; font-weight: 600; color: inherit; }
     .hc-people button.on, .hc-people button:hover { background: #eef4ff; }
     .hc-win { display: flex; flex-direction: column; overflow: hidden; }
@@ -465,7 +467,8 @@
     .hc-err { color: #be123c; font-size: .85rem; margin: 0; padding: 6px 14px; }
     @media (max-width: 800px) {
       .hc { grid-template-columns: 1fr; height: auto; }
-      .hc-people { display: flex; overflow-x: auto; }
+      .hc-people { overflow: visible; }
+      .hc-plist { display: flex; overflow-x: auto; }
       .hc-people button { width: auto; white-space: nowrap; }
       .hc-win { height: 60vh; }
     }
@@ -714,7 +717,7 @@
   }
 
   /* ---------- shared chat ---------- */
-  const C = { el: null, me: null, people: {}, msgs: [], peer: null, chan: null, poll: null, gen: 0 };
+  const C = { el: null, me: null, people: {}, msgs: [], peer: null, chan: null, poll: null, gen: 0, q: '' };
   const nameOf = id => (C.people[id] && C.people[id].name) || 'Student';
 
   function chatUnmount() {
@@ -722,7 +725,7 @@
     if (C.chan && sb) { try { sb.removeChannel(C.chan); } catch (e) { /* ignore */ } }
     clearInterval(C.poll);
     if (C.el) C.el.innerHTML = '';
-    C.chan = null; C.poll = null; C.el = null; C.people = {}; C.msgs = []; C.peer = null;
+    C.chan = null; C.poll = null; C.el = null; C.people = {}; C.msgs = []; C.peer = null; C.q = '';
   }
 
   function chatError(text) {
@@ -731,11 +734,19 @@
   }
 
   function drawPeople() {
-    const box = C.el && C.el.querySelector('.hc-people'); if (!box) return;
-    const list = Object.values(C.people).filter(p => p.id !== C.me.id);
-    box.innerHTML = '<button type="button" data-p="" class="' + (!C.peer ? 'on' : '') + '"># General</button>'
-      + list.map(p => '<button type="button" data-p="' + esc(p.id) + '" class="' + (C.peer === p.id ? 'on' : '') + '">' + esc(p.name || 'Student') + '</button>').join('')
-      + (list.length ? '' : '<p class="hc-note" style="padding:8px">The other person appears here after they open Orchid once.</p>');
+    const box = C.el && C.el.querySelector('.hc-plist'); if (!box) return;
+    const all = Object.values(C.people).filter(p => p.id !== C.me.id);
+    const k = C.q.trim().toLowerCase();
+    const hit = p => [p.name, p.school, p.course, p.year].some(v => String(v || '').toLowerCase().includes(k));
+    const list = k ? all.filter(hit) : all;
+    const showGeneral = !k || 'general'.includes(k);
+    const sub = p => [p.course, p.school].filter(Boolean).join(' \u00B7 ');
+    let html = showGeneral ? '<button type="button" data-p="" class="' + (!C.peer ? 'on' : '') + '"># General</button>' : '';
+    html += list.map(p => '<button type="button" data-p="' + esc(p.id) + '" class="' + (C.peer === p.id ? 'on' : '') + '">' + esc(p.name || 'Student')
+      + (sub(p) ? '<small>' + esc(sub(p)) + '</small>' : '') + '</button>').join('');
+    if (k && !list.length) html += '<p class="hc-note" style="padding:8px">No one found for \u201C' + esc(C.q.trim()) + '\u201D. People appear here after they open Orchid once.</p>';
+    else if (!k && !all.length) html += '<p class="hc-note" style="padding:8px">The other person appears here after they open Orchid once.</p>';
+    box.innerHTML = html;
   }
 
   function drawMsgs() {
@@ -775,9 +786,11 @@
       sb.from('profiles').select('*'),
       sb.from('messages').select('*').order('created_at', { ascending: false }).limit(300)]);
     if (gen !== C.gen || p.error || m.error) return;
+    const before = C.msgs.length + ':' + (C.msgs.length ? C.msgs[C.msgs.length - 1].id : 0) + ':' + Object.keys(C.people).length;
     (p.data || []).forEach(x => { C.people[x.id] = x; });
     C.msgs = (m.data || []).slice().reverse();
-    drawPeople(); drawMsgs();
+    const after = C.msgs.length + ':' + (C.msgs.length ? C.msgs[C.msgs.length - 1].id : 0) + ':' + Object.keys(C.people).length;
+    if (before !== after) { drawPeople(); drawMsgs(); }
   }
 
   async function send() {
@@ -794,7 +807,7 @@
   async function chatMount(el, client, user) {
     chatUnmount();
     sb = client; const gen = C.gen; C.el = el; C.me = user;
-    el.innerHTML = '<div class="hc"><div class="hc-people"></div><div class="hc-win"><div class="hc-msgs"><p class="hc-note">Loading\u2026</p></div>'
+    el.innerHTML = '<div class="hc"><div class="hc-people"><input class="hc-search" type="search" placeholder="Search people\u2026" aria-label="Search people" autocomplete="off"><div class="hc-plist"></div></div><div class="hc-win"><div class="hc-msgs"><p class="hc-note">Loading\u2026</p></div>'
       + '<p class="hc-err" role="alert" hidden></p>'
       + '<div class="hc-send"><input class="hc-in" maxlength="2000" placeholder="Write a message\u2026" autocomplete="off" aria-label="Message"><button class="hc-btn" type="button">Send</button></div></div></div>';
     await ensureProfile(sb, user);
@@ -808,13 +821,16 @@
     drawPeople(); drawMsgs();
     el.querySelector('.hc-btn').addEventListener('click', send);
     el.querySelector('.hc-in').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
-    el.querySelector('.hc-people').addEventListener('click', e => {
+    el.querySelector('.hc-plist').addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
       C.peer = b.dataset.p || null; drawPeople(); drawMsgs();
+      el.querySelector('.hc-in').focus();
     });
+    el.querySelector('.hc-search').addEventListener('input', e => { C.q = e.target.value; drawPeople(); });
     C.chan = sb.channel('hub-msgs-' + user.id + '-' + gen)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, onInsert)
-      .subscribe(status => { if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') && !C.poll) C.poll = setInterval(refetch, 8000); });
+      .subscribe();
+    C.poll = setInterval(refetch, 10000); // backup in case a realtime event is missed
   }
 
   /* ---------- student workspace ---------- */
