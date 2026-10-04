@@ -562,13 +562,21 @@
   <div id="v-signin" class="center" hidden>
     <div class="panel">
       <div class="wm"><b>O</b>rchid</div>
-      <h1>Log in or sign up</h1>
-      <p>Log in with your email and password. New here? The admin must add your email first, then click Sign up to create your password.</p>
-      <input id="pw-email" class="field" type="email" placeholder="you@yourdomain.com" autocomplete="username" maxlength="320" aria-label="Work email">
-      <input id="pw-pass" class="field" type="password" placeholder="Password (8+ characters)" autocomplete="current-password" maxlength="200" aria-label="Password" style="margin-top:10px">
-      <label style="display:flex;gap:6px;align-items:center;justify-content:flex-start;margin:8px 2px 0;color:var(--muted);font-size:.85rem"><input id="pw-show" type="checkbox"> Show password</label>
-      <button id="btn-pw-in" class="btn btn-primary" type="button" style="margin-top:12px;width:100%">Log in</button>
-      <button id="btn-pw-up" class="btn btn-ghost" type="button" style="margin-top:8px;width:100%">Sign up (create my password)</button>
+      <h1 id="auth-title">Welcome</h1>
+      <p id="auth-sub">Choose an option to continue.</p>
+      <div id="auth-choice">
+        <button id="go-in" class="btn btn-primary" type="button" style="width:100%">Log in</button>
+        <button id="go-up" class="btn btn-ghost" type="button" style="width:100%;margin-top:10px">Sign up</button>
+        <p style="margin:16px 0 0;font-size:.85rem">New here? The admin must add your email first, then choose Sign up to create your password.</p>
+      </div>
+      <div id="auth-form" hidden>
+        <input id="pw-email" class="field" type="email" placeholder="Email" autocomplete="username" maxlength="320" aria-label="Email">
+        <input id="pw-pass" class="field" type="password" placeholder="Password" autocomplete="current-password" maxlength="200" aria-label="Password" style="margin-top:10px">
+        <input id="pw-pass2" class="field" type="password" placeholder="Confirm password" autocomplete="new-password" maxlength="200" aria-label="Confirm password" style="margin-top:10px" hidden>
+        <label style="display:flex;gap:6px;align-items:center;justify-content:flex-start;margin:8px 2px 0;color:var(--muted);font-size:.85rem"><input id="pw-show" type="checkbox"> Show password</label>
+        <button id="btn-pw-go" class="btn btn-primary" type="button" style="margin-top:12px;width:100%">Log in</button>
+        <button id="btn-pw-back" class="btn btn-ghost" type="button" style="margin-top:8px;width:100%">Back</button>
+      </div>
       <div id="signin-err" class="err" role="alert" hidden></div>
     </div>
   </div>
@@ -2178,33 +2186,48 @@
 
   // ---------- Wiring ----------
   if (CLIENT_URL) { $('client-link').href = CLIENT_URL; $('client-link').hidden = false; }
-  // ---- Email + password sign-in (no email sending needed) ----
+  // ---- Email + password: choose Log in or Sign up first ----
+  let authMode = 'choice';
   const pwMsg = (m, ok) => { const e = $('signin-err'); e.style.color = ok ? 'var(--muted)' : ''; e.textContent = m; e.hidden = !m; };
-  const pwCreds = () => {
+  function setMode(mode) {
+    authMode = mode; pwMsg('');
+    const choice = mode === 'choice';
+    $('auth-choice').hidden = !choice; $('auth-form').hidden = choice;
+    $('auth-title').textContent = choice ? 'Welcome' : (mode === 'in' ? 'Log in' : 'Sign up');
+    $('auth-sub').textContent = choice ? 'Choose an option to continue.' : (mode === 'in' ? 'Enter your email and password.' : 'Enter the email the admin added, then choose your own password.');
+    $('pw-pass2').hidden = mode !== 'up';
+    $('pw-pass').autocomplete = mode === 'up' ? 'new-password' : 'current-password';
+    $('btn-pw-go').textContent = mode === 'up' ? 'Create my password' : 'Log in';
+    $('pw-pass').value = ''; $('pw-pass2').value = '';
+    if (!choice) $('pw-email').focus();
+  }
+  $('go-in').addEventListener('click', () => setMode('in'));
+  $('go-up').addEventListener('click', () => setMode('up'));
+  $('btn-pw-back').addEventListener('click', () => setMode('choice'));
+  $('pw-show').addEventListener('change', e => { const t = e.target.checked ? 'text' : 'password'; $('pw-pass').type = t; $('pw-pass2').type = t; });
+  const pwSubmit = async () => {
     const email = $('pw-email').value.trim().toLowerCase(), password = $('pw-pass').value;
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { pwMsg('Enter a valid email address.'); return null; }
-    if (password.length < 8) { pwMsg('Password must be at least 8 characters.'); return null; }
-    return { email, password };
-  };
-  $('pw-show').addEventListener('change', e => { $('pw-pass').type = e.target.checked ? 'text' : 'password'; });
-  $('btn-pw-in').addEventListener('click', async e => {
-    const c = pwCreds(); if (!c) return;
-    pwMsg(''); e.target.disabled = true; e.target.textContent = 'Logging in…';
-    const { data, error } = await sb.auth.signInWithPassword(c);
-    e.target.disabled = false; e.target.textContent = 'Log in';
-    if (error) return pwMsg(/invalid login/i.test(error.message) ? 'Wrong email or password. New here? Click Sign up (the admin must have added your email first).' : error.message);
-    if (data && data.session) await enter(data.session);
-  });
-  $('btn-pw-up').addEventListener('click', async e => {
-    const c = pwCreds(); if (!c) return;
-    pwMsg(''); e.target.disabled = true; e.target.textContent = 'Saving…';
-    const { data, error } = await sb.auth.signUp(c);
-    e.target.disabled = false; e.target.textContent = 'Sign up (create my password)';
-    if (error) return pwMsg(/database error|not been added/i.test(error.message) ? 'This email has not been added yet. Ask the admin to add it, then try again.' : (/already registered/i.test(error.message) ? 'This email already has a password. Use Log in instead.' : error.message));
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return pwMsg('Enter a valid email address.');
+    if (password.length < 8) return pwMsg('Password must be at least 8 characters.');
+    if (authMode === 'up' && password !== $('pw-pass2').value) return pwMsg('The two passwords do not match.');
+    const btn = $('btn-pw-go'), label = btn.textContent;
+    pwMsg(''); btn.disabled = true; btn.textContent = authMode === 'up' ? 'Saving…' : 'Logging in…';
+    let res;
+    try { res = authMode === 'up' ? await sb.auth.signUp({ email, password }) : await sb.auth.signInWithPassword({ email, password }); }
+    catch (e) { res = { error: e }; }
+    btn.disabled = false; btn.textContent = label;
+    const { data, error } = res;
+    if (error) {
+      const m = error.message || '';
+      if (authMode === 'in') return pwMsg(/invalid login/i.test(m) ? 'Wrong email or password. New here? Go back and choose Sign up (the admin must have added your email first).' : m);
+      return pwMsg(/database error|not been added/i.test(m) ? 'This email has not been added yet. Ask the admin to add it, then try again.' : /already registered/i.test(m) ? 'This email already has a password. Go back and choose Log in.' : /disabled/i.test(m) ? 'Email sign-up is turned off in Supabase. The admin must enable the Email provider.' : m);
+    }
     if (data && data.session) return enter(data.session);
-    pwMsg('Account created, but Supabase still requires email confirmation. Turn off "Confirm email" in Supabase (Authentication, Sign In / Providers, Email), then click Log in.', true);
-  });
-  const out = async () => { try { await Hub.flush(); } catch (e) {} Hub.leave(); await sb.auth.signOut(); leads = []; selectedId = null; show('v-signin'); };
+    if (authMode === 'up') return pwMsg('Account created, but Supabase still requires email confirmation. Turn off "Confirm email" in Supabase, then Log in.', true);
+  };
+  $('btn-pw-go').addEventListener('click', pwSubmit);
+  ['pw-email', 'pw-pass', 'pw-pass2'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') pwSubmit(); }));
+  const out = async () => { try { await Hub.flush(); } catch (e) {} Hub.leave(); await sb.auth.signOut(); leads = []; selectedId = null; show('v-signin'); setMode('choice'); };
   $('btn-out').addEventListener('click', out);
   $('btn-denied-out').addEventListener('click', out);
   $('btn-refresh').addEventListener('click', () => loadLeads());
