@@ -563,9 +563,7 @@
     <div class="panel">
       <div class="wm"><b>O</b>rchid</div>
       <h1>Log in or sign up</h1>
-      <p>Log in with Google, or with your email and password. New here? The admin must add your email first, then click Sign up to create your password.</p>
-      <button id="btn-signin" class="btn btn-primary" type="button">Log in with Google</button>
-      <div style="margin:18px 0 8px;color:var(--muted);font-size:.85rem">or</div>
+      <p>Log in with your email and password. New here? The admin must add your email first, then click Sign up to create your password.</p>
       <input id="pw-email" class="field" type="email" placeholder="you@yourdomain.com" autocomplete="username" maxlength="320" aria-label="Work email">
       <input id="pw-pass" class="field" type="password" placeholder="Password (8+ characters)" autocomplete="current-password" maxlength="200" aria-label="Password" style="margin-top:10px">
       <label style="display:flex;gap:6px;align-items:center;justify-content:flex-start;margin:8px 2px 0;color:var(--muted);font-size:.85rem"><input id="pw-show" type="checkbox"> Show password</label>
@@ -771,7 +769,7 @@
           <dt>Websites</dt><dd>Tracks each client site from request to launch.</dd>
           <dt>Chat</dt><dd>Live chat with your student: a General room and private messages.</dd>
           <dt>Reports</dt><dd>Charts and totals. Use the period dropdown to change the date range.</dd>
-          <dt>Members</dt><dd>Everyone in your organization. Add a student by their Google email, message them, edit their profile and photo, or remove them.</dd>
+          <dt>Members</dt><dd>Everyone in your organization. Add a student by their email, message them, edit their profile and photo, or remove them.</dd>
         </dl>
         <h3>Leads tab</h3>
         <dl>
@@ -1301,11 +1299,11 @@
     const av = p => { const im = safeImg(p.avatar); return h('span', { class: 'pic', style: im ? 'background-image:url("' + im + '")' : false, text: im ? '' : initials(p.name || p.email || 'S') }); };
     const msg = h('p', { class: 'sub', text: '' });
     const say = (t, bad) => { msg.textContent = t; msg.style.color = bad ? '#be123c' : '#047857'; };
-    const em = h('input', { class: 'field', type: 'email', placeholder: 'student@gmail.com (the Google account they sign in with)', maxlength: '320', style: 'flex:1;min-width:220px' });
+    const em = h('input', { class: 'field', type: 'email', placeholder: 'person@email.com (they sign up with this email)', maxlength: '320', style: 'flex:1;min-width:220px' });
     const add = h('div', { class: 'mrow' }, em, h('button', { class: 'btn btn-primary', type: 'button', text: 'Add student', onclick: async () => {
       if (!em.value.trim()) return; const { data, error } = await sb.rpc('admin_add_student', { p_email: em.value.trim() });
       if (error) { say('Could not add: ' + error.message, true); return; }
-      if (data === 'invited') say('Invited. They get student access automatically the first time they sign in with that Google account.');
+      if (data === 'invited') say('Invited. They get student access automatically the first time they sign up with that email.');
       else if (data === 'already_admin') say('That account is already an admin.', true); else say('Added. They can now open the student workspace.');
       if (data !== 'already_admin') { em.value = ''; setTimeout(renderStudents, 900); } } }));
     const ago = d => d ? new Date(d).toLocaleDateString() : 'never';
@@ -2180,14 +2178,6 @@
 
   // ---------- Wiring ----------
   if (CLIENT_URL) { $('client-link').href = CLIENT_URL; $('client-link').hidden = false; }
-  $('btn-signin').addEventListener('click', async e => {
-    e.target.disabled = true; e.target.textContent = 'Opening Google…';
-    const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } });
-    if (error) {
-      e.target.disabled = false; e.target.textContent = 'Log in with Google';
-      $('signin-err').textContent = error.message; $('signin-err').hidden = false;
-    }
-  });
   // ---- Email + password sign-in (no email sending needed) ----
   const pwMsg = (m, ok) => { const e = $('signin-err'); e.style.color = ok ? 'var(--muted)' : ''; e.textContent = m; e.hidden = !m; };
   const pwCreds = () => {
