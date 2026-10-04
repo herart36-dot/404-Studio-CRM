@@ -562,15 +562,15 @@
   <div id="v-signin" class="center" hidden>
     <div class="panel">
       <div class="wm"><b>O</b>rchid</div>
-      <h1>Admin sign in</h1>
-      <p>Sign in with Google, or with your email and password. First time? Ask the admin to add your email, then click "Set my password".</p>
-      <button id="btn-signin" class="btn btn-primary" type="button">Sign in with Google</button>
+      <h1>Log in or sign up</h1>
+      <p>Log in with Google, or with your email and password. New here? The admin must add your email first, then click Sign up to create your password.</p>
+      <button id="btn-signin" class="btn btn-primary" type="button">Log in with Google</button>
       <div style="margin:18px 0 8px;color:var(--muted);font-size:.85rem">or</div>
       <input id="pw-email" class="field" type="email" placeholder="you@yourdomain.com" autocomplete="username" maxlength="320" aria-label="Work email">
       <input id="pw-pass" class="field" type="password" placeholder="Password (8+ characters)" autocomplete="current-password" maxlength="200" aria-label="Password" style="margin-top:10px">
       <label style="display:flex;gap:6px;align-items:center;justify-content:flex-start;margin:8px 2px 0;color:var(--muted);font-size:.85rem"><input id="pw-show" type="checkbox"> Show password</label>
-      <button id="btn-pw-in" class="btn btn-primary" type="button" style="margin-top:12px;width:100%">Sign in</button>
-      <button id="btn-pw-up" class="btn btn-ghost" type="button" style="margin-top:8px;width:100%">Set my password (first time)</button>
+      <button id="btn-pw-in" class="btn btn-primary" type="button" style="margin-top:12px;width:100%">Log in</button>
+      <button id="btn-pw-up" class="btn btn-ghost" type="button" style="margin-top:8px;width:100%">Sign up (create my password)</button>
       <div id="signin-err" class="err" role="alert" hidden></div>
     </div>
   </div>
@@ -2184,7 +2184,7 @@
     e.target.disabled = true; e.target.textContent = 'Opening Google…';
     const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } });
     if (error) {
-      e.target.disabled = false; e.target.textContent = 'Sign in with Google';
+      e.target.disabled = false; e.target.textContent = 'Log in with Google';
       $('signin-err').textContent = error.message; $('signin-err').hidden = false;
     }
   });
@@ -2199,20 +2199,20 @@
   $('pw-show').addEventListener('change', e => { $('pw-pass').type = e.target.checked ? 'text' : 'password'; });
   $('btn-pw-in').addEventListener('click', async e => {
     const c = pwCreds(); if (!c) return;
-    pwMsg(''); e.target.disabled = true; e.target.textContent = 'Signing in…';
+    pwMsg(''); e.target.disabled = true; e.target.textContent = 'Logging in…';
     const { data, error } = await sb.auth.signInWithPassword(c);
-    e.target.disabled = false; e.target.textContent = 'Sign in';
-    if (error) return pwMsg(/invalid login/i.test(error.message) ? 'Wrong email or password. First time? Click "Set my password" (the admin must have added your email first).' : error.message);
+    e.target.disabled = false; e.target.textContent = 'Log in';
+    if (error) return pwMsg(/invalid login/i.test(error.message) ? 'Wrong email or password. New here? Click Sign up (the admin must have added your email first).' : error.message);
     if (data && data.session) await enter(data.session);
   });
   $('btn-pw-up').addEventListener('click', async e => {
     const c = pwCreds(); if (!c) return;
     pwMsg(''); e.target.disabled = true; e.target.textContent = 'Saving…';
     const { data, error } = await sb.auth.signUp(c);
-    e.target.disabled = false; e.target.textContent = 'Set my password (first time)';
-    if (error) return pwMsg(/database error|not been added/i.test(error.message) ? 'This email has not been added yet. Ask the admin to add it, then try again.' : (/already registered/i.test(error.message) ? 'This email already has a password. Use Sign in instead.' : error.message));
+    e.target.disabled = false; e.target.textContent = 'Sign up (create my password)';
+    if (error) return pwMsg(/database error|not been added/i.test(error.message) ? 'This email has not been added yet. Ask the admin to add it, then try again.' : (/already registered/i.test(error.message) ? 'This email already has a password. Use Log in instead.' : error.message));
     if (data && data.session) return enter(data.session);
-    pwMsg('Account created, but Supabase still requires email confirmation. Turn off "Confirm email" in Supabase (Authentication, Sign In / Providers, Email), then click Sign in.', true);
+    pwMsg('Account created, but Supabase still requires email confirmation. Turn off "Confirm email" in Supabase (Authentication, Sign In / Providers, Email), then click Log in.', true);
   });
   const out = async () => { try { await Hub.flush(); } catch (e) {} Hub.leave(); await sb.auth.signOut(); leads = []; selectedId = null; show('v-signin'); };
   $('btn-out').addEventListener('click', out);
