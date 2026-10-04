@@ -563,17 +563,14 @@
     <div class="panel">
       <div class="wm"><b>O</b>rchid</div>
       <h1>Admin sign in</h1>
-      <p>Sign in with Google, or with your work email (e.g. Titan) using a one-time code.</p>
+      <p>Sign in with Google, or with your work email and password.</p>
       <button id="btn-signin" class="btn btn-primary" type="button">Sign in with Google</button>
       <div style="margin:18px 0 8px;color:var(--muted);font-size:.85rem">or</div>
-      <div id="otp-step1">
-        <input id="otp-email" class="field" type="email" placeholder="you@yourdomain.com" autocomplete="email" maxlength="320" aria-label="Work email">
-        <button id="btn-otp-send" class="btn btn-ghost" type="button" style="margin-top:10px;width:100%">Email me a sign-in code</button>
-      </div>
-      <div id="otp-step2" hidden>
-        <input id="otp-code" class="field" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Code from your email" maxlength="10" aria-label="Sign-in code">
-        <button id="btn-otp-verify" class="btn btn-primary" type="button" style="margin-top:10px;width:100%">Verify and sign in</button>
-      </div>
+      <input id="pw-email" class="field" type="email" placeholder="you@yourdomain.com" autocomplete="username" maxlength="320" aria-label="Work email">
+      <input id="pw-pass" class="field" type="password" placeholder="Password (8+ characters)" autocomplete="current-password" maxlength="200" aria-label="Password" style="margin-top:10px">
+      <label style="display:flex;gap:6px;align-items:center;justify-content:flex-start;margin:8px 2px 0;color:var(--muted);font-size:.85rem"><input id="pw-show" type="checkbox"> Show password</label>
+      <button id="btn-pw-in" class="btn btn-primary" type="button" style="margin-top:12px;width:100%">Sign in</button>
+      <button id="btn-pw-up" class="btn btn-ghost" type="button" style="margin-top:8px;width:100%">Create account</button>
       <div id="signin-err" class="err" role="alert" hidden></div>
     </div>
   </div>
@@ -2191,27 +2188,31 @@
       $('signin-err').textContent = error.message; $('signin-err').hidden = false;
     }
   });
-  // ---- Email one-time code sign-in (works with any inbox, e.g. Titan) ----
-  const otpErr = m => { $('signin-err').textContent = m; $('signin-err').hidden = !m; };
-  $('btn-otp-send').addEventListener('click', async e => {
-    const email = $('otp-email').value.trim().toLowerCase();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return otpErr('Enter a valid email address.');
-    otpErr(''); e.target.disabled = true; e.target.textContent = 'Sending…';
-    const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
-    e.target.disabled = false; e.target.textContent = 'Email me a sign-in code';
-    if (error) return otpErr(error.message);
-    $('otp-step2').hidden = false; $('otp-code').focus();
-    otpErr('');
-    $('signin-err').style.color = 'var(--muted)'; $('signin-err').textContent = 'Check your inbox for the code (or click the link in the email).'; $('signin-err').hidden = false;
-  });
-  $('btn-otp-verify').addEventListener('click', async e => {
-    const email = $('otp-email').value.trim().toLowerCase(), token = $('otp-code').value.trim();
-    if (!token) return otpErr('Enter the code from your email.');
-    $('signin-err').style.color = ''; otpErr(''); e.target.disabled = true; e.target.textContent = 'Checking…';
-    const { data, error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
-    e.target.disabled = false; e.target.textContent = 'Verify and sign in';
-    if (error) return otpErr(error.message);
+  // ---- Email + password sign-in (no email sending needed) ----
+  const pwMsg = (m, ok) => { const e = $('signin-err'); e.style.color = ok ? 'var(--muted)' : ''; e.textContent = m; e.hidden = !m; };
+  const pwCreds = () => {
+    const email = $('pw-email').value.trim().toLowerCase(), password = $('pw-pass').value;
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { pwMsg('Enter a valid email address.'); return null; }
+    if (password.length < 8) { pwMsg('Password must be at least 8 characters.'); return null; }
+    return { email, password };
+  };
+  $('pw-show').addEventListener('change', e => { $('pw-pass').type = e.target.checked ? 'text' : 'password'; });
+  $('btn-pw-in').addEventListener('click', async e => {
+    const c = pwCreds(); if (!c) return;
+    pwMsg(''); e.target.disabled = true; e.target.textContent = 'Signing in…';
+    const { data, error } = await sb.auth.signInWithPassword(c);
+    e.target.disabled = false; e.target.textContent = 'Sign in';
+    if (error) return pwMsg(/invalid login/i.test(error.message) ? 'Wrong email or password. If you have no account yet, click Create account.' : error.message);
     if (data && data.session) await enter(data.session);
+  });
+  $('btn-pw-up').addEventListener('click', async e => {
+    const c = pwCreds(); if (!c) return;
+    pwMsg(''); e.target.disabled = true; e.target.textContent = 'Creating…';
+    const { data, error } = await sb.auth.signUp(c);
+    e.target.disabled = false; e.target.textContent = 'Create account';
+    if (error) return pwMsg(error.message);
+    if (data && data.session) return enter(data.session);
+    pwMsg('Account created, but Supabase still requires email confirmation. Turn off "Confirm email" in Supabase (Authentication, Sign In / Providers, Email), then click Sign in.', true);
   });
   const out = async () => { try { await Hub.flush(); } catch (e) {} Hub.leave(); await sb.auth.signOut(); leads = []; selectedId = null; show('v-signin'); };
   $('btn-out').addEventListener('click', out);
