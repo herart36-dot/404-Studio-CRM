@@ -563,8 +563,17 @@
     <div class="panel">
       <div class="wm"><b>O</b>rchid</div>
       <h1>Admin sign in</h1>
-      <p>Sign in with the Google account you use to run 404 Studio.</p>
+      <p>Sign in with Google, or with your work email (e.g. Titan) using a one-time code.</p>
       <button id="btn-signin" class="btn btn-primary" type="button">Sign in with Google</button>
+      <div style="margin:18px 0 8px;color:var(--muted);font-size:.85rem">or</div>
+      <div id="otp-step1">
+        <input id="otp-email" class="field" type="email" placeholder="you@yourdomain.com" autocomplete="email" maxlength="320" aria-label="Work email">
+        <button id="btn-otp-send" class="btn btn-ghost" type="button" style="margin-top:10px;width:100%">Email me a sign-in code</button>
+      </div>
+      <div id="otp-step2" hidden>
+        <input id="otp-code" class="field" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Code from your email" maxlength="10" aria-label="Sign-in code">
+        <button id="btn-otp-verify" class="btn btn-primary" type="button" style="margin-top:10px;width:100%">Verify and sign in</button>
+      </div>
       <div id="signin-err" class="err" role="alert" hidden></div>
     </div>
   </div>
@@ -2181,6 +2190,28 @@
       e.target.disabled = false; e.target.textContent = 'Sign in with Google';
       $('signin-err').textContent = error.message; $('signin-err').hidden = false;
     }
+  });
+  // ---- Email one-time code sign-in (works with any inbox, e.g. Titan) ----
+  const otpErr = m => { $('signin-err').textContent = m; $('signin-err').hidden = !m; };
+  $('btn-otp-send').addEventListener('click', async e => {
+    const email = $('otp-email').value.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return otpErr('Enter a valid email address.');
+    otpErr(''); e.target.disabled = true; e.target.textContent = 'Sending…';
+    const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
+    e.target.disabled = false; e.target.textContent = 'Email me a sign-in code';
+    if (error) return otpErr(error.message);
+    $('otp-step2').hidden = false; $('otp-code').focus();
+    otpErr('');
+    $('signin-err').style.color = 'var(--muted)'; $('signin-err').textContent = 'Check your inbox for the code (or click the link in the email).'; $('signin-err').hidden = false;
+  });
+  $('btn-otp-verify').addEventListener('click', async e => {
+    const email = $('otp-email').value.trim().toLowerCase(), token = $('otp-code').value.trim();
+    if (!token) return otpErr('Enter the code from your email.');
+    $('signin-err').style.color = ''; otpErr(''); e.target.disabled = true; e.target.textContent = 'Checking…';
+    const { data, error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
+    e.target.disabled = false; e.target.textContent = 'Verify and sign in';
+    if (error) return otpErr(error.message);
+    if (data && data.session) await enter(data.session);
   });
   const out = async () => { try { await Hub.flush(); } catch (e) {} Hub.leave(); await sb.auth.signOut(); leads = []; selectedId = null; show('v-signin'); };
   $('btn-out').addEventListener('click', out);
