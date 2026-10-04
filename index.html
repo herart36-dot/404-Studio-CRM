@@ -819,7 +819,7 @@
   }
 
   /* ---------- shared chat ---------- */
-  const C = { el: null, me: null, people: {}, msgs: [], peer: null, chan: null, poll: null, gen: 0, q: '', open: false };
+  const C = { el: null, me: null, people: {}, msgs: [], peer: null, chan: null, poll: null, gen: 0, q: '', open: false, hideList: false };
   const nameOf = id => (C.people[id] && C.people[id].name) || 'Student';
 
   function showProfile(id) {
@@ -853,13 +853,14 @@
     const all = Object.values(C.people).filter(p => p.id !== C.me.id);
     const k = C.q.trim().toLowerCase();
     const hit = p => [p.name, p.school, p.course, p.year].some(v => String(v || '').toLowerCase().includes(k));
-    const list = k ? all.filter(hit) : all;
+    const list = k ? all.filter(hit) : (C.hideList ? [] : all);
     const showGeneral = !k || 'general'.includes(k);
     const sub = p => p.role || [p.course, p.school].filter(Boolean).join(' \u00B7 ');
     let html = showGeneral ? '<button type="button" data-p="" class="' + (!C.peer ? 'on' : '') + '"># General</button>' : '';
     html += list.map(p => '<button type="button" data-p="' + esc(p.id) + '" class="' + (C.peer === p.id ? 'on' : '') + '">' + esc(p.name || 'Student')
       + (sub(p) ? '<small>' + esc(sub(p)) + '</small>' : '') + '</button>').join('');
     if (k && !list.length) html += '<p class="hc-note" style="padding:8px">No one found for \u201C' + esc(C.q.trim()) + '\u201D. People appear here after they open Orchid once.</p>';
+    else if (!k && C.hideList) html += '<p class="hc-note" style="padding:8px">Search a name above to find someone to message.</p>';
     else if (!k && !all.length) html += '<p class="hc-note" style="padding:8px">The other person appears here after they open Orchid once.</p>';
     box.innerHTML = html;
   }
@@ -922,7 +923,7 @@
 
   async function chatMount(el, client, user) {
     chatUnmount();
-    sb = client; const gen = C.gen; C.el = el; C.me = user;
+    sb = client; const gen = C.gen; C.el = el; C.me = user; C.hideList = (el && el.id === 'sh-chatmount');
     el.innerHTML = '<div class="hchat"><div class="hc-people"><input class="hc-search" type="search" placeholder="Search people\u2026" aria-label="Search people" autocomplete="off"><div class="hc-plist"></div></div><div class="hc-win"><div class="hc-head"><button class="hc-back" type="button" aria-label="Back to people">\u2039</button><span class="hc-title"># General</span></div><div class="hc-msgs"><p class="hc-note">Loading\u2026</p></div>'
       + '<p class="hc-err" role="alert" hidden></p>'
       + '<div class="hc-send"><input class="hc-in" maxlength="2000" placeholder="Write a message\u2026" autocomplete="off" aria-label="Message"><button class="hc-btn" type="button">Send</button></div></div></div>';
