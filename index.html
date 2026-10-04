@@ -376,6 +376,13 @@
     .guide dt,.guide dd { margin:0; padding:9px 6px; border-bottom:1px solid var(--line); font-size:.9rem; }
     .guide dt { font-weight:700; color:var(--sf); }
     @media (max-width:960px){ .thead{display:none;} .row{grid-template-columns:1fr auto;} .row .svc{grid-column:1;grid-row:2;} .row>div:last-child{grid-column:2;grid-row:1;} .row .when{grid-column:2;grid-row:2;} .guide dl{grid-template-columns:1fr;} .guide dt{border-bottom:0;padding-bottom:0;} nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:20;border-top:1px solid var(--line);} .tab{border-top:0;padding:8px 10px;} }
+    .avbtn { order:5; width:34px; height:34px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #c9c9c9; background:var(--sf) center/cover; color:#fff; font-weight:800; font-size:.8rem; cursor:pointer; }
+    .pop { position:fixed; top:92px; right:14px; z-index:30; width:290px; max-height:80vh; overflow:auto; background:#fff; border:1px solid var(--line); border-radius:4px; box-shadow:0 4px 16px rgba(0,0,0,.25); padding:16px; }
+    .pop .ci { display:flex !important; } .pop .pc { padding-bottom:0; border:0; margin:0; }
+    .linkbtn { color:var(--sf); }
+    .msgbox { width:min(560px,94vw); padding:18px; border-radius:4px; } .msgbox h3 { margin:0 0 10px; }
+    .msgbox label { display:block; font-size:.78rem; font-weight:700; color:var(--muted); margin:10px 0 4px; }
+    .msgbox textarea.field { min-height:150px; }
   </style>
 </head>
 <body>
@@ -412,7 +419,6 @@
       <h1 class="crmtag">CRM</h1>
       <input id="gq" class="gq" type="search" placeholder="Search all leads…" aria-label="Global search">
       <nav class="tabs" aria-label="Sections">
-        <div id="profile" class="pc"></div>
         <button class="tab" type="button" data-tab="home" aria-current="true"><i>⌂</i>Home</button>
         <button class="tab" type="button" data-tab="leads" aria-current="false"><i>☰</i>Leads</button>
         <button class="tab" type="button" data-tab="inbox" aria-current="false"><i>✉</i>Inbox<span class="nbadge" id="inbox-n" hidden></span></button>
@@ -428,9 +434,12 @@
       <span class="who" id="who"></span>
       <a id="client-link" class="btn btn-ghost" href="#" target="_blank" rel="noopener" hidden>Client site</a>
       <button id="btn-new" class="btn btn-primary" type="button">+ New lead</button>
+      <button id="btn-msg" class="btn btn-ghost" type="button" title="Message a lead directly">&#9998; Message</button>
       <button id="btn-k" class="btn btn-ghost" type="button" title="Command palette (Ctrl/⌘ + K)">⌘K</button>
       <button id="btn-refresh" class="btn btn-ghost" type="button">Refresh</button>
       <button id="btn-out" class="btn btn-ghost" type="button">Sign out</button>
+      <button id="avatar" class="avbtn" type="button" aria-label="My profile" aria-expanded="false">&#9786;</button>
+      <div id="pop" class="pop" hidden><div id="profile" class="pc"></div></div>
     </header>
     <div id="banner" class="banner" role="alert" hidden></div>
 
@@ -538,6 +547,8 @@
         <dl>
           <dt>+ New lead</dt><dd>Opens a form to add a lead by hand (calls, walk-ins, referrals).</dd>
           <dt>&#8984;K</dt><dd>Command palette. Jump to any tab or lead by typing. Shortcut: Ctrl/&#8984; + K.</dd>
+          <dt>&#9998; Message</dt><dd>Write to a lead directly: pick the lead, type your message, then send via Gmail, your email app, or Reddit. Also available as the &#9998; button inside any lead.</dd>
+          <dt>Profile (round photo, top right)</dt><dd>Opens your profile card. Click Edit profile to change your photo, name, title, phone, location and company, then Save.</dd>
           <dt>Refresh</dt><dd>Reloads the latest leads, emails and tasks from the database.</dd>
           <dt>Sign out</dt><dd>Logs you out of this device.</dd>
           <dt>Client site</dt><dd>Opens the client-facing website in a new tab (shown when available).</dd>
@@ -1365,7 +1376,7 @@
     draw();
     const mail = d.querySelector('.d-sub a'), rb = (t, tl2, fn) => h('button', { type: 'button', class: 'rb', title: tl2, text: t, onclick: fn });
     d.querySelector('.d-head').before(h('div', { class: 'prof' }, h('span', { class: 'av big', text: initials(l.name) }), h('div', { class: 'rbs' },
-      h('a', { class: 'rb', href: mail.href, title: 'Email', text: '✉' }), rb('⧉', 'Copy email', () => navigator.clipboard.writeText(isRedditPh(l.email) ? 'u/' + redditUser(l) : l.email).catch(() => {})),
+      h('a', { class: 'rb', href: mail.href, title: 'Email', text: '✉' }), rb('✎', 'Message directly', () => openMsg(l.id)), rb('⧉', 'Copy email', () => navigator.clipboard.writeText(isRedditPh(l.email) ? 'u/' + redditUser(l) : l.email).catch(() => {})),
       rb('▦', 'Set appointment', () => $('d-appt').focus()), rb('✓', 'Add task', () => tt.focus()))));
     d.lastElementChild.before(h('div', { class: 'panel2' },
       h('div', { class: 'card' }, h('h3', { text: 'Activity' }), h('div', { class: 'mrow', style: 'margin-top:10px' }, type, txt, logBtn), tl),
@@ -1488,6 +1499,42 @@
           profile = draft; editing = false; renderProfile(); } }),
         h('button', { class: 'btn btn-ghost', type: 'button', text: 'Cancel', onclick: () => { editing = false; renderProfile(); } })));
   }
+
+  // ---------- Profile popover + direct message ----------
+  const popEl = $('pop'), avEl = $('avatar');
+  const syncAvatar = () => { const pic = $('profile').querySelector('.pic'); if (!pic) return; avEl.style.backgroundImage = pic.style.backgroundImage; avEl.textContent = pic.textContent; };
+  new MutationObserver(syncAvatar).observe($('profile'), { childList: true, subtree: true });
+  avEl.addEventListener('click', e => { e.stopPropagation(); popEl.hidden = !popEl.hidden; avEl.setAttribute('aria-expanded', String(!popEl.hidden)); });
+  document.addEventListener('click', e => { if (!popEl.hidden && !popEl.contains(e.target)) { popEl.hidden = true; avEl.setAttribute('aria-expanded', 'false'); } });
+
+  function openMsg(id) {
+    const old = document.querySelector('.ov.msg'); if (old) old.remove();
+    const list = leads.filter(l => l.email); if (!list.length) { banner('No leads with an email or username to message yet.'); return; }
+    let to = String(id && list.some(l => String(l.id) === String(id)) ? id : list[0].id);
+    const cur = () => list.find(l => String(l.id) === to);
+    const who = l => isRedditPh(l.email) ? 'u/' + redditUser(l) + ' (Reddit)' : l.email;
+    const sel = h('select', { class: 'field', onchange: e => { to = e.target.value; greet(); } }, ...list.map(l => h('option', { value: String(l.id), text: l.name + ' · ' + who(l), selected: String(l.id) === to })));
+    const subj = h('input', { class: 'field', type: 'text', value: 'Hello from 404 Studio', maxlength: '120' });
+    const body = h('textarea', { class: 'field' });
+    const greet = () => { body.value = 'Hi ' + (cur().name || '').split(' ')[0] + ',\n\n\n\nThanks,\n' + (profile.name || ''); };
+    greet();
+    const close = () => { ov.remove(); document.removeEventListener('keydown', esc); };
+    const esc = e => { if (e.key === 'Escape') close(); };
+    const send = kind => { const l = cur(), ph = isRedditPh(l.email), t = encodeURIComponent(subj.value), b = encodeURIComponent(body.value);
+      if (ph) { window.open('https://www.reddit.com/message/compose/?to=' + encodeURIComponent(redditUser(l)) + '&subject=' + t + '&message=' + b, '_blank', 'noopener'); return; }
+      if (kind === 'gmail') window.open('https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(l.email) + '&su=' + t + '&body=' + b, '_blank', 'noopener');
+      else location.href = 'mailto:' + encodeURIComponent(l.email).replace('%40', '@') + '?subject=' + t + '&body=' + b; };
+    const ov = h('div', { class: 'ov msg', onclick: e => { if (e.target === ov) close(); } },
+      h('div', { class: 'pbox msgbox', role: 'dialog', 'aria-label': 'Message a lead' },
+        h('h3', { text: 'Message a lead' }), h('label', { text: 'To' }), sel, h('label', { text: 'Subject' }), subj, h('label', { text: 'Message' }), body,
+        h('div', { class: 'actions' },
+          h('button', { class: 'btn btn-primary', type: 'button', text: 'Send via Gmail / Reddit', onclick: () => send('gmail') }),
+          h('button', { class: 'btn btn-ghost', type: 'button', text: 'Email app', onclick: () => send('mailto') }),
+          h('button', { class: 'btn btn-ghost', type: 'button', text: 'Copy', onclick: async () => { try { await navigator.clipboard.writeText(body.value); flash('Message copied'); } catch (_) { flash('Copy failed'); } } }),
+          h('button', { class: 'btn btn-ghost', type: 'button', text: 'Cancel', onclick: close }))));
+    document.body.appendChild(ov); document.addEventListener('keydown', esc); body.focus();
+  }
+  $('btn-msg').addEventListener('click', () => openMsg(selectedId));
 
   // ---------- Wiring ----------
   if (CLIENT_URL) { $('client-link').href = CLIENT_URL; $('client-link').hidden = false; }
