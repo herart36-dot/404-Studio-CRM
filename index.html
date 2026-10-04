@@ -537,6 +537,17 @@
       #v-app .back { display: inline-block; }
       #v-app #view-leads:not([hidden]) { height: auto; }
     }
+    .sh-av, .sh-avbtn { background-size: cover; background-position: center; }
+    .sh-av.big { width: 96px; height: 96px; margin: 0 auto 8px; font-size: 2rem; }
+    .sh-ov { position: fixed; inset: 0; background: rgba(3,45,96,.45); display: grid; place-items: center; z-index: 80; padding: 16px; }
+    .sh-pcard { background: #fff; border-radius: 6px; padding: 24px; width: min(400px, 94vw); text-align: center; max-height: 90vh; overflow: auto; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+    .sh-pcard h3 { margin: 6px 0 10px; font-size: 1.25rem; } .sh-pcard p { color: #475569; font-size: .9rem; margin: 10px 0 14px; white-space: pre-wrap; }
+    .sh-dl { display: grid; grid-template-columns: 120px 1fr; text-align: left; border-top: 1px solid #dddbda; margin: 8px 0; }
+    .sh-dl dt, .sh-dl dd { margin: 0; padding: 8px 4px; border-bottom: 1px solid #dddbda; font-size: .9rem; } .sh-dl dt { font-weight: 700; color: #0176d3; }
+    .hc-pv { border: 0; background: none; font: inherit; font-weight: 800; cursor: pointer; color: inherit; padding: 0; }
+    .hc-pv small { color: #0176d3; font-weight: 600; margin-left: 6px; text-decoration: underline; }
+    .stu { display: flex; gap: 12px; align-items: center; padding: 10px 4px; border-bottom: 1px solid var(--line); }
+    .stu .pic { width: 44px; height: 44px; font-size: .9rem; flex: none; } .stu span.n { flex: 1; min-width: 0; } .stu small { display: block; color: var(--muted); }
   </style>
 </head>
 <body>
@@ -601,6 +612,7 @@
         <button class="tab sec" type="button" data-tab="websites" aria-current="false"><i>◍</i>Websites</button>
         <button class="tab sec" type="button" data-tab="reports" aria-current="false"><i>▤</i>Reports</button>
         <button class="tab" type="button" data-tab="chat" aria-current="false"><i>✦</i>Chat</button>
+        <button class="tab sec" type="button" data-tab="students" aria-current="false"><i>☺</i>Students</button>
         <button class="tab sec" type="button" data-tab="help" aria-current="false"><i>?</i>Guide</button>
         <button class="tab more" type="button" data-tab="more" aria-current="false"><i>⋯</i>More</button>
       </nav>
@@ -719,6 +731,11 @@
       <div id="chat-mount"></div>
     </div>
 
+    <div class="view" id="view-students" hidden>
+      <div class="view-head"><h2>Students</h2><p>Only you (admin) can edit a student's profile and photo. Students see theirs read-only.</p></div>
+      <div class="card" id="students-box"></div>
+    </div>
+
     <div class="view" id="view-help" hidden>
       <div class="view-head"><h2>Button guide</h2><p>What every button and tab in Orchid does.</p></div>
       <div class="card guide">
@@ -774,9 +791,11 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const byId = id => document.getElementById(id);
   const displayName = u => { const m = (u && u.user_metadata) || {}; return m.full_name || m.name || ((u && u.email) || '').split('@')[0] || 'Student'; };
+  const safeImg = a => /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(a || '') ? a : '';
+  const avHtml = (p, cls) => { const im = safeImg(p && p.avatar); return '<div class="' + cls + '"' + (im ? ' style="background-image:url(&quot;' + im + '&quot;)"' : '') + '>' + (im ? '' : esc(initials(p && p.name))) + '</div>'; };
   const initials = n => String(n || '').trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '\u263A';
 
-  let sb = null;
+  let sb = null, MYP = {};
 
   /* ---------- profile row (needed so each side appears in the other's chat list) ---------- */
   async function ensureProfile(client, user) {
@@ -786,6 +805,19 @@
   /* ---------- shared chat ---------- */
   const C = { el: null, me: null, people: {}, msgs: [], peer: null, chan: null, poll: null, gen: 0, q: '', open: false };
   const nameOf = id => (C.people[id] && C.people[id].name) || 'Student';
+
+  function showProfile(id) {
+    const p = C.people[id]; if (!p) return;
+    const old = document.getElementById('hc-pv-ov'); if (old) old.remove();
+    const rows = [['Role', p.role], ['School', p.school], ['Course / strand', p.course], ['Year level', p.year], ['Location', p.location]].filter(r => r[1]);
+    const ov = document.createElement('div'); ov.id = 'hc-pv-ov'; ov.className = 'sh-ov';
+    ov.innerHTML = '<div class="sh-pcard" role="dialog" aria-label="Profile">' + avHtml(p, 'sh-av big') + '<h3>' + esc(p.name || 'Student') + '</h3>'
+      + (rows.length ? '<dl class="sh-dl">' + rows.map(r => '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>').join('') + '</dl>' : '')
+      + (p.bio ? '<p>' + esc(p.bio) + '</p>' : '') + '<button type="button" class="sh-btn p" data-close>Close</button></div>';
+    ov.addEventListener('click', e => { if (e.target === ov || e.target.closest('[data-close]')) ov.remove(); });
+    document.body.appendChild(ov);
+  }
+  document.addEventListener('click', e => { const b = e.target.closest('[data-pv]'); if (b) showProfile(b.dataset.pv); });
 
   function chatUnmount() {
     C.gen++;
@@ -807,7 +839,7 @@
     const hit = p => [p.name, p.school, p.course, p.year].some(v => String(v || '').toLowerCase().includes(k));
     const list = k ? all.filter(hit) : all;
     const showGeneral = !k || 'general'.includes(k);
-    const sub = p => [p.course, p.school].filter(Boolean).join(' \u00B7 ');
+    const sub = p => p.role || [p.course, p.school].filter(Boolean).join(' \u00B7 ');
     let html = showGeneral ? '<button type="button" data-p="" class="' + (!C.peer ? 'on' : '') + '"># General</button>' : '';
     html += list.map(p => '<button type="button" data-p="' + esc(p.id) + '" class="' + (C.peer === p.id ? 'on' : '') + '">' + esc(p.name || 'Student')
       + (sub(p) ? '<small>' + esc(sub(p)) + '</small>' : '') + '</button>').join('');
@@ -819,7 +851,7 @@
   function drawMsgs() {
     const box = C.el && C.el.querySelector('.hc-msgs'); if (!box) return;
     const me = C.me.id;
-    const ttl = C.el.querySelector('.hc-title'); if (ttl) ttl.textContent = C.peer ? nameOf(C.peer) : '# General';
+    const ttl = C.el.querySelector('.hc-title'); if (ttl) { if (C.peer) ttl.innerHTML = '<button type="button" class="hc-pv" data-pv="' + esc(C.peer) + '">' + esc(nameOf(C.peer)) + '<small>View profile</small></button>'; else ttl.textContent = '# General'; }
     const list = C.msgs.filter(m => C.peer
       ? ((m.sender_id === me && m.recipient_id === C.peer) || (m.sender_id === C.peer && m.recipient_id === me))
       : !m.recipient_id);
@@ -958,7 +990,7 @@
       const open = S.tasks.filter(t => !t.done), late = open.filter(t => t.due && t.due < today());
       const avg = gradeAvg(), d = DAYS[(new Date().getDay() + 6) % 7];
       const cls = S.sched.filter(c => c.day === d).sort((a, b) => a.start.localeCompare(b.start));
-      return `<h2>Hi ${esc(S.profile.name || 'student')} \u{1F44B}</h2>
+      return `<h2>Hi ${esc(MYP.name || 'student')} \u{1F44B}</h2>
       <div class="sh-grid"><div class="sh-card sh-kpi"><b>${open.length}</b><span>Open tasks</span></div>
       <div class="sh-card sh-kpi"><b class="${late.length ? 'sh-late' : ''}">${late.length}</b><span>Overdue</span></div>
       <div class="sh-card sh-kpi"><b>${avg === null ? '\u2013' : avg.toFixed(1) + '%'}</b><span>Grade average</span></div>
@@ -1004,13 +1036,13 @@
     },
     notes() { return `<h2>Notes</h2><div class="sh-card"><textarea id="sh-nt" placeholder="Type your notes here. They save automatically.">${esc(S.notes)}</textarea></div>`; },
     profile() {
-      const p = S.profile;
-      return `<h2>My profile</h2><div class="sh-card"><div class="sh-row"><div class="sh-av">${esc(initials(p.name))}</div></div>
-      <div class="sh-row"><input id="sh-pn" placeholder="Full name" maxlength="200" value="${esc(p.name)}"><input id="sh-ps" placeholder="School" maxlength="200" value="${esc(p.school)}"></div>
-      <div class="sh-row"><input id="sh-pc" placeholder="Course / strand" maxlength="200" value="${esc(p.course)}"><input id="sh-py" placeholder="Year level" maxlength="100" value="${esc(p.year)}"></div>
-      <textarea id="sh-pb" style="min-height:80px" maxlength="1000" placeholder="Short bio">${esc(p.bio)}</textarea>
-      <div class="sh-row" style="margin-top:10px"><button class="sh-btn p" type="button" data-a="saveprof">Save profile</button><span class="sh-note" id="sh-pmsg">Your name is shown to the admin in chat.</span></div></div>`;
+      const p = MYP, rows = [['School', p.school], ['Course / strand', p.course], ['Year level', p.year]];
+      return `<h2>My profile</h2><div class="sh-card" style="text-align:center">${avHtml(p, 'sh-av big')}<h3 style="margin:6px 0 10px">${esc(p.name || 'Student')}</h3>
+      <dl class="sh-dl">${rows.map(r => `<dt>${esc(r[0])}</dt><dd>${esc(r[1] || '\u2014')}</dd>`).join('')}</dl>
+      ${p.bio ? `<p class="sh-note" style="white-space:pre-wrap">${esc(p.bio)}</p>` : ''}
+      <p class="sh-note">\uD83D\uDD12 Your profile and photo are managed by your admin. If something is wrong, send them a message in Chat.</p></div>`;
     },
+
     chat() { return `<h2>Chat</h2><div id="sh-chatmount"></div>`; }
   };
 
@@ -1025,9 +1057,9 @@
   function go(t) { tab = t; nav(); render(); window.scrollTo(0, 0); }
 
   function drawPop() {
-    const p = S.profile, n = p.name || 'Student', ini = initials(n);
-    byId('sh-avatar').textContent = ini;
-    byId('sh-pop').innerHTML = `<div class="sh-av">${esc(ini)}</div><b>${esc(n)}</b><p>${esc([p.course, p.year].filter(Boolean).join(' \u00B7 ') || 'Add your course')}</p><p>${esc(p.school || '')}</p><p>${S.tasks.filter(t => !t.done).length} open tasks \u00B7 ${S.sessions} focus sessions</p><div class="sh-row" style="justify-content:center;margin:10px 0 0"><button class="sh-btn p" type="button" data-t="profile">Edit profile</button><button class="sh-btn" type="button" data-a="signout">Sign out</button></div>`;
+    const p = MYP, n = p.name || 'Student', im = safeImg(p.avatar), bt = byId('sh-avatar');
+    bt.textContent = im ? '' : initials(n); bt.style.backgroundImage = im ? 'url("' + im + '")' : ''; bt.style.backgroundSize = 'cover';
+    byId('sh-pop').innerHTML = avHtml(p, 'sh-av') + '<b>' + esc(n) + '</b><p>' + esc([p.course, p.year].filter(Boolean).join(' \u00B7 ') || 'Student') + '</p><p>' + esc(p.school || '') + '</p><p>' + S.tasks.filter(t => !t.done).length + ' open tasks \u00B7 ' + S.sessions + ' focus sessions</p><div class="sh-row" style="justify-content:center;margin:10px 0 0"><button class="sh-btn p" type="button" data-t="profile">View profile</button></div>';
   }
 
   function render() {
@@ -1062,13 +1094,7 @@
       }, 1000);
     },
     more() { sheet('More', MORE.map(m => ({ label: m[1], icon: m[2], fn: () => go(m[0]) })), [{ label: 'Sign out', icon: '\u23FB', danger: true, fn: () => { if (onOut) onOut(); } }]); },
-    signout() { if (onOut) onOut(); },
-    async saveprof() {
-      S.profile = { name: val('sh-pn'), school: val('sh-ps'), course: val('sh-pc'), year: val('sh-py'), bio: val('sh-pb') };
-      save(); drawPop();
-      const { error } = await sb.from('profiles').upsert({ id: uid, ...S.profile, updated_at: new Date().toISOString() });
-      byId('sh-pmsg').textContent = error ? 'Saved here, but chat name sync failed: ' + error.message : 'Saved. The admin sees your name in chat.';
-    }
+    signout() { if (onOut) onOut(); }
   };
 
   function bind() {
@@ -1093,17 +1119,17 @@
     try { const { data } = await sb.from('student_data').select('data').eq('user_id', uid).maybeSingle(); remote = data && data.data; } catch (e) { /* offline: fall back to local */ }
     const useLocal = !!local && (!remote || (local.ts || 0) > (remote.ts || 0));
     S = { ...blank(), ...((useLocal ? local : remote) || {}) };
-    if (!S.profile || !S.profile.name) S.profile = { ...(S.profile || {}), name: displayName(user) };
+    MYP = { name: displayName(user) };
+    try { const { data } = await sb.from('profiles').select('*').eq('id', uid).maybeSingle(); if (data) MYP = data; } catch (e) { /* offline */ }
     bind(); nav(); render();
     setSync(useLocal ? 'Syncing\u2026' : '');
     if (useLocal) push();
-    sb.from('profiles').upsert({ id: uid, ...S.profile, updated_at: new Date().toISOString() }).then(() => {}, () => {});
   }
 
   function leave() {
     chatUnmount();
     clearInterval(ticking); ticking = null; clearTimeout(saveT); saveT = null;
-    S = blank(); U = null; uid = null; left = 1500; mode = 25;
+    S = blank(); MYP = {}; U = null; uid = null; left = 1500; mode = 25;
     const m = byId('sh-main'); if (m) m.innerHTML = '';
   }
 
@@ -1253,11 +1279,48 @@
 
   // ---------- Tabs ----------
   document.addEventListener('click',e=>{const u=e.target.closest('.ulink');if(u)setTab('help');});
+  const safeImg = a => /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(a || '') ? a : '';
+  let stuDraft = null, stuBusy = false;
+  async function renderStudents() {
+    const box = $('students-box'); if (!box || stuBusy) return;
+    if (stuDraft) return drawStuForm(box);
+    box.replaceChildren(h('p', { class: 'sub', text: 'Loading students…' }));
+    const { data, error } = await sb.from('profiles').select('*').neq('id', hubUser.id).order('name');
+    if (error) { box.replaceChildren(h('p', { class: 'err', text: 'Could not load students: ' + error.message })); return; }
+    const av = p => { const im = safeImg(p.avatar); return h('span', { class: 'pic', style: im ? 'background-image:url("' + im + '")' : false, text: im ? '' : initials(p.name || 'S') }); };
+    box.replaceChildren(...((data || []).map(p => h('div', { class: 'stu' }, av(p),
+      h('span', { class: 'n' }, h('b', { text: p.name || 'Student' }), h('small', { text: [p.course, p.year, p.school].filter(Boolean).join(' · ') || 'No details yet' })),
+      h('button', { class: 'btn btn-ghost', type: 'button', text: 'Edit', onclick: () => { stuDraft = { ...p }; renderStudents(); } })))),
+      ...(data && data.length ? [] : [h('p', { class: 'sub', text: 'No students yet. A student appears here after you add them and they sign in once.' })]));
+  }
+  function drawStuForm(box) {
+    const d = stuDraft, im = safeImg(d.avatar);
+    const file = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: e => {
+      const f = e.target.files[0]; if (!f) return; const img = new Image();
+      img.onload = () => { const c = document.createElement('canvas'); c.width = c.height = 256; const m = Math.min(img.width, img.height);
+        c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, 256, 256);
+        d.avatar = c.toDataURL('image/jpeg', .85); URL.revokeObjectURL(img.src); drawStuForm(box); };
+      img.src = URL.createObjectURL(f); } });
+    const inp = (k, ph) => h('input', { class: 'field', placeholder: ph, value: d[k] || '', maxlength: '200', oninput: e => { d[k] = e.target.value; } });
+    const bio = h('textarea', { class: 'field', placeholder: 'Short bio', maxlength: '1000', oninput: e => { d.bio = e.target.value; } }); bio.value = d.bio || '';
+    const msg = h('span', { class: 'saved', text: '' });
+    box.replaceChildren(h('h3', { text: 'Edit student profile' }),
+      h('div', { class: 'prof' }, h('span', { class: 'pic', style: im ? 'background-image:url("' + im + '")' : false, text: im ? '' : initials(d.name || 'S') }), file,
+        h('button', { class: 'btn btn-ghost', type: 'button', text: 'Change photo', onclick: () => file.click() }),
+        h('button', { class: 'btn btn-ghost', type: 'button', text: 'Remove photo', onclick: () => { d.avatar = null; drawStuForm(box); } })),
+      h('div', { class: 'mrow' }, inp('name', 'Full name'), inp('school', 'School')), h('div', { class: 'mrow' }, inp('course', 'Course / strand'), inp('year', 'Year level')), bio,
+      h('div', { class: 'actions' },
+        h('button', { class: 'btn btn-primary', type: 'button', text: 'Save', onclick: async () => {
+          const { error } = await sb.from('profiles').update({ name: (d.name || '').trim() || null, school: d.school || null, course: d.course || null, year: d.year || null, bio: d.bio || null, avatar: d.avatar || null, updated_at: new Date().toISOString() }).eq('id', d.id);
+          if (error) { msg.textContent = 'Could not save: ' + error.message; msg.style.color = '#be123c'; return; }
+          stuDraft = null; renderStudents(); } }),
+        h('button', { class: 'btn btn-ghost', type: 'button', text: 'Cancel', onclick: () => { stuDraft = null; renderStudents(); } }), msg));
+  }
   function setTab(t) {
     tab = t;
     document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-current', b.dataset.tab === t ? 'true' : 'false'));
-    ['home', 'leads', 'inbox', 'pipeline', 'calendar', 'tasks', 'forecast', 'websites', 'reports', 'chat', 'help'].forEach(v => { $('view-' + v).hidden = v !== t; });
-    const mt = document.querySelector('.tab[data-tab="more"]'); if (mt) mt.setAttribute('aria-current', ['pipeline', 'calendar', 'tasks', 'forecast', 'websites', 'reports', 'help'].includes(t) ? 'true' : 'false');
+    ['home', 'leads', 'inbox', 'pipeline', 'calendar', 'tasks', 'forecast', 'websites', 'reports', 'chat', 'students', 'help'].forEach(v => { $('view-' + v).hidden = v !== t; });
+    const mt = document.querySelector('.tab[data-tab="more"]'); if (mt) mt.setAttribute('aria-current', ['pipeline', 'calendar', 'tasks', 'forecast', 'websites', 'reports', 'students', 'help'].includes(t) ? 'true' : 'false');
     if (t === 'chat') Hub.chat.mount($('chat-mount'), sb, hubUser); else Hub.chat.unmount();
     renderAll();
   }
@@ -1271,6 +1334,7 @@
     if (tab === 'leads') { renderStats(); renderList(); if (!skipDetail) renderDetail(); $('v-app').classList.toggle('has-sel', !!selectedId); }
     else { $('v-app').classList.remove('has-sel'); }
     if (!editing) renderProfile();
+    if (tab === 'students') renderStudents();
     if (tab === 'home') renderHome();
     if (tab === 'tasks') renderTasks();
     if (tab === 'forecast') renderForecast();
