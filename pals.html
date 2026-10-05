@@ -103,7 +103,7 @@ let view='posts',chat=null,chatDraft='',draft={text:'',blob:null,url:null,secs:0
 const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
 const ini=n=>(n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const ago=t=>{const m=Math.floor((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?m+'m ago':m<1440?Math.floor(m/60)+'h ago':Math.floor(m/1440)+'d ago'};
-const avEl=id=>{const P=profs[id],u=P&&P.avatar_path&&urls[P.avatar_path];return u?h('div',{class:'av',style:"background:url('"+u+"') center/cover",role:'img','aria-label':nm(id)}):avEl(id)};
+const avEl=id=>{const P=profs[id],u=P&&P.avatar_path&&urls[P.avatar_path];return u?h('div',{class:'av',style:"background:url('"+u+"') center/cover",role:'img','aria-label':nm(id)}):h('div',{class:'av',text:ini(nm(id))})};
 const nm=id=>id===me.id?me.name:(names[id]||'Pal');
 const validEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
 function toast(t){const el=h('div',{text:t,style:'position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#1b1a2e;color:#fff;padding:10px 18px;border-radius:999px;z-index:99;font-size:.88rem;max-width:90%'});document.body.append(el);setTimeout(()=>el.remove(),3000)}
