@@ -95,6 +95,7 @@ const sb=window.supabase.createClient(SB_URL,SB_KEY);
 
 const $=s=>document.querySelector(s);
 const home=()=>location.replace('index.html');
+const out=()=>location.replace('index.html?logout=1');
 const STATUSES=['new','contacted','quoted','won','lost'];
 const PRIORITIES=['low','normal','high'];
 
@@ -315,7 +316,7 @@ function appView(){
       h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0)}},t,n?h('span',{class:'n',text:String(n)}):null))),
       h('span',{class:'sp'}),
       h('span',{class:'muted',style:'font-size:.82rem',text:me.email}),
-      h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
+      h('button',{class:'btn ghost sm',text:'Apps',onclick:home}),h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
     h('main',{},body));
 }
 function noAccess(){
@@ -330,13 +331,13 @@ function render(){
   window.scrollTo(0,y);
 }
 let ready=false;
-async function logout(){try{await sb.auth.signOut()}catch(e){}home()}
+async function logout(){try{await sb.auth.signOut()}catch(e){}out()}
 
 async function init(){
   $('#app').replaceChildren(h('div',{class:'center'},h('p',{class:'muted',text:'Loading…'})));
   const {data:{session}}=await sb.auth.getSession();
   if(!session)return home();
-  sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')home()});
+  sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')out()});
   me={id:session.user.id,email:session.user.email};
   const m=await sb.from('crm_members').select('email').limit(1);
   if(m.error||!m.data||!m.data.length){ready=false;return render()}
