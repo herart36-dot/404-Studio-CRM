@@ -69,6 +69,7 @@ p.sub{color:var(--muted);margin:0 0 20px;font-size:.98rem}
 .field{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit;color:var(--ink);margin-top:10px}.field:focus{outline:2px solid #7c3aed55;border-color:#7c3aed}
 .btn{width:100%;margin-top:14px;border:0;cursor:pointer;border-radius:999px;padding:13px 20px;font:inherit;font-weight:700;color:#fff}
 #form.pals .btn{background:linear-gradient(135deg,#7c3aed,#d946ef);box-shadow:0 8px 20px rgba(124,58,237,.35)}#form.crm .btn{background:linear-gradient(135deg,#2563eb,#06b6d4);box-shadow:0 8px 20px rgba(37,99,235,.3)}.btn:disabled{opacity:.6}
+#form.pals .btn.gbtn{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none;display:flex;align-items:center;justify-content:center;gap:10px}.or{margin-top:14px;color:var(--muted);font-size:.8rem}.fpq{margin-top:12px;padding:10px 14px;border-radius:14px;background:#f3e8ff;color:#5b21b6;font-weight:700;font-size:.92rem}
 .link{font-size:.9rem;margin-top:16px;text-decoration:underline}.msg{margin-top:14px;font-size:.9rem;color:var(--danger)}.msg.ok{color:var(--ok)}
 .show{display:flex;gap:6px;align-items:center;margin:8px 2px 0;color:var(--muted);font-size:.85rem}[hidden]{display:none!important}
 @media(max-width:480px){.wm.xl{font-size:3.2rem}.col{width:74px}@keyframes hop{0%,15%{transform:translateX(0)}45%,100%{transform:translateX(168px)}}}
@@ -136,11 +137,20 @@ p.sub{color:var(--muted);margin:0 0 20px;font-size:.98rem}
   <h1 id="title">Log in</h1>
   <p class="sub" id="sub">Use the email your admin added.</p>
   <input id="email" class="field" type="email" placeholder="Email" autocomplete="username" maxlength="320" aria-label="Email">
+  <input id="dname" class="field" type="text" placeholder="Display name" maxlength="60" aria-label="Display name" hidden>
+  <div id="fpq" class="fpq" hidden></div>
   <input id="pass" class="field" type="password" placeholder="Password" autocomplete="current-password" maxlength="200" aria-label="Password">
   <input id="pass2" class="field" type="password" placeholder="Confirm password" autocomplete="new-password" maxlength="200" aria-label="Confirm password" hidden>
+  <select id="sq" class="field" aria-label="Security question" hidden>
+    <option>What was the name of your first pet?</option><option>What city were you born in?</option><option>What was the name of your elementary school?</option><option>What is your mother's maiden name?</option><option>What was your childhood nickname?</option>
+  </select>
+  <input id="sa" class="field" type="text" placeholder="Your answer" maxlength="100" autocomplete="off" aria-label="Security answer" hidden>
   <label class="show" id="showrow"><input id="showpw" type="checkbox"> Show password</label>
   <button id="go" class="btn" type="button">Log in</button>
   <div id="msg" class="msg" role="alert" hidden></div>
+  <div id="or" class="or" hidden>or</div>
+  <button id="gbtn" class="btn gbtn" type="button" hidden><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg><span id="gtxt">Continue with Google</span></button>
+  <button id="forgot" class="link" type="button" hidden>Forgot password?</button>
   <button id="swap" class="link" type="button">New here? Create your password</button>
 </div>
 </div>
@@ -169,7 +179,7 @@ const LEGAL_USERS=[
   'herart36@gmail.com'          // opens Orchid Legal
   // '@somefirm.com'            // a whole domain also works
 ];
-// Everyone else opens the 404 Studio CRM. Orchid Pals is a demo with no database: email only.
+// Everyone else opens the 404 Studio CRM. Orchid Pals has its own login (PALS above): email+password, Google, security-question reset.
 const APPS={
   crm:  {url:'https://acxrobzulaswsubfoghg.supabase.co',key:'sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD',page:'crm.html'},
   legal:{url:'https://djymgcwvfevvvxhhpxcj.supabase.co',key:'sb_publishable_2ymWgVfW4kw8rBkZcetl8A_XzYwwiHa',page:'legal.html'}
@@ -177,28 +187,45 @@ const APPS={
 function $(id){return document.getElementById(id)}
 const routeFor=email=>{const e=String(email||'').trim().toLowerCase();return LEGAL_USERS.some(x=>{x=x.toLowerCase();return x.startsWith('@')?e.endsWith(x):e===x})?'legal':'crm'};
 const go=k=>location.replace(APPS[k].page);
-const goPals=email=>location.replace('pals.html?email='+encodeURIComponent(email));
+const PALS={url:'https://dqvvidwzuvrxojpfukqe.supabase.co',key:'sb_publishable_v8eV56c-CwARaIlAL8IXYg_KA99WcXX'};
+const goPals=()=>{try{localStorage.setItem('orchid_last','pals')}catch(e){}location.replace('pals.html')};
+let fpq=null;
 let mode='in',product='crm',clients={};
 function say(t,ok){const m=$('msg');m.textContent=t;m.className='msg'+(ok?' ok':'');m.hidden=!t}
+function vis(ids,on){ids.split(' ').forEach(i=>$(i).hidden=!on)}
 function render(){
-  const pals=product==='pals',up=mode==='up'&&!pals;
+  const pals=product==='pals',up=mode==='up',fp=mode==='fp'&&pals,fp2=fp&&fpq!==null;
   $('form').className='panel '+product;
-  $('title').textContent=pals?'Welcome, pal':(up?'Create your password':'Log in');
-  $('sub').textContent=pals?'Enter your email to continue to Orchid Pals.':(up?'Use the email your admin added, then choose a password.':'Use the email your admin added.');
-  $('pass').hidden=pals;$('pass2').hidden=!up;$('showrow').hidden=pals;$('swap').hidden=pals;
-  $('pass').autocomplete=up?'new-password':'current-password';
-  $('go').textContent=pals?'Continue to Orchid Pals':(up?'Create account':'Log in');
-  $('swap').textContent=up?'Already have a password? Log in':'New here? Create your password';say('');
+  if(!pals){
+    $('title').textContent=up?'Create your password':'Log in';
+    $('sub').textContent=up?'Use the email your admin added, then choose a password.':'Use the email your admin added.';
+    vis('pass',true);vis('pass2',up);vis('showrow',true);vis('swap',true);vis('dname sq sa fpq or gbtn forgot',false);
+    $('go').textContent=up?'Create account':'Log in';
+    $('swap').textContent=up?'Already have a password? Log in':'New here? Create your password';
+  }else{
+    $('title').textContent=fp?'Reset your password':up?'Join Orchid Pals':'Welcome back';
+    $('sub').textContent=fp?(fp2?'Answer your security question, then choose a new password.':'Enter your email to see your security question.'):up?'Use the email the admin approved.':'Log in to Orchid Pals.';
+    vis('dname',up);vis('sq',up);vis('sa',up||fp2);vis('fpq',fp2);
+    vis('pass',!fp||fp2);vis('pass2',up||fp2);vis('showrow',!fp||fp2);
+    vis('or gbtn',!fp);vis('forgot',mode==='in');vis('swap',true);
+    $('pass').placeholder=fp2?'New password':'Password';$('pass2').placeholder=fp2?'Confirm new password':'Confirm password';
+    $('sa').placeholder=fp2?'Your answer':'Answer to your security question';
+    $('fpq').textContent=fpq||'';
+    $('go').textContent=fp?(fp2?'Reset password':'Get my question'):up?'Create account':'Log in';
+    $('gtxt').textContent=up?'Sign up with Google':'Continue with Google';
+    $('swap').textContent=fp?'Back to log in':up?'Already have an account? Log in':'New here? Create an account';
+  }
+  $('pass').autocomplete=(up||fp)?'new-password':'current-password';say('');
 }
 function choose(p){
-  product=p;mode='in';const c=document.querySelector('.card[data-p='+p+']');
+  product=p;mode='in';fpq=null;const c=document.querySelector('.card[data-p='+p+']');
   $('flogo').innerHTML=c.querySelector('.ic').outerHTML+c.querySelector('.wm').outerHTML;
   const w=$('flogo').querySelector('.wm');w.classList.remove('sm');w.style.fontSize='1.7rem';
   $('pick').hidden=true;$('form').hidden=false;render();$('email').focus();
 }
 async function submit(){
   const email=$('email').value.trim(),pass=$('pass').value;say('');
-  if(product==='pals'){if(!/^\S+@\S+\.\S+$/.test(email))return say('Enter a valid email address.');return goPals(email)}
+  if(product==='pals')return submitPals();
   if(!email||!pass)return say('Enter your email and password.');
   if(mode==='up'&&pass!==$('pass2').value)return say('The two passwords do not match.');
   const k=routeFor(email),c=clients[k];if(!c)return say('Still loading, try again in a moment.');
@@ -214,23 +241,61 @@ async function submit(){
     go(k);
   }catch(e){say(e.message||'Something went wrong. Please try again.')}finally{$('go').disabled=false}
 }
+async function submitPals(){
+  const c=clients.pals;if(!c)return say('Still loading, try again in a moment.');
+  const email=$('email').value.trim().toLowerCase(),pass=$('pass').value,pass2=$('pass2').value,ans=$('sa').value.trim();say('');
+  if(!/^\S+@\S+\.\S+$/.test(email))return say('Enter a valid email address.');
+  $('go').disabled=true;
+  try{
+    if(mode==='fp'){
+      if(fpq===null){const{data,error}=await c.rpc('get_security_question',{p_email:email});if(error)return say('Could not load your question. Try again.');fpq=data;render();return}
+      if(!ans)return say('Enter your answer.');if(pass.length<8)return say('Password must be at least 8 characters.');if(pass!==pass2)return say('The two passwords do not match.');
+      const{error}=await c.functions.invoke('reset-password',{body:{email,answer:ans,newPassword:pass}});
+      if(error){let m='Could not reset your password.';try{m=(await error.context.json()).error||m}catch(e){}return say(m)}
+      mode='in';fpq=null;render();$('pass').value=$('pass2').value=$('sa').value='';return say('Password updated. Log in with your new password.',true);
+    }
+    if(!pass)return say('Enter your email and password.');
+    if(mode==='up'){
+      const name=$('dname').value.trim();
+      if(!name)return say('Enter a display name.');if(pass.length<8)return say('Password must be at least 8 characters.');if(pass!==pass2)return say('The two passwords do not match.');if(ans.length<3)return say('Your security answer must be at least 3 characters.');
+      const{data,error}=await c.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname,data:{display_name:name,security_question:$('sq').value,security_answer:ans}}});
+      if(error)return say(/database error|not been approved/i.test(error.message)?'This email has not been approved for Orchid Pals. Ask the admin to approve it.':/already registered/i.test(error.message)?'This email already has an account. Log in instead.':error.message);
+      if(data.session)return goPals();
+      mode='in';render();return say('Check your email and tap the confirmation link, then log in here.',true);
+    }
+    const{error}=await c.auth.signInWithPassword({email,password:pass});
+    if(error)return say(error.message==='Invalid login credentials'?'Wrong email or password. Forgot it? Use "Forgot password?" below.':/not confirmed/i.test(error.message)?'Please confirm your email first, then log in.':error.message);
+    goPals();
+  }catch(e){say(e.message||'Something went wrong. Please try again.')}finally{$('go').disabled=false}
+}
+async function googlePals(){
+  try{localStorage.setItem('orchid_last','pals')}catch(e){}
+  const{error}=await clients.pals.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});
+  if(error)say(/not enabled|unsupported provider/i.test(error.message)?'Google sign-in is not switched on yet.':error.message);
+}
 async function boot(){
   await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';s.onload=res;s.onerror=()=>rej(new Error('Could not load the sign-in service. Check your connection and refresh.'));document.head.appendChild(s)});
   for(const k of Object.keys(APPS))clients[k]=window.supabase.createClient(APPS[k].url,APPS[k].key);
+  clients.pals=window.supabase.createClient(PALS.url,PALS.key);
+  const qs=new URLSearchParams(location.search+'&'+location.hash.slice(1)),oe=qs.get('error_description');
+  if(oe){history.replaceState(null,'',location.pathname);toPick();choose('pals');return say(/database error|not been approved/i.test(oe)?'This Google account is not approved for Orchid Pals. Ask the admin to approve your email.':oe)}
+  let last='';try{last=localStorage.getItem('orchid_last')||''}catch(e){}
+  if(last==='pals'){const{data:{session}}=await clients.pals.auth.getSession();if(session)return goPals()}
   for(const k of Object.keys(APPS)){   // already signed in? go straight to the right CRM
     const{data:{session}}=await clients[k].auth.getSession();if(!session)continue;
     if(routeFor(session.user.email)===k)return go(k);
     await clients[k].auth.signOut({scope:'local'});
   }
+  const{data:{session:ps}}=await clients.pals.auth.getSession();if(ps)goPals();
 }
 $('next').onclick=()=>idx<last?show(idx+1):toPick();$('skip').onclick=toPick;$('replay').onclick=replay;
 $('story').addEventListener('click',e=>{if(!e.target.closest('button')&&idx<last)show(idx+1)});
 document.addEventListener('keydown',e=>{if($('story').hidden)return;if(e.key==='ArrowRight'&&idx<last)show(idx+1);if(e.key==='ArrowLeft'&&idx>0)show(idx-1)});
 document.querySelectorAll('.card').forEach(b=>b.onclick=()=>choose(b.dataset.p));
 $('back').onclick=()=>{$('form').hidden=true;$('pick').hidden=false;say('')};
-$('go').onclick=submit;$('swap').onclick=()=>{mode=mode==='in'?'up':'in';render()};
+$('go').onclick=submit;$('swap').onclick=()=>{mode=mode==='in'?'up':'in';fpq=null;render()};$('gbtn').onclick=googlePals;$('forgot').onclick=()=>{mode='fp';fpq=null;render()};
 $('showpw').onchange=e=>{const t=e.target.checked?'text':'password';$('pass').type=t;$('pass2').type=t};
-['email','pass','pass2'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')submit()}));
+['email','pass','pass2','dname','sa'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')submit()}));
 show(0);
 boot().catch(e=>{toPick();choose('crm');say(e.message||'Something went wrong.')});
 </script>
