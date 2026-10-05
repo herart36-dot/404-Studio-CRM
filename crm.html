@@ -3,261 +3,309 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Orchid Pals</title>
+<title>Orchid CRM</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#eef1fb;--card:#fff;--ink:#14122e;--muted:#64748b;--line:rgba(20,18,46,.09);--brand:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#d946ef);--glass:rgba(255,255,255,.62);--sh:0 10px 40px rgba(60,70,140,.10);--dark:#1b1a2e;--danger:#be123c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--bg:#eef1fb;--card:#fff;--ink:#14122e;--muted:#64748b;--line:rgba(20,18,46,.09);--brand:#2563eb;--grad:linear-gradient(135deg,#2563eb,#06b6d4);--glass:rgba(255,255,255,.66);--sh:0 10px 40px rgba(60,70,140,.10);--dark:#1b1a2e;--danger:#be123c;--ok:#047857;--warn:#b45309;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}html,body{margin:0;min-height:100%}
-body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--ink);line-height:1.5;background:radial-gradient(900px 520px at 6% 0%,#cfe3ff 0,transparent 60%),radial-gradient(800px 600px at 96% 8%,#ead7ff 0,transparent 55%),radial-gradient(900px 600px at 50% 100%,#c8f1e5 0,transparent 60%),#eef1fb;background-attachment:fixed}
-button,input,textarea{font:inherit;color:inherit}[hidden]{display:none!important}
-:focus-visible{outline:3px solid rgba(99,102,241,.45);outline-offset:2px}
-.wm{font-weight:800;font-size:1.4rem;letter-spacing:-.03em;display:inline-flex;align-items:baseline;color:var(--ink)}
+body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--ink);line-height:1.5;background:radial-gradient(900px 520px at 6% 0%,#cfe3ff 0,transparent 60%),radial-gradient(800px 600px at 96% 8%,#d3f3fb 0,transparent 55%),radial-gradient(900px 600px at 50% 100%,#c8f1e5 0,transparent 60%),#eef1fb;background-attachment:fixed}
+button,input,textarea,select{font:inherit;color:inherit}[hidden]{display:none!important}
+:focus-visible{outline:3px solid rgba(37,99,235,.45);outline-offset:2px}
+.wm{font-weight:800;font-size:1.4rem;letter-spacing:-.03em;display:inline-flex;align-items:baseline}
 .wm b{color:#f97316;font-size:1.8em;line-height:.7;margin-right:1px}
+.wm .lg{font-size:.6em;font-weight:700;color:#6b7280;margin-left:.35em;letter-spacing:-.01em}
 .center{min-height:100vh;display:grid;place-items:center;padding:24px}
-.panel,.card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.85);border-radius:28px;box-shadow:var(--sh)}
+.panel,.card{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.85);border-radius:24px;box-shadow:var(--sh)}
 .panel{padding:40px 32px;max-width:420px;width:100%;text-align:center}
-.panel .wm{font-size:2rem;justify-content:center;margin-bottom:14px}
-.panel h1{font-size:1.5rem;margin:0 0 8px}.panel p.sub{color:var(--muted);margin:0 0 24px}
-.btn{border:0;cursor:pointer;border-radius:999px;padding:10px 20px;font-weight:700;font-size:.92rem;transition:transform .15s,box-shadow .15s,background .15s;display:inline-block}
-.btn:active{transform:scale(.98)}
-.primary{background:var(--dark);color:#fff;box-shadow:0 8px 20px rgba(20,18,46,.25)}
-.ghost{background:#fff;border:1px solid #e2e8f0;color:var(--ink)}.ghost:hover{background:#f8fafc}
+.panel h1{font-size:1.5rem;margin:12px 0 8px}.panel p.sub{color:var(--muted);margin:0 0 24px}
+.muted{color:var(--muted)}
+.btn{border:0;cursor:pointer;border-radius:999px;padding:9px 18px;font-weight:700;font-size:.9rem;transition:transform .15s,background .15s;display:inline-block}
+.btn:active{transform:scale(.98)}.btn:disabled{opacity:.6;cursor:default}
+.primary{background:var(--dark);color:#fff;box-shadow:0 8px 20px rgba(20,18,46,.22)}
+.blue{background:var(--grad);color:#fff;box-shadow:0 8px 20px rgba(37,99,235,.28)}
+.ghost{background:#fff;border:1px solid #e2e8f0}.ghost:hover{background:#f8fafc}
+.danger{color:var(--danger)}
+.sm{padding:6px 12px;font-size:.8rem}
 .wide{width:100%}
-.field,input[type=text],input[type=email],input[type=password],textarea{width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:12px;background:rgba(255,255,255,.75)}
-.field+.field,input+input{margin-top:10px}
-textarea{resize:vertical;min-height:80px}
-.show{display:flex;gap:6px;align-items:center;justify-content:flex-start;margin:8px 2px 0;color:var(--muted);font-size:.85rem}
-.show input{width:auto;margin:0}
-.lnk{display:inline-block;margin-top:18px;background:none;border:0;color:#475f8a;font-size:.88rem;text-decoration:underline;cursor:pointer}
-.err{color:var(--danger);font-size:.9rem;margin-top:14px;min-height:0}
-.or{color:var(--muted);font-size:.8rem;margin:16px 0;display:flex;align-items:center;gap:10px}.or:before,.or:after{content:"";flex:1;height:1px;background:rgba(20,18,46,.1)}
-.soc{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px}
-.soc b{font-size:1rem}
-.note{font-size:.78rem;color:var(--muted);margin:14px 0 0}
-.top{display:flex;align-items:center;gap:10px;padding:14px 22px}.top .wm{font-size:1.4rem}
-.crmtag{font-size:.7rem;font-weight:800;letter-spacing:.12em;color:var(--muted);background:rgba(255,255,255,.7);padding:3px 10px;border-radius:999px}
-.tabs{display:flex;gap:6px;width:max-content;max-width:calc(100% - 40px);margin:4px auto 0;background:var(--dark);border-radius:30px;padding:8px;box-shadow:0 14px 40px rgba(20,18,46,.35);overflow-x:auto}
-.tab{border:0;background:none;cursor:pointer;padding:9px 18px;border-radius:999px;font-weight:700;color:#a9a8c4;white-space:nowrap}
-.tab[aria-current=true]{background:#fff;color:var(--dark)}
-main{max-width:720px;margin:0 auto;padding:20px 16px 40px}
-.card{padding:18px;margin-bottom:14px}
-.av{width:40px;height:40px;border-radius:50%;background:var(--grad);color:#fff;font-weight:800;font-size:.8rem;display:grid;place-items:center;flex:none}
-.row{display:flex;align-items:center;gap:10px}.sp{flex:1}.muted{color:var(--muted);font-size:.82rem}
-.rec{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
-.dot{width:10px;height:10px;border-radius:50%;background:#ef4444;animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.25}}
-audio{width:100%;height:38px;margin-top:10px}
-.reacts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.rx{border:1px solid #e2e8f0;background:#fff;border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:700;font-size:.9rem;display:flex;gap:6px;align-items:center;transition:transform .15s}
-.rx:hover{transform:translateY(-2px)}.rx .e{font-size:1.2rem}
-.rx.on{background:rgba(124,58,237,.1);border-color:var(--brand);color:var(--brand)}
-.rx.pop .e{animation:pop .5s}@keyframes pop{30%{transform:scale(1.9) rotate(-12deg)}60%{transform:scale(.9) rotate(8deg)}}
-.fly{position:fixed;pointer-events:none;font-size:1.6rem;animation:fly 1s ease-out forwards;z-index:70}
-@keyframes fly{to{transform:translate(var(--dx),-120px) scale(1.4);opacity:0}}
-.chatwrap{display:grid;grid-template-columns:210px 1fr;gap:14px}@media(max-width:600px){.chatwrap{grid-template-columns:1fr}}
-.pl{display:flex;flex-direction:column;gap:4px}
-.pi{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:14px;border:0;background:none;cursor:pointer;text-align:left;width:100%}
-.pi:hover{background:rgba(255,255,255,.6)}.pi[aria-current=true]{background:rgba(124,58,237,.1)}
-.msgs{height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:4px}
-.m{max-width:80%;padding:8px 14px;border-radius:18px;background:#fff;align-self:flex-start;word-wrap:break-word}
-.m.me{align-self:flex-end;background:var(--dark);color:#fff}.m.react{font-style:italic}
-.cbar{display:flex;gap:8px;margin-top:10px}.cbar input{margin:0}
-.empty{text-align:center;color:var(--muted);padding:30px 10px}
-.modal{position:fixed;inset:0;background:rgba(20,18,46,.35);backdrop-filter:blur(4px);display:grid;place-items:center;padding:20px;z-index:60}
-.modal .panel{background:#fff}
-.wm .lg{font-size:.62em;font-weight:700;letter-spacing:-.01em;color:#8b93a5;margin-left:2px}
-.pill{display:inline-block;font-size:.72rem;font-weight:700;background:rgba(124,58,237,.1);color:var(--brand);padding:2px 9px;border-radius:999px}
+input[type=text],input[type=email],input[type=tel],input[type=date],textarea,select{width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:12px;background:rgba(255,255,255,.85)}
+textarea{resize:vertical;min-height:90px}
+label.f{display:block;font-size:.82rem;font-weight:700;margin-top:12px}
+label.f>*:last-child{margin-top:5px;font-weight:400}
+
+/* layout */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(238,241,251,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1000px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.sp{flex:1}
+.tabs{display:flex;gap:4px;overflow-x:auto;max-width:100%;padding:2px}
+.tab{border:0;background:none;cursor:pointer;padding:8px 14px;border-radius:999px;font-weight:700;font-size:.88rem;color:var(--muted);white-space:nowrap}
+.tab:hover{background:rgba(255,255,255,.7)}
+.tab[aria-selected=true]{background:var(--dark);color:#fff}
+.tab .n{margin-left:6px;font-size:.75rem;opacity:.8}
+main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.bar input[type=text]{max-width:280px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid #e2e8f0;background:#fff;border-radius:999px;padding:5px 12px;font-size:.8rem;font-weight:700;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--brand);border-color:var(--brand);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat{padding:16px 18px}.stat .v{font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1.1}.stat .l{color:var(--muted);font-size:.85rem;font-weight:600}
+.stat.hot .v{color:var(--danger)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.card{padding:16px 18px}
+.card h3{margin:0 0 10px;font-size:1rem}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{padding:14px 18px;display:flex;gap:12px;align-items:flex-start}
+.item .body{flex:1;min-width:0}
+.item .t{font-weight:700;overflow-wrap:anywhere}
+.item .s{color:var(--muted);font-size:.85rem;overflow-wrap:anywhere}
+.item .m{font-size:.9rem;margin-top:4px;overflow-wrap:anywhere;white-space:pre-wrap}
+.acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.pill{display:inline-block;font-size:.72rem;font-weight:800;padding:2px 10px;border-radius:999px;background:#e2e8f0;vertical-align:middle;margin-left:6px}
+.pill.new{background:#dbeafe;color:#1d4ed8}.pill.contacted{background:#fef3c7;color:#92400e}.pill.quoted{background:#ede9fe;color:#5b21b6}.pill.won{background:#d1fae5;color:#065f46}.pill.lost{background:#fee2e2;color:#991b1b}
+.pill.high{background:#fee2e2;color:#991b1b}.pill.low{background:#f1f5f9;color:#475569}
+.due{font-size:.82rem;font-weight:600;color:var(--muted)}.due.over{color:var(--danger)}.due.today{color:var(--warn)}
+.chk{width:22px;height:22px;margin-top:2px;accent-color:var(--brand);flex:none;cursor:pointer}
+.done .t{text-decoration:line-through;color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:36px 16px}
+.empty b{display:block;color:var(--ink);margin-bottom:4px}
+.err{color:var(--danger);font-size:.88rem;margin-top:10px;min-height:1.2em}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(20,18,46,.45);display:grid;place-items:center;padding:18px;z-index:50}
+.modal{background:#fff;border-radius:24px;padding:24px;width:100%;max-width:460px;max-height:92vh;overflow:auto;box-shadow:0 30px 80px rgba(20,18,46,.35)}
+.modal h2{margin:0 0 4px;font-size:1.25rem}
+.modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;padding:10px 18px;border-radius:999px;z-index:99;font-size:.88rem;max-width:90%}
+@media(prefers-reduced-motion:no-preference){.scrim{animation:fade .15s}@keyframes fade{from{opacity:0}}}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
 (function(){
-const SB_URL='https://dqvvidwzuvrxojpfukqe.supabase.co';
-const SB_KEY='sb_publishable_v8eV56c-CwARaIlAL8IXYg_KA99WcXX';
+/* ---- CRM Supabase project (same one the login page uses) ---- */
+const SB_URL='https://acxrobzulaswsubfoghg.supabase.co';
+const SB_KEY='sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
+
 const $=s=>document.querySelector(s);
-const REACTS=[{k:'heart',e:'❤️',n:'Heart'},{k:'like',e:'👍',n:'Like'},{k:'laugh',e:'😂',n:'Laugh'}];
 const home=()=>location.replace('index.html');
-let me=null,isAdmin=false,names={},emails={},pals=[],posts=[],rx=[],msgs=[],urls={},invites=[];
-let view='posts',chat=null,chatDraft='',draft={text:'',blob:null,url:null,secs:0,mime:''},rec=null,busy=false,poll=null;
-const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
-const ini=n=>(n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-const ago=t=>{const m=Math.floor((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?m+'m ago':m<1440?Math.floor(m/60)+'h ago':Math.floor(m/1440)+'d ago'};
-const nm=id=>id===me.id?me.name:(names[id]||'Pal');
-const validEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
-function toast(t){const el=h('div',{text:t,style:'position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#1b1a2e;color:#fff;padding:10px 18px;border-radius:999px;z-index:99;font-size:.88rem;max-width:90%'});document.body.append(el);setTimeout(()=>el.remove(),3000)}
+const STATUSES=['new','contacted','quoted','won','lost'];
+const PRIORITIES=['low','normal','high'];
+
+let me=null,clients=[],inquiries=[],tasks=[];
+let view='overview',q='',inqFilter='all',taskFilter='open';
+
+/* ---- tiny DOM helper (text is always set as text, never HTML) ---- */
+const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]===true)el.setAttribute(k,'');else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&x!==false&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
+function toast(t){const el=h('div',{class:'toast',text:t,role:'status'});document.body.append(el);setTimeout(()=>el.remove(),3000)}
 const fail=(e,m)=>{console.error(e);toast(m||'Something went wrong. Please try again.')};
-const acceptedIds=()=>pals.filter(p=>p.status==='accepted').map(p=>p.requester_id===me.id?p.addressee_id:p.requester_id);
+const cap=s=>s?s[0].toUpperCase()+s.slice(1):s;
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const fmtDate=d=>d?new Date(d+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'';
+const ago=t=>{const m=Math.floor((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?m+'m ago':m<1440?Math.floor(m/60)+'h ago':Math.floor(m/1440)+'d ago'};
+const clientName=id=>{const c=clients.find(x=>x.id===id);return c?c.name:''};
+const match=(o,keys)=>!q||keys.some(k=>String(o[k]||'').toLowerCase().includes(q.toLowerCase()));
+const nullify=o=>{for(const k in o)if(typeof o[k]==='string'){o[k]=o[k].trim();if(o[k]==='')o[k]=null}return o};
 
-/* ---------- data ---------- */
-async function loadPeople(){
-  const [pr,pl]=await Promise.all([sb.from('profiles').select('id,display_name,email'),sb.from('pals').select('*')]);
-  if(pr.error)throw pr.error;if(pl.error)throw pl.error;
-  names={};emails={};pr.data.forEach(p=>{names[p.id]=p.display_name;emails[p.id]=p.email});pals=pl.data;
+/* ---- data ---- */
+async function loadAll(){
+  const [c,i,t]=await Promise.all([
+    sb.from('crm_clients').select('*').order('name'),
+    sb.from('crm_inquiries').select('*').order('created_at',{ascending:false}),
+    sb.from('crm_tasks').select('*').order('due_date',{ascending:true,nullsFirst:false})
+  ]);
+  const e=c.error||i.error||t.error;if(e)throw e;
+  clients=c.data;inquiries=i.data;tasks=t.data;
 }
-async function loadPosts(){
-  const [po,re]=await Promise.all([sb.from('posts').select('*').order('created_at',{ascending:false}).limit(100),sb.from('reactions').select('post_id,user_id,kind')]);
-  if(po.error)throw po.error;if(re.error)throw re.error;
-  posts=po.data;rx=re.data;
-  const paths=posts.filter(p=>p.audio_path&&!urls[p.audio_path]).map(p=>p.audio_path);
-  if(paths.length){const {data}=await sb.storage.from('voice').createSignedUrls(paths,3600);(data||[]).forEach(d=>{if(d.signedUrl)urls[d.path]=d.signedUrl})}
-}
-async function loadMsgs(){const {data,error}=await sb.from('messages').select('*').order('created_at',{ascending:true}).limit(500);if(error)throw error;const ch=data.length!==msgs.length;msgs=data;return ch}
-async function loadInvites(){if(!isAdmin)return;const {data}=await sb.from('approved_emails').select('email,is_admin').order('created_at');invites=data||[]}
-async function loadAll(){await loadPeople();await Promise.all([loadPosts(),loadMsgs(),loadInvites()])}
+async function run(p,okMsg){const r=await p;if(r.error)return fail(r.error);try{await loadAll()}catch(e){return fail(e,'Saved, but could not refresh. Please reload.')}if(okMsg)toast(okMsg);render()}
 
-/* ---------- voice ---------- */
-async function startRec(){
-  try{
-    const st=await navigator.mediaDevices.getUserMedia({audio:true});
-    const types=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
-    const mime=types.find(t=>window.MediaRecorder&&MediaRecorder.isTypeSupported(t))||'';
-    const mr=new MediaRecorder(st,mime?{mimeType:mime}:undefined);const ch=[];const s=Date.now();
-    mr.ondataavailable=e=>e.data.size&&ch.push(e.data);
-    mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());const base=(mr.mimeType||mime||'audio/webm').split(';')[0];const blob=new Blob(ch,{type:base});
-      if(draft.url)URL.revokeObjectURL(draft.url);draft.blob=blob;draft.mime=base;draft.secs=Math.min(60,Math.max(1,Math.round((Date.now()-s)/1000)));draft.url=URL.createObjectURL(blob);rec=null;render()};
-    mr.start();rec={mr};render();
-    setTimeout(()=>{if(mr.state==='recording')mr.stop()},60000);
-  }catch(e){toast('Microphone is not available. Please allow mic access.')}
+/* ---- modal form ---- */
+function openForm({title,fields,values={},saveText='Save changes',onSave}){
+  const inputs={};
+  const form=h('div',{},...fields.map(f=>{
+    let el;
+    if(f.type==='textarea')el=h('textarea',{id:'f_'+f.k});
+    else if(f.type==='select'){el=h('select',{id:'f_'+f.k},...f.options.map(o=>h('option',{value:o.v,text:o.t})))}
+    else el=h('input',{id:'f_'+f.k,type:f.type||'text'});
+    if(f.type!=='select'&&f.type!=='textarea'&&f.placeholder)el.placeholder=f.placeholder;
+    el.value=values[f.k]??f.def??'';
+    inputs[f.k]=el;
+    return h('label',{class:'f',for:'f_'+f.k},f.label,el);
+  }));
+  const err=h('div',{class:'err',role:'alert'});
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)};
+  const esc=e=>{if(e.key==='Escape')close()};
+  const save=h('button',{class:'btn blue',text:saveText,onclick:async()=>{
+    const out={};for(const f of fields){out[f.k]=inputs[f.k].value;if(f.req&&!out[f.k].trim()){err.textContent=f.label+' is required.';inputs[f.k].focus();return}
+      if(f.type==='email'&&out[f.k].trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(out[f.k].trim())){err.textContent='Enter a valid email address.';inputs[f.k].focus();return}}
+    save.disabled=true;try{await onSave(nullify(out));close()}finally{save.disabled=false}
+  }});
+  const scrim=h('div',{class:'scrim',onclick:e=>{if(e.target===scrim)close()}},
+    h('div',{class:'modal',role:'dialog','aria-modal':'true','aria-label':title},
+      h('h2',{text:title}),form,err,
+      h('div',{class:'row'},h('button',{class:'btn ghost',text:'Cancel',onclick:close}),save)));
+  document.body.append(scrim);document.addEventListener('keydown',esc);
+  const first=scrim.querySelector('input,textarea,select');first&&first.focus();
 }
-const stopRec=()=>{if(rec)rec.mr.stop()};
-const clearDraftAudio=()=>{if(draft.url)URL.revokeObjectURL(draft.url);draft.blob=draft.url=null;draft.secs=0};
-const extOf=m=>({'audio/webm':'webm','audio/mp4':'m4a','audio/ogg':'ogg','audio/mpeg':'mp3','audio/wav':'wav','audio/aac':'aac'}[m]||'webm');
+const clientOptions=()=>[{v:'',t:'No client'},...clients.map(c=>({v:c.id,t:c.name}))];
 
-async function publish(){
-  if(busy)return;const text=draft.text.trim();
-  if(!text&&!draft.blob)return toast('Write something or record your voice first.');
-  busy=true;render();let path=null;
-  try{
-    if(draft.blob){path=me.id+'/'+crypto.randomUUID()+'.'+extOf(draft.mime);
-      const up=await sb.storage.from('voice').upload(path,draft.blob,{contentType:draft.mime});if(up.error)throw up.error}
-    const row={body:text||null};if(path){row.audio_path=path;row.audio_seconds=draft.secs}
-    const ins=await sb.from('posts').insert(row);
-    if(ins.error){if(path)await sb.storage.from('voice').remove([path]);throw ins.error}
-    draft.text='';clearDraftAudio();await loadPosts();
-  }catch(e){fail(e,'Could not post. Please try again.')}
-  busy=false;render();
-}
-async function delPost(p){
-  if(!confirm('Delete this post?'))return;
-  const r=await sb.from('posts').delete().eq('id',p.id);if(r.error)return fail(r.error);
-  if(p.audio_path)await sb.storage.from('voice').remove([p.audio_path]);
-  await loadPosts();render();
-}
-
-/* ---------- reactions ---------- */
-function burst(btn,e){const r=btn.getBoundingClientRect();for(let i=0;i<5;i++){const f=h('div',{class:'fly',text:e,style:`left:${r.left+r.width/2}px;top:${r.top}px;--dx:${(i-2)*22}px;animation-delay:${i*60}ms`});document.body.append(f);setTimeout(()=>f.remove(),1300)}}
-async function react(p,k,btn,e){
-  const on=rx.some(r=>r.post_id===p.id&&r.user_id===me.id&&r.kind===k);
-  if(on){const d=await sb.from('reactions').delete().match({post_id:p.id,user_id:me.id,kind:k});if(d.error)return fail(d.error);rx=rx.filter(r=>!(r.post_id===p.id&&r.user_id===me.id&&r.kind===k));return render()}
-  const i=await sb.from('reactions').insert({post_id:p.id,kind:k});if(i.error)return fail(i.error);
-  rx.push({post_id:p.id,user_id:me.id,kind:k});burst(btn,e);
-  if(p.author_id===me.id)return render();
-  const snip=p.body?p.body.slice(0,40)+(p.body.length>40?'…':''):'a voice post';
-  const m=await sb.from('messages').insert({recipient_id:p.author_id,body:e+' reacted to your post: “'+snip+'”'});
-  if(m.error)fail(m.error,'Reaction saved, but the message could not be sent.');else await loadMsgs();
-  setTimeout(()=>{chat=p.author_id;view='messages';render();setTimeout(()=>{const x=$('#msgin');x&&x.focus()},50)},650);
+/* ---- inquiries ---- */
+const inqFields=()=>[
+  {k:'name',label:'Name',req:true},
+  {k:'email',label:'Email',type:'email'},
+  {k:'phone',label:'Phone',type:'tel'},
+  {k:'source',label:'Where it came from',placeholder:'Website, referral, Instagram…'},
+  {k:'status',label:'Status',type:'select',options:STATUSES.map(s=>({v:s,t:cap(s)})),def:'new'},
+  {k:'message',label:'What they asked for',type:'textarea'}
+];
+const addInquiry=()=>openForm({title:'New inquiry',fields:inqFields(),saveText:'Add inquiry',onSave:v=>run(sb.from('crm_inquiries').insert(v),'Inquiry added.')});
+const editInquiry=i=>openForm({title:'Edit inquiry',fields:inqFields(),values:i,onSave:v=>run(sb.from('crm_inquiries').update(v).eq('id',i.id),'Inquiry saved.')});
+const setStatus=(i,s)=>run(sb.from('crm_inquiries').update({status:s}).eq('id',i.id));
+const delInquiry=i=>{if(confirm('Delete the inquiry from '+i.name+'?'))run(sb.from('crm_inquiries').delete().eq('id',i.id),'Inquiry deleted.')};
+async function convert(i){
+  const ex=i.email&&clients.find(c=>(c.email||'').toLowerCase()===i.email.toLowerCase());
+  let cid=ex&&ex.id;
+  if(!cid){
+    const r=await sb.from('crm_clients').insert({name:i.name,email:i.email,phone:i.phone,notes:i.message}).select('id').single();
+    if(r.error)return fail(r.error);cid=r.data.id;
+  }
+  await run(sb.from('crm_inquiries').update({client_id:cid,status:i.status==='lost'?'lost':'won'}).eq('id',i.id),ex?'Linked to existing client.':'Client created.');
 }
 
-/* ---------- views ---------- */
-function postCard(p){
-  const mine=p.author_id===me.id;
-  return h('div',{class:'card'},
-    h('div',{class:'row'},h('div',{class:'av',text:ini(nm(p.author_id))}),h('div',{class:'sp'},h('b',{text:mine?me.name+' (you)':nm(p.author_id)}),h('div',{class:'muted',text:ago(p.created_at)})),mine?h('button',{class:'btn ghost',text:'Delete',onclick:()=>delPost(p)}):null),
-    p.body?h('p',{text:p.body,style:'margin:12px 0 0;white-space:pre-wrap'}):null,
-    p.audio_path?(urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):h('div',{class:'muted',text:'Voice recording unavailable.'})):null,
-    h('div',{class:'reacts'},REACTS.map(r=>{const n=rx.filter(x=>x.post_id===p.id&&x.kind===r.k).length;const on=rx.some(x=>x.post_id===p.id&&x.kind===r.k&&x.user_id===me.id);
-      const b=h('button',{class:'rx'+(on?' on':''),'aria-pressed':on,'aria-label':r.n},h('span',{class:'e',text:r.e}),String(n));b.onclick=()=>{b.classList.add('pop');react(p,r.k,b,r.e)};return b})),
-    mine?null:h('div',{class:'muted',style:'margin-top:8px',text:'React to start a chat with the author.'}));
+/* ---- clients ---- */
+const clientFields=()=>[
+  {k:'name',label:'Name',req:true},
+  {k:'company',label:'Company'},
+  {k:'email',label:'Email',type:'email'},
+  {k:'phone',label:'Phone',type:'tel'},
+  {k:'notes',label:'Notes',type:'textarea'}
+];
+const addClient=()=>openForm({title:'New client',fields:clientFields(),saveText:'Add client',onSave:v=>run(sb.from('crm_clients').insert(v),'Client added.')});
+const editClient=c=>openForm({title:'Edit client',fields:clientFields(),values:c,onSave:v=>run(sb.from('crm_clients').update(v).eq('id',c.id),'Client saved.')});
+const delClient=c=>{if(confirm('Delete '+c.name+'? Their inquiries and tasks stay, but are unlinked.'))run(sb.from('crm_clients').delete().eq('id',c.id),'Client deleted.')};
+
+/* ---- tasks ---- */
+const taskFields=(pre)=>[
+  {k:'title',label:'Task',req:true},
+  {k:'due_date',label:'Due date',type:'date'},
+  {k:'priority',label:'Priority',type:'select',options:PRIORITIES.map(p=>({v:p,t:cap(p)})),def:'normal'},
+  {k:'client_id',label:'Client',type:'select',options:clientOptions()}
+];
+const addTask=(client_id)=>openForm({title:'New task',fields:taskFields(),values:{client_id:client_id||''},saveText:'Add task',onSave:v=>run(sb.from('crm_tasks').insert(v),'Task added.')});
+const editTask=t=>openForm({title:'Edit task',fields:taskFields(),values:{...t,client_id:t.client_id||'',due_date:t.due_date||''},onSave:v=>run(sb.from('crm_tasks').update(v).eq('id',t.id),'Task saved.')});
+const toggleTask=t=>run(sb.from('crm_tasks').update({done:!t.done}).eq('id',t.id));
+const delTask=t=>{if(confirm('Delete this task?'))run(sb.from('crm_tasks').delete().eq('id',t.id),'Task deleted.')};
+
+/* ---- shared pieces ---- */
+const isOverdue=t=>!t.done&&t.due_date&&t.due_date<today();
+const empty=(title,text,btn)=>h('div',{class:'card empty'},h('b',{text:title}),text,btn?h('div',{style:'margin-top:14px'},btn):null);
+const searchBar=(ph)=>{const i=h('input',{type:'text',placeholder:ph,value:q,'aria-label':ph,oninput:e=>{q=e.target.value;const pos=e.target.selectionStart;render();const n=$('#search');if(n){n.focus();n.setSelectionRange(pos,pos)}}});i.id='search';return i};
+const chips=(opts,cur,set)=>h('div',{class:'chips'},opts.map(([v,t])=>h('button',{class:'chip','aria-pressed':String(cur===v),text:t,onclick:()=>{set(v);render()}})));
+function dueEl(t){if(!t.due_date)return null;const o=isOverdue(t),td=!t.done&&t.due_date===today();return h('span',{class:'due'+(o?' over':td?' today':''),text:(o?'Overdue · ':td?'Due today · ':'Due ')+fmtDate(t.due_date)})}
+
+function taskRow(t){
+  return h('div',{class:'card item'+(t.done?' done':'')},
+    h('input',{type:'checkbox',class:'chk',checked:t.done,'aria-label':'Mark done: '+t.title,onchange:()=>toggleTask(t)}),
+    h('div',{class:'body'},
+      h('div',{class:'t'},t.title,t.priority!=='normal'?h('span',{class:'pill '+t.priority,text:cap(t.priority)}):null),
+      h('div',{class:'s'},dueEl(t),t.client_id?h('span',{text:(t.due_date?' · ':'')+clientName(t.client_id)}):null),
+      h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editTask(t)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delTask(t)}))));
 }
-function postsView(){
-  const ta=h('textarea',{placeholder:"What's on your mind, "+me.name.split(' ')[0]+'? (text or a voice recording, no photos or video)',maxlength:'1000',oninput:e=>draft.text=e.target.value});ta.value=draft.text;
-  const recUI=rec?h('div',{class:'rec'},h('span',{class:'dot'}),h('span',{text:'Recording… (max 60s)'}),h('button',{class:'btn ghost',text:'Stop',onclick:stopRec})):
-    h('div',{class:'rec'},h('button',{class:'btn ghost',text:draft.blob?'🎙️ Re-record':'🎙️ Record voice',onclick:startRec}),draft.blob?h('button',{class:'btn ghost',text:'Remove',onclick:()=>{clearDraftAudio();render()}}):null,h('span',{class:'sp'}),
-      h('button',{class:'btn primary',text:busy?'Posting…':'Post',disabled:busy,onclick:publish}));
-  return h('div',{},h('div',{class:'card'},ta,draft.blob&&!rec?h('audio',{controls:'',src:draft.url}):null,recUI),
-    posts.length?posts.map(postCard):h('div',{class:'empty',text:'No posts yet. Add a Pal or write the first one.'}));
+function inquiryRow(i){
+  const sel=h('select',{'aria-label':'Status for '+i.name,style:'width:auto;padding:6px 10px;border-radius:999px;font-size:.8rem;font-weight:700',onchange:e=>setStatus(i,e.target.value)},STATUSES.map(s=>h('option',{value:s,text:cap(s)})));
+  sel.value=i.status;
+  return h('div',{class:'card item'},h('div',{class:'body'},
+    h('div',{class:'t'},i.name,h('span',{class:'pill '+i.status,text:cap(i.status)})),
+    h('div',{class:'s',text:[i.email,i.phone,i.source,ago(i.created_at)].filter(Boolean).join(' · ')}),
+    i.message?h('div',{class:'m',text:i.message}):null,
+    i.client_id?h('div',{class:'s',style:'margin-top:4px',text:'Client: '+clientName(i.client_id)}):null,
+    h('div',{class:'acts'},sel,
+      i.client_id?null:h('button',{class:'btn blue sm',text:'Make client',onclick:()=>convert(i)}),
+      h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editInquiry(i)}),
+      h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delInquiry(i)}))));
 }
-function messagesView(){
-  const ids=acceptedIds();
-  if(!ids.length)return h('div',{class:'empty',text:'Add a Pal first to start messaging.'});
-  if(!chat||!ids.includes(chat))chat=ids[0];
-  const list=h('div',{class:'pl'},ids.map(id=>{const last=[...msgs].reverse().find(m=>m.sender_id===id||m.recipient_id===id);return h('button',{class:'pi','aria-current':chat===id,onclick:()=>{chatDraft='';chat=id;render()}},h('div',{class:'av',text:ini(nm(id))}),h('div',{},h('b',{text:nm(id)}),h('div',{class:'muted',text:last?last.body.slice(0,22):'Say hi'})))}));
-  const box=h('div',{class:'msgs'});const ms=msgs.filter(m=>m.sender_id===chat||m.recipient_id===chat);
-  if(!ms.length)box.append(h('div',{class:'empty',text:'No messages yet. Say hi to '+nm(chat)+'!'}));
-  ms.forEach(m=>box.append(h('div',{class:'m'+(m.sender_id===me.id?' me':'')+(/^(❤️|👍|😂) reacted/.test(m.body)?' react':''),text:m.body})));
-  const inp=h('input',{type:'text',id:'msgin',maxlength:'2000',placeholder:'Message '+nm(chat)+'…',oninput:e=>chatDraft=e.target.value});inp.value=chatDraft;
-  const send=async()=>{const v=inp.value.trim();if(!v)return;inp.value='';chatDraft='';const r=await sb.from('messages').insert({recipient_id:chat,body:v});if(r.error)return fail(r.error,'Message not sent.');await loadMsgs();render();setTimeout(()=>{const x=$('#msgin');x&&x.focus()},0)};
-  inp.onkeydown=e=>{if(e.key==='Enter')send()};
-  setTimeout(()=>{box.scrollTop=box.scrollHeight},0);
-  return h('div',{class:'chatwrap'},h('div',{class:'card'},list),h('div',{class:'card'},h('b',{text:nm(chat)}),h('div',{style:'margin-top:8px'},box),h('div',{class:'cbar'},inp,h('button',{class:'btn primary',text:'Send',onclick:send}))));
-}
-function albumView(){
-  const mine=posts.filter(p=>p.author_id===me.id&&p.audio_path);
-  return h('div',{},h('div',{class:'card'},h('b',{text:'🎧 Your Voice Album'}),h('p',{class:'muted',text:'Every voice recording you post lands here. Photos and video are not part of Orchid Pals.'})),
-    mine.length?mine.map(p=>h('div',{class:'card'},h('div',{class:'muted',text:ago(p.created_at)+' · '+p.audio_seconds+'s'}),p.body?h('p',{text:p.body,style:'margin:6px 0 0'}):null,urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):null)):h('div',{class:'empty',text:'No recordings yet. Record one from the Posts tab.'}));
-}
-async function palAction(fn,okMsg){const r=await fn();if(r&&r.error)return fail(r.error);try{await loadPeople();await loadPosts()}catch(e){fail(e)}if(okMsg)toast(okMsg);render()}
-function palsView(){
-  const em=h('input',{type:'email',placeholder:"Pal's email",maxlength:'320'});
-  const add=async()=>{const e=em.value.trim().toLowerCase();if(!validEmail(e))return toast('Please type a valid email.');
-    const id=Object.keys(emails).find(k=>emails[k]===e);
-    if(!id)return toast('No Pal found with that email. They must be approved and signed up first.');
-    if(id===me.id)return toast("That's you!");
-    if(pals.some(p=>p.requester_id===id||p.addressee_id===id))return toast('You already have a request or link with this Pal.');
-    palAction(()=>sb.from('pals').insert({addressee_id:id}),'Request sent.')};
-  em.onkeydown=e=>{if(e.key==='Enter')add()};
-  const inc=pals.filter(p=>p.status==='pending'&&p.addressee_id===me.id),out=pals.filter(p=>p.status==='pending'&&p.requester_id===me.id),ok=pals.filter(p=>p.status==='accepted');
-  const other=p=>p.requester_id===me.id?p.addressee_id:p.requester_id;
-  const sec=[];
-  sec.push(h('div',{class:'card'},h('b',{text:'Add a Pal'}),h('div',{class:'cbar'},em,h('button',{class:'btn primary',text:'Send request',onclick:add}))));
-  if(inc.length)sec.push(h('div',{class:'card'},h('b',{text:'Pal requests'}),inc.map(p=>h('div',{class:'row',style:'margin-top:10px'},h('div',{class:'av',text:ini(nm(p.requester_id))}),h('div',{class:'sp'},h('b',{text:nm(p.requester_id)})),
-    h('button',{class:'btn primary',text:'Accept',onclick:()=>palAction(()=>sb.from('pals').update({status:'accepted'}).eq('id',p.id))}),h('button',{class:'btn ghost',text:'Decline',onclick:()=>palAction(()=>sb.from('pals').delete().eq('id',p.id))})))));
-  sec.push(h('div',{class:'muted',style:'margin:0 4px 8px',text:ok.length+' Pals'}));
-  ok.forEach(p=>sec.push(h('div',{class:'card row'},h('div',{class:'av',text:ini(nm(other(p)))}),h('div',{class:'sp'},h('b',{text:nm(other(p))}),h('div',{},h('span',{class:'pill',text:'Pal'}))),
-    h('button',{class:'btn ghost',text:'Message',onclick:()=>{chat=other(p);view='messages';render()}}),
-    h('button',{class:'btn ghost',text:'Remove',onclick:()=>{if(confirm('Remove this Pal?'))palAction(()=>sb.from('pals').delete().eq('id',p.id))}}))));
-  if(out.length)sec.push(h('div',{class:'card'},h('b',{text:'Waiting for a reply'}),out.map(p=>h('div',{class:'row',style:'margin-top:8px'},h('span',{class:'sp',text:nm(other(p))}),h('button',{class:'btn ghost',text:'Cancel',onclick:()=>palAction(()=>sb.from('pals').delete().eq('id',p.id))})))));
-  if(isAdmin)sec.push(adminCard());
-  return h('div',{},sec);
-}
-function adminCard(){
-  const em=h('input',{type:'email',placeholder:'Email to approve',maxlength:'320'});
-  const add=async()=>{const e=em.value.trim().toLowerCase();if(!validEmail(e))return toast('Please type a valid email.');const r=await sb.from('approved_emails').insert({email:e});if(r.error)return fail(r.error,r.error.code==='23505'?'That email is already approved.':'Could not approve.');await loadInvites();toast('Approved. They can now sign up.');render()};
-  em.onkeydown=e=>{if(e.key==='Enter')add()};
-  return h('div',{class:'card'},h('b',{text:'Admin: approved emails'}),h('p',{class:'muted',text:'Only approved emails can sign up for Orchid Pals.'}),
-    h('div',{class:'cbar'},em,h('button',{class:'btn primary',text:'Approve',onclick:add})),
-    invites.map(i=>h('div',{class:'row',style:'margin-top:10px'},h('span',{class:'sp',text:i.email}),i.is_admin?h('span',{class:'pill',text:'Admin'}):h('button',{class:'btn ghost',text:'Remove',onclick:async()=>{if(!confirm('Remove approval for '+i.email+'?'))return;const r=await sb.from('approved_emails').delete().eq('email',i.email);if(r.error)return fail(r.error);await loadInvites();render()}}))));
-}
-function appView(){
-  const tabs=[['posts','Posts'],['messages','Messages'],['album','Album'],['pals','Pals']];
-  const v={posts:postsView,messages:messagesView,album:albumView,pals:palsView}[view]();
-  const inc=pals.filter(p=>p.status==='pending'&&p.addressee_id===me.id).length;
+
+/* ---- views ---- */
+function overview(){
+  const nNew=inquiries.filter(i=>i.status==='new').length;
+  const open=tasks.filter(t=>!t.done),over=open.filter(isOverdue).length;
+  const stat=(v,l,hot)=>h('div',{class:'card stat'+(hot&&v>0?' hot':'')},h('div',{class:'v',text:String(v)}),h('div',{class:'l',text:l}));
+  const recent=inquiries.slice(0,5),upcoming=open.slice(0,6);
   return h('div',{},
-    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals'})),h('span',{class:'sp'}),h('span',{class:'muted',text:me.name}),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
-    h('nav',{class:'tabs'},tabs.map(([k,l])=>h('button',{class:'tab','aria-current':view===k,text:l+(k==='pals'&&inc?' ('+inc+')':''),onclick:()=>{if(rec)return;view=k;render()}}))),
-    h('main',{},v));
+    h('div',{class:'stats'},stat(nNew,'New inquiries'),stat(open.length,'Open tasks'),stat(over,'Overdue tasks',true),stat(clients.length,'Clients')),
+    h('div',{class:'grid2'},
+      h('div',{},h('div',{class:'bar'},h('h3',{style:'margin:0',text:'Latest inquiries'}),h('span',{class:'sp'}),h('button',{class:'btn ghost sm',text:'Add inquiry',onclick:addInquiry})),
+        recent.length?h('div',{class:'list'},recent.map(inquiryRow)):empty('No inquiries yet','Add one when someone gets in touch.')),
+      h('div',{},h('div',{class:'bar'},h('h3',{style:'margin:0',text:'Next tasks'}),h('span',{class:'sp'}),h('button',{class:'btn ghost sm',text:'Add task',onclick:()=>addTask()})),
+        upcoming.length?h('div',{class:'list'},upcoming.map(taskRow)):empty('Nothing to do','Add a task to keep track of follow-ups.'))));
+}
+function inquiriesView(){
+  const list=inquiries.filter(i=>(inqFilter==='all'||i.status===inqFilter)&&match(i,['name','email','phone','source','message']));
+  return h('div',{},
+    h('div',{class:'bar'},searchBar('Search inquiries'),chips([['all','All'],...STATUSES.map(s=>[s,cap(s)])],inqFilter,v=>inqFilter=v),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'Add inquiry',onclick:addInquiry})),
+    list.length?h('div',{class:'list'},list.map(inquiryRow)):empty(inquiries.length?'No matches':'No inquiries yet',inquiries.length?'Try a different search or status.':'Add your first inquiry to start tracking leads.',inquiries.length?null:h('button',{class:'btn blue',text:'Add inquiry',onclick:addInquiry})));
+}
+function clientsView(){
+  const list=clients.filter(c=>match(c,['name','email','phone','company','notes']));
+  const row=c=>{
+    const nt=tasks.filter(t=>t.client_id===c.id&&!t.done).length,ni=inquiries.filter(i=>i.client_id===c.id).length;
+    return h('div',{class:'card item'},h('div',{class:'body'},
+      h('div',{class:'t',text:c.name+(c.company?' — '+c.company:'')}),
+      h('div',{class:'s',text:[c.email,c.phone].filter(Boolean).join(' · ')||'No contact details'}),
+      h('div',{class:'s',text:ni+' inquir'+(ni===1?'y':'ies')+' · '+nt+' open task'+(nt===1?'':'s')}),
+      c.notes?h('div',{class:'m',text:c.notes}):null,
+      h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Add task',onclick:()=>addTask(c.id)}),h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editClient(c)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delClient(c)}))));
+  };
+  return h('div',{},
+    h('div',{class:'bar'},searchBar('Search clients'),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'Add client',onclick:addClient})),
+    list.length?h('div',{class:'list'},list.map(row)):empty(clients.length?'No matches':'No clients yet',clients.length?'Try a different search.':'Add a client, or turn an inquiry into one.',clients.length?null:h('button',{class:'btn blue',text:'Add client',onclick:addClient})));
+}
+function tasksView(){
+  const list=tasks.filter(t=>(taskFilter==='all'||(taskFilter==='open'?!t.done:t.done))&&match(t,['title']));
+  return h('div',{},
+    h('div',{class:'bar'},searchBar('Search tasks'),chips([['open','Open'],['done','Done'],['all','All']],taskFilter,v=>taskFilter=v),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'Add task',onclick:()=>addTask()})),
+    list.length?h('div',{class:'list'},list.map(taskRow)):empty(tasks.length?'Nothing here':'No tasks yet',tasks.length?'Try a different filter.':'Add a task to remember a follow-up.',tasks.length?null:h('button',{class:'btn blue',text:'Add task',onclick:()=>addTask()})));
+}
+
+function appView(){
+  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['clients','Clients'],['tasks','Tasks',tasks.filter(t=>!t.done).length]];
+  const body=view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():overview();
+  return h('div',{},
+    h('header',{class:'top'},h('div',{class:'top-in'},
+      h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'CRM'})),
+      h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0)}},t,n?h('span',{class:'n',text:String(n)}):null))),
+      h('span',{class:'sp'}),
+      h('span',{class:'muted',style:'font-size:.82rem',text:me.email}),
+      h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
+    h('main',{},body));
 }
 function noAccess(){
-  return h('div',{class:'center'},h('div',{class:'panel'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid'),h('h1',{text:'No access'}),h('p',{class:'sub',text:'This account is not approved for Orchid Pals. Ask the admin to approve your email.'}),h('button',{class:'btn primary wide',text:'Back to sign in',onclick:logout})));
+  return h('div',{class:'center'},h('div',{class:'panel'},h('div',{class:'wm',style:'font-size:2rem'},h('b',{text:'O'}),'rchid'),h('h1',{text:'No access'}),
+    h('p',{class:'sub',text:'This account is not set up for Orchid CRM. Ask the admin to add '+(me&&me.email?me.email:'your email')+' to the CRM members list.'}),
+    h('button',{class:'btn primary wide',text:'Back to sign in',onclick:logout})));
 }
-function render(){const a=$('#app');const y=window.scrollY;const keep=$('#msgin');if(keep)chatDraft=keep.value;a.replaceChildren(me?appView():noAccess());window.scrollTo(0,y)}
-async function logout(){clearInterval(poll);try{await sb.auth.signOut()}catch(e){}home()}
 
-/* ---------- start ---------- */
+function render(){
+  const y=window.scrollY;
+  $('#app').replaceChildren(ready?appView():noAccess());
+  window.scrollTo(0,y);
+}
+let ready=false;
+async function logout(){try{await sb.auth.signOut()}catch(e){}home()}
+
 async function init(){
   $('#app').replaceChildren(h('div',{class:'center'},h('p',{class:'muted',text:'Loading…'})));
   const {data:{session}}=await sb.auth.getSession();
   if(!session)return home();
   sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')home()});
-  const pr=await sb.from('profiles').select('id,display_name,email').eq('id',session.user.id).maybeSingle();
-  if(pr.error||!pr.data){me=null;return render()}
-  me={id:pr.data.id,name:pr.data.display_name,email:pr.data.email};
-  const ad=await sb.from('approved_emails').select('email,is_admin');isAdmin=!ad.error&&(ad.data||[]).length>0;
-  try{await loadAll()}catch(e){fail(e,'Could not load your data. Please refresh.')}
+  me={id:session.user.id,email:session.user.email};
+  const m=await sb.from('crm_members').select('email').limit(1);
+  if(m.error||!m.data||!m.data.length){ready=false;return render()}
+  try{await loadAll();ready=true}catch(e){console.error(e);ready=false;return $('#app').replaceChildren(h('div',{class:'center'},h('div',{class:'panel'},h('h1',{text:'Could not load the CRM'}),h('p',{class:'sub',text:'The CRM tables may not be set up yet. Run crm_setup.sql in Supabase, then reload.'}),h('button',{class:'btn primary wide',text:'Reload',onclick:()=>location.reload()}))))}
   render();
-  poll=setInterval(async()=>{if(document.hidden||rec||busy)return;try{if(view==='messages'){if(await loadMsgs()){render()}}else if(view==='pals'){const n=pals.length;await loadPeople();if(pals.length!==n)render()}}catch(e){}},6000);
 }
 init().catch(e=>{console.error(e);home()});
 })();
