@@ -203,7 +203,7 @@ function palsView(){
   const em=h('input',{type:'email',placeholder:"Pal's email",maxlength:'320'});
   const add=async()=>{const e=em.value.trim().toLowerCase();if(!validEmail(e))return toast('Please type a valid email.');
     const id=Object.keys(emails).find(k=>emails[k]===e);
-    if(!id)return toast('No Pal found with that email. They must be approved and signed up first.');
+    if(!id)return toast('No Pal found with that email. They must sign up for Orchid Pals first.');
     if(id===me.id)return toast("That's you!");
     if(pals.some(p=>p.requester_id===id||p.addressee_id===id))return toast('You already have a request or link with this Pal.');
     palAction(()=>sb.from('pals').insert({addressee_id:id}),'Request sent.')};
@@ -219,7 +219,6 @@ function palsView(){
     h('button',{class:'btn ghost',text:'Message',onclick:()=>{chat=other(p);view='messages';render()}}),
     h('button',{class:'btn ghost',text:'Remove',onclick:()=>{if(confirm('Remove this Pal?'))palAction(()=>sb.from('pals').delete().eq('id',p.id))}}))));
   if(out.length)sec.push(h('div',{class:'card'},h('b',{text:'Waiting for a reply'}),out.map(p=>h('div',{class:'row',style:'margin-top:8px'},h('span',{class:'sp',text:nm(other(p))}),h('button',{class:'btn ghost',text:'Cancel',onclick:()=>palAction(()=>sb.from('pals').delete().eq('id',p.id))})))));
-  if(isAdmin)sec.push(adminCard());
   return h('div',{},sec);
 }
 function adminCard(){
@@ -240,7 +239,7 @@ function appView(){
     h('main',{},v));
 }
 function noAccess(){
-  return h('div',{class:'center'},h('div',{class:'panel'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid'),h('h1',{text:'No access'}),h('p',{class:'sub',text:'This account is not approved for Orchid Pals. Ask the admin to approve your email.'}),h('button',{class:'btn primary wide',text:'Back to sign in',onclick:logout})));
+  return h('div',{class:'center'},h('div',{class:'panel'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid'),h('h1',{text:'No access'}),h('p',{class:'sub',text:'Your account could not be loaded. Please log out and log in again.'}),h('button',{class:'btn primary wide',text:'Back to sign in',onclick:logout})));
 }
 function render(){const a=$('#app');const y=window.scrollY;const keep=$('#msgin');if(keep)chatDraft=keep.value;a.replaceChildren(me?appView():noAccess());window.scrollTo(0,y)}
 async function logout(){clearInterval(poll);try{await sb.auth.signOut()}catch(e){}home()}
