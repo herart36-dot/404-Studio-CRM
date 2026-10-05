@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Orchid Pals</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef1fb;--card:#fff;--ink:#14122e;--muted:#64748b;--line:rgba(20,18,46,.09);--brand:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#d946ef);--glass:rgba(255,255,255,.62);--sh:0 10px 40px rgba(60,70,140,.10);--dark:#1b1a2e;--danger:#be123c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -72,146 +73,193 @@ audio{width:100%;height:38px;margin-top:10px}
 <div id="app"></div>
 <script>
 (function(){
+const SB_URL='https://dqvvidwzuvrxojpfukqe.supabase.co';
+const SB_KEY='sb_publishable_v8eV56c-CwARaIlAL8IXYg_KA99WcXX';
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
 const $=s=>document.querySelector(s);
 const REACTS=[{k:'heart',e:'❤️',n:'Heart'},{k:'like',e:'👍',n:'Like'},{k:'laugh',e:'😂',n:'Laugh'}];
-let mem=null;
-const load=()=>{try{const v=localStorage.getItem('orchidpals');if(v)return JSON.parse(v)}catch(e){}return mem};
-const save=()=>{mem=S;try{localStorage.setItem('orchidpals',JSON.stringify(S))}catch(e){toast('Storage is full, so the latest recording may not be kept.')}};
-const now=Date.now();
-let S=load()||{users:[],me:null,pals:[{id:'p1',name:'Mika Santos'},{id:'p2',name:'Jon Reyes'},{id:'p3',name:'Aria Lim'}],
-posts:[{id:'s1',by:'p1',name:'Mika Santos',text:'Good morning, Pals! Coffee first, then everything else ☕',audio:null,t:now-36e5,r:{heart:[],like:['p2'],laugh:[]}},
-{id:'s2',by:'p2',name:'Jon Reyes',text:'Finally finished my first song. Tell me what you think!',audio:null,t:now-9e6,r:{heart:['p3'],like:[],laugh:[]}},
-{id:'s3',by:'p3',name:'Aria Lim',text:'Rainy day thoughts 🌧️',audio:null,t:now-2e7,r:{heart:[],like:[],laugh:['p1']}}],msgs:[]};
-mem=S;
-let view='posts',chat=null,authMode='up',draft={text:'',audio:null},rec=null;
+const home=()=>location.replace('index.html');
+let me=null,isAdmin=false,names={},emails={},pals=[],posts=[],rx=[],msgs=[],urls={},invites=[];
+let view='posts',chat=null,chatDraft='',draft={text:'',blob:null,url:null,secs:0,mime:''},rec=null,busy=false,poll=null;
 const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
 const ini=n=>(n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-const ago=t=>{const m=Math.floor((Date.now()-t)/6e4);return m<1?'just now':m<60?m+'m ago':m<1440?Math.floor(m/60)+'h ago':Math.floor(m/1440)+'d ago'};
-const palName=id=>id==='me'?S.me.name:(S.pals.find(p=>p.id===id)||{}).name||'Pal';
-function toast(t){const el=h('div',{text:t,style:'position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#1e1b4b;color:#fff;padding:10px 18px;border-radius:999px;z-index:99;font-size:.88rem;max-width:90%'});document.body.append(el);setTimeout(()=>el.remove(),2600)}
-
-/* ---------- Auth ---------- */
+const ago=t=>{const m=Math.floor((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?m+'m ago':m<1440?Math.floor(m/60)+'h ago':Math.floor(m/1440)+'d ago'};
+const nm=id=>id===me.id?me.name:(names[id]||'Pal');
 const validEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
-function signIn(u){S.me={name:u.name,email:u.email,provider:u.provider};save();render()}
-function social(provider){
-  const nm=h('input',{type:'text',placeholder:'Your name'}),em=h('input',{type:'email',placeholder:'Email on your '+provider+' account'}),er=h('div',{class:'err'});
-  const m=h('div',{class:'modal'},h('div',{class:'panel'},
-    h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals'})),h('h1',{text:'Continue with '+provider}),h('p',{class:'sub',text:'Demo sign-in: choose the account to use.'}),nm,em,er,
-    h('button',{class:'btn primary wide',style:'margin-top:4px',text:'Continue',onclick:()=>{if(!nm.value.trim())return er.textContent='Please enter your name.';if(!validEmail(em.value.trim()))return er.textContent='Please enter a valid email.';const email=em.value.trim().toLowerCase();let u=S.users.find(x=>x.email===email);if(!u){u={name:nm.value.trim(),email,provider};S.users.push(u)}m.remove();signIn(u)}}),
-    h('button',{class:'btn ghost wide',style:'margin-top:8px',text:'Cancel',onclick:()=>m.remove()}),
-    h('p',{class:'note',text:'Real '+provider+' sign-in needs an OAuth app and a server. This screen is ready to be swapped for it.'})));
-  document.body.append(m);nm.focus()}
-function authView(){
-  const up=authMode==='up';
-  const err=h('div',{class:'err',role:'alert',hidden:true});
-  const showErr=t=>{err.textContent=t;err.hidden=!t};
-  const name=h('input',{class:'field',type:'text',placeholder:'Your name',autocomplete:'name',maxlength:'60','aria-label':'Your name'});
-  const email=h('input',{class:'field',type:'email',placeholder:'Email',autocomplete:'username',maxlength:'320','aria-label':'Email'});
-  const qe=new URLSearchParams(location.search).get('email');if(qe)email.value=qe;
-  const pw=h('input',{class:'field',type:'password',placeholder:'Password',autocomplete:up?'new-password':'current-password',maxlength:'200','aria-label':'Password'});
-  const pw2=h('input',{class:'field',type:'password',placeholder:'Confirm password',autocomplete:'new-password',maxlength:'200','aria-label':'Confirm password'});
-  const chk=h('input',{type:'checkbox',onchange:e=>{pw.type=pw2.type=e.target.checked?'text':'password'}});
-  const enc=v=>btoa(unescape(encodeURIComponent(v)));
-  const go=()=>{showErr('');const e=email.value.trim().toLowerCase();
-    if(up&&!name.value.trim())return showErr('Please enter your name.');
-    if(!validEmail(e))return showErr('Please type a valid email address.');
-    if(pw.value.length<6)return showErr('Password must be at least 6 characters.');
-    const u=S.users.find(x=>x.email===e);
-    if(up){if(pw.value!==pw2.value)return showErr('The two passwords do not match.');if(u)return showErr('This email already has an account. Choose Log in.');const n={name:name.value.trim(),email:e,pw:enc(pw.value),provider:'email'};S.users.push(n);signIn(n)}
-    else{if(!u||u.pw!==enc(pw.value))return showErr('Wrong email or password. New here? Create your account.');signIn(u)}};
-  [email,pw,pw2,name].forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')go()}));
-  return h('div',{class:'center'},h('div',{class:'panel'},
-    h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals'})),
-    h('h1',{text:up?'Sign up':'Log in'}),
-    h('p',{class:'sub',text:up?'Type your own email, then choose a password.':'Use the email you signed up with.'}),
-    up?name:null,email,pw,up?pw2:null,
-    h('label',{class:'show'},chk,' Show password'),
-    h('button',{class:'btn primary wide',style:'margin-top:12px',text:up?'Create my account':'Log in',onclick:go}),
-    h('button',{class:'lnk',text:up?'Already have an account? Log in':'New here? Create your account',onclick:()=>{authMode=up?'in':'up';render()}}),
-    err,
-    h('div',{class:'or',text:'or continue with'}),
-    h('button',{class:'btn ghost wide soc',onclick:()=>social('Facebook')},h('b',{text:'f',style:'color:#1877f2'}),'Facebook'),
-    h('button',{class:'btn ghost wide soc',onclick:()=>social('Google')},h('b',{text:'G',style:'color:#ea4335'}),'Google'),
-    h('p',{class:'note',text:'Demo: accounts are saved in this browser only.'})));
-}
+function toast(t){const el=h('div',{text:t,style:'position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#1b1a2e;color:#fff;padding:10px 18px;border-radius:999px;z-index:99;font-size:.88rem;max-width:90%'});document.body.append(el);setTimeout(()=>el.remove(),3000)}
+const fail=(e,m)=>{console.error(e);toast(m||'Something went wrong. Please try again.')};
+const acceptedIds=()=>pals.filter(p=>p.status==='accepted').map(p=>p.requester_id===me.id?p.addressee_id:p.requester_id);
 
-/* ---------- Voice ---------- */
+/* ---------- data ---------- */
+async function loadPeople(){
+  const [pr,pl]=await Promise.all([sb.from('profiles').select('id,display_name,email'),sb.from('pals').select('*')]);
+  if(pr.error)throw pr.error;if(pl.error)throw pl.error;
+  names={};emails={};pr.data.forEach(p=>{names[p.id]=p.display_name;emails[p.id]=p.email});pals=pl.data;
+}
+async function loadPosts(){
+  const [po,re]=await Promise.all([sb.from('posts').select('*').order('created_at',{ascending:false}).limit(100),sb.from('reactions').select('post_id,user_id,kind')]);
+  if(po.error)throw po.error;if(re.error)throw re.error;
+  posts=po.data;rx=re.data;
+  const paths=posts.filter(p=>p.audio_path&&!urls[p.audio_path]).map(p=>p.audio_path);
+  if(paths.length){const {data}=await sb.storage.from('voice').createSignedUrls(paths,3600);(data||[]).forEach(d=>{if(d.signedUrl)urls[d.path]=d.signedUrl})}
+}
+async function loadMsgs(){const {data,error}=await sb.from('messages').select('*').order('created_at',{ascending:true}).limit(500);if(error)throw error;const ch=data.length!==msgs.length;msgs=data;return ch}
+async function loadInvites(){if(!isAdmin)return;const {data}=await sb.from('approved_emails').select('email,is_admin').order('created_at');invites=data||[]}
+async function loadAll(){await loadPeople();await Promise.all([loadPosts(),loadMsgs(),loadInvites()])}
+
+/* ---------- voice ---------- */
 async function startRec(){
   try{
-    const st=await navigator.mediaDevices.getUserMedia({audio:true});const mr=new MediaRecorder(st);const ch=[];
-    mr.ondataavailable=e=>ch.push(e.data);
-    mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());const fr=new FileReader();fr.onload=()=>{draft.audio=fr.result;rec=null;render()};fr.readAsDataURL(new Blob(ch,{type:mr.mimeType}))};
-    mr.start();rec={mr,s:Date.now()};render();
-    setTimeout(()=>{if(rec&&rec.mr===mr&&mr.state==='recording')mr.stop()},60000);
+    const st=await navigator.mediaDevices.getUserMedia({audio:true});
+    const types=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
+    const mime=types.find(t=>window.MediaRecorder&&MediaRecorder.isTypeSupported(t))||'';
+    const mr=new MediaRecorder(st,mime?{mimeType:mime}:undefined);const ch=[];const s=Date.now();
+    mr.ondataavailable=e=>e.data.size&&ch.push(e.data);
+    mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());const base=(mr.mimeType||mime||'audio/webm').split(';')[0];const blob=new Blob(ch,{type:base});
+      if(draft.url)URL.revokeObjectURL(draft.url);draft.blob=blob;draft.mime=base;draft.secs=Math.min(60,Math.max(1,Math.round((Date.now()-s)/1000)));draft.url=URL.createObjectURL(blob);rec=null;render()};
+    mr.start();rec={mr};render();
+    setTimeout(()=>{if(mr.state==='recording')mr.stop()},60000);
   }catch(e){toast('Microphone is not available. Please allow mic access.')}
 }
 const stopRec=()=>{if(rec)rec.mr.stop()};
+const clearDraftAudio=()=>{if(draft.url)URL.revokeObjectURL(draft.url);draft.blob=draft.url=null;draft.secs=0};
+const extOf=m=>({'audio/webm':'webm','audio/mp4':'m4a','audio/ogg':'ogg','audio/mpeg':'mp3','audio/wav':'wav','audio/aac':'aac'}[m]||'webm');
 
-/* ---------- Reactions ---------- */
-function burst(btn,e){const r=btn.getBoundingClientRect();for(let i=0;i<5;i++){const f=h('div',{class:'fly',text:e,style:`left:${r.left+r.width/2}px;top:${r.top}px;--dx:${(i-2)*22}px;animation-delay:${i*60}ms`});document.body.append(f);setTimeout(()=>f.remove(),1300)}}
-function react(p,k,btn,e){
-  const arr=p.r[k],i=arr.indexOf('me');
-  if(i>-1){arr.splice(i,1);save();return render()}
-  arr.push('me');save();burst(btn,e);
-  if(p.by==='me')return render();
-  if(!S.pals.find(x=>x.id===p.by))S.pals.push({id:p.by,name:p.name});
-  const snip=p.text?p.text.slice(0,40)+(p.text.length>40?'…':''):'a voice post';
-  S.msgs.push({w:p.by,f:'me',x:e+' reacted to your post: “'+snip+'”',rx:1,t:Date.now()});save();
-  setTimeout(()=>{chat=p.by;view='messages';render();setTimeout(()=>{const i=$('#msgin');i&&i.focus()},50)},650);
+async function publish(){
+  if(busy)return;const text=draft.text.trim();
+  if(!text&&!draft.blob)return toast('Write something or record your voice first.');
+  busy=true;render();let path=null;
+  try{
+    if(draft.blob){path=me.id+'/'+crypto.randomUUID()+'.'+extOf(draft.mime);
+      const up=await sb.storage.from('voice').upload(path,draft.blob,{contentType:draft.mime});if(up.error)throw up.error}
+    const row={body:text||null};if(path){row.audio_path=path;row.audio_seconds=draft.secs}
+    const ins=await sb.from('posts').insert(row);
+    if(ins.error){if(path)await sb.storage.from('voice').remove([path]);throw ins.error}
+    draft.text='';clearDraftAudio();await loadPosts();
+  }catch(e){fail(e,'Could not post. Please try again.')}
+  busy=false;render();
+}
+async function delPost(p){
+  if(!confirm('Delete this post?'))return;
+  const r=await sb.from('posts').delete().eq('id',p.id);if(r.error)return fail(r.error);
+  if(p.audio_path)await sb.storage.from('voice').remove([p.audio_path]);
+  await loadPosts();render();
 }
 
-/* ---------- Views ---------- */
+/* ---------- reactions ---------- */
+function burst(btn,e){const r=btn.getBoundingClientRect();for(let i=0;i<5;i++){const f=h('div',{class:'fly',text:e,style:`left:${r.left+r.width/2}px;top:${r.top}px;--dx:${(i-2)*22}px;animation-delay:${i*60}ms`});document.body.append(f);setTimeout(()=>f.remove(),1300)}}
+async function react(p,k,btn,e){
+  const on=rx.some(r=>r.post_id===p.id&&r.user_id===me.id&&r.kind===k);
+  if(on){const d=await sb.from('reactions').delete().match({post_id:p.id,user_id:me.id,kind:k});if(d.error)return fail(d.error);rx=rx.filter(r=>!(r.post_id===p.id&&r.user_id===me.id&&r.kind===k));return render()}
+  const i=await sb.from('reactions').insert({post_id:p.id,kind:k});if(i.error)return fail(i.error);
+  rx.push({post_id:p.id,user_id:me.id,kind:k});burst(btn,e);
+  if(p.author_id===me.id)return render();
+  const snip=p.body?p.body.slice(0,40)+(p.body.length>40?'…':''):'a voice post';
+  const m=await sb.from('messages').insert({recipient_id:p.author_id,body:e+' reacted to your post: “'+snip+'”'});
+  if(m.error)fail(m.error,'Reaction saved, but the message could not be sent.');else await loadMsgs();
+  setTimeout(()=>{chat=p.author_id;view='messages';render();setTimeout(()=>{const x=$('#msgin');x&&x.focus()},50)},650);
+}
+
+/* ---------- views ---------- */
 function postCard(p){
+  const mine=p.author_id===me.id;
   return h('div',{class:'card'},
-    h('div',{class:'row'},h('div',{class:'av',text:ini(p.name)}),h('div',{},h('b',{text:p.by==='me'?S.me.name+' (you)':p.name}),h('div',{class:'muted',text:ago(p.t)}))),
-    p.text?h('p',{text:p.text,style:'margin:12px 0 0;white-space:pre-wrap'}):null,
-    p.audio?h('audio',{controls:'',src:p.audio}):null,
-    h('div',{class:'reacts'},REACTS.map(r=>{const on=p.r[r.k].includes('me');const b=h('button',{class:'rx'+(on?' on':''),'aria-pressed':on,'aria-label':r.n},h('span',{class:'e',text:r.e}),String(p.r[r.k].length));b.onclick=()=>{b.classList.add('pop');react(p,r.k,b,r.e)};return b})),
-    h('div',{class:'muted',style:'margin-top:8px',text:'React to start a chat with the author.'}));
+    h('div',{class:'row'},h('div',{class:'av',text:ini(nm(p.author_id))}),h('div',{class:'sp'},h('b',{text:mine?me.name+' (you)':nm(p.author_id)}),h('div',{class:'muted',text:ago(p.created_at)})),mine?h('button',{class:'btn ghost',text:'Delete',onclick:()=>delPost(p)}):null),
+    p.body?h('p',{text:p.body,style:'margin:12px 0 0;white-space:pre-wrap'}):null,
+    p.audio_path?(urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):h('div',{class:'muted',text:'Voice recording unavailable.'})):null,
+    h('div',{class:'reacts'},REACTS.map(r=>{const n=rx.filter(x=>x.post_id===p.id&&x.kind===r.k).length;const on=rx.some(x=>x.post_id===p.id&&x.kind===r.k&&x.user_id===me.id);
+      const b=h('button',{class:'rx'+(on?' on':''),'aria-pressed':on,'aria-label':r.n},h('span',{class:'e',text:r.e}),String(n));b.onclick=()=>{b.classList.add('pop');react(p,r.k,b,r.e)};return b})),
+    mine?null:h('div',{class:'muted',style:'margin-top:8px',text:'React to start a chat with the author.'}));
 }
 function postsView(){
-  const ta=h('textarea',{placeholder:'What\'s on your mind, '+S.me.name.split(' ')[0]+'? (text or a voice recording, no photos or video)',oninput:e=>draft.text=e.target.value});ta.value=draft.text;
+  const ta=h('textarea',{placeholder:"What's on your mind, "+me.name.split(' ')[0]+'? (text or a voice recording, no photos or video)',maxlength:'1000',oninput:e=>draft.text=e.target.value});ta.value=draft.text;
   const recUI=rec?h('div',{class:'rec'},h('span',{class:'dot'}),h('span',{text:'Recording… (max 60s)'}),h('button',{class:'btn ghost',text:'Stop',onclick:stopRec})):
-    h('div',{class:'rec'},h('button',{class:'btn ghost',text:draft.audio?'🎙️ Re-record':'🎙️ Record voice',onclick:startRec}),draft.audio?h('button',{class:'btn ghost',text:'Remove',onclick:()=>{draft.audio=null;render()}}):null,h('span',{class:'sp'}),
-      h('button',{class:'btn primary',text:'Post',onclick:()=>{if(!draft.text.trim()&&!draft.audio)return toast('Write something or record your voice first.');S.posts.unshift({id:'u'+Date.now(),by:'me',name:S.me.name,text:draft.text.trim(),audio:draft.audio,t:Date.now(),r:{heart:[],like:[],laugh:[]}});draft={text:'',audio:null};save();render()}}));
-  return h('div',{},h('div',{class:'card'},ta,draft.audio&&!rec?h('audio',{controls:'',src:draft.audio}):null,recUI),S.posts.map(postCard));
+    h('div',{class:'rec'},h('button',{class:'btn ghost',text:draft.blob?'🎙️ Re-record':'🎙️ Record voice',onclick:startRec}),draft.blob?h('button',{class:'btn ghost',text:'Remove',onclick:()=>{clearDraftAudio();render()}}):null,h('span',{class:'sp'}),
+      h('button',{class:'btn primary',text:busy?'Posting…':'Post',disabled:busy,onclick:publish}));
+  return h('div',{},h('div',{class:'card'},ta,draft.blob&&!rec?h('audio',{controls:'',src:draft.url}):null,recUI),
+    posts.length?posts.map(postCard):h('div',{class:'empty',text:'No posts yet. Add a Pal or write the first one.'}));
 }
 function messagesView(){
-  const pals=S.pals;
-  if(!pals.length)return h('div',{class:'empty',text:'Add a Pal first to start messaging.'});
-  if(!chat||!pals.find(p=>p.id===chat))chat=pals[0].id;
-  const list=h('div',{class:'pl'},pals.map(p=>{const last=[...S.msgs].reverse().find(m=>m.w===p.id);return h('button',{class:'pi','aria-current':chat===p.id,onclick:()=>{chat=p.id;render()}},h('div',{class:'av',text:ini(p.name)}),h('div',{},h('b',{text:p.name}),h('div',{class:'muted',text:last?last.x.slice(0,22):'Say hi'})))}));
-  const box=h('div',{class:'msgs'});const ms=S.msgs.filter(m=>m.w===chat);
-  if(!ms.length)box.append(h('div',{class:'empty',text:'No messages yet. Say hi to '+palName(chat)+'!'}));
-  ms.forEach(m=>box.append(h('div',{class:'m'+(m.f==='me'?' me':'')+(m.rx?' react':''),text:m.x})));
-  const inp=h('input',{type:'text',id:'msgin',placeholder:'Message '+palName(chat)+'…'});
-  const send=()=>{const v=inp.value.trim();if(!v)return;S.msgs.push({w:chat,f:'me',x:v,t:Date.now()});save();render();setTimeout(()=>{const i=$('#msgin');i&&i.focus()},0)};
+  const ids=acceptedIds();
+  if(!ids.length)return h('div',{class:'empty',text:'Add a Pal first to start messaging.'});
+  if(!chat||!ids.includes(chat))chat=ids[0];
+  const list=h('div',{class:'pl'},ids.map(id=>{const last=[...msgs].reverse().find(m=>m.sender_id===id||m.recipient_id===id);return h('button',{class:'pi','aria-current':chat===id,onclick:()=>{chatDraft='';chat=id;render()}},h('div',{class:'av',text:ini(nm(id))}),h('div',{},h('b',{text:nm(id)}),h('div',{class:'muted',text:last?last.body.slice(0,22):'Say hi'})))}));
+  const box=h('div',{class:'msgs'});const ms=msgs.filter(m=>m.sender_id===chat||m.recipient_id===chat);
+  if(!ms.length)box.append(h('div',{class:'empty',text:'No messages yet. Say hi to '+nm(chat)+'!'}));
+  ms.forEach(m=>box.append(h('div',{class:'m'+(m.sender_id===me.id?' me':'')+(/^(❤️|👍|😂) reacted/.test(m.body)?' react':''),text:m.body})));
+  const inp=h('input',{type:'text',id:'msgin',maxlength:'2000',placeholder:'Message '+nm(chat)+'…',oninput:e=>chatDraft=e.target.value});inp.value=chatDraft;
+  const send=async()=>{const v=inp.value.trim();if(!v)return;inp.value='';chatDraft='';const r=await sb.from('messages').insert({recipient_id:chat,body:v});if(r.error)return fail(r.error,'Message not sent.');await loadMsgs();render();setTimeout(()=>{const x=$('#msgin');x&&x.focus()},0)};
   inp.onkeydown=e=>{if(e.key==='Enter')send()};
   setTimeout(()=>{box.scrollTop=box.scrollHeight},0);
-  return h('div',{class:'chatwrap'},h('div',{class:'card'},list),h('div',{class:'card'},h('b',{text:palName(chat)}),h('div',{style:'margin-top:8px'},box),h('div',{class:'cbar'},inp,h('button',{class:'btn primary',text:'Send',onclick:send}))));
+  return h('div',{class:'chatwrap'},h('div',{class:'card'},list),h('div',{class:'card'},h('b',{text:nm(chat)}),h('div',{style:'margin-top:8px'},box),h('div',{class:'cbar'},inp,h('button',{class:'btn primary',text:'Send',onclick:send}))));
 }
 function albumView(){
-  const mine=S.posts.filter(p=>p.by==='me'&&p.audio);
+  const mine=posts.filter(p=>p.author_id===me.id&&p.audio_path);
   return h('div',{},h('div',{class:'card'},h('b',{text:'🎧 Your Voice Album'}),h('p',{class:'muted',text:'Every voice recording you post lands here. Photos and video are not part of Orchid Pals.'})),
-    mine.length?mine.map(p=>h('div',{class:'card'},h('div',{class:'muted',text:ago(p.t)}),p.text?h('p',{text:p.text,style:'margin:6px 0 0'}):null,h('audio',{controls:'',src:p.audio}))):h('div',{class:'empty',text:'No recordings yet. Record one from the Posts tab.'}));
+    mine.length?mine.map(p=>h('div',{class:'card'},h('div',{class:'muted',text:ago(p.created_at)+' · '+p.audio_seconds+'s'}),p.body?h('p',{text:p.body,style:'margin:6px 0 0'}):null,urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):null)):h('div',{class:'empty',text:'No recordings yet. Record one from the Posts tab.'}));
 }
+async function palAction(fn,okMsg){const r=await fn();if(r&&r.error)return fail(r.error);try{await loadPeople();await loadPosts()}catch(e){fail(e)}if(okMsg)toast(okMsg);render()}
 function palsView(){
-  const em=h('input',{type:'text',placeholder:'Pal\'s name'}),
-  add=()=>{const n=em.value.trim();if(!n)return;S.pals.push({id:'p'+Date.now(),name:n});save();render()};
-  return h('div',{},h('div',{class:'card'},h('b',{text:'Add a Pal'}),h('div',{class:'cbar'},em,h('button',{class:'btn primary',text:'Add Pal',onclick:add}))),
-    h('div',{class:'muted',style:'margin:0 4px 8px',text:S.pals.length+' Pals'}),
-    S.pals.map(p=>h('div',{class:'card row'},h('div',{class:'av',text:ini(p.name)}),h('div',{class:'sp'},h('b',{text:p.name}),h('div',{},h('span',{class:'pill',text:'Pal'}))),h('button',{class:'btn ghost',text:'Message',onclick:()=>{chat=p.id;view='messages';render()}}))));
+  const em=h('input',{type:'email',placeholder:"Pal's email",maxlength:'320'});
+  const add=async()=>{const e=em.value.trim().toLowerCase();if(!validEmail(e))return toast('Please type a valid email.');
+    const id=Object.keys(emails).find(k=>emails[k]===e);
+    if(!id)return toast('No Pal found with that email. They must be approved and signed up first.');
+    if(id===me.id)return toast("That's you!");
+    if(pals.some(p=>p.requester_id===id||p.addressee_id===id))return toast('You already have a request or link with this Pal.');
+    palAction(()=>sb.from('pals').insert({addressee_id:id}),'Request sent.')};
+  em.onkeydown=e=>{if(e.key==='Enter')add()};
+  const inc=pals.filter(p=>p.status==='pending'&&p.addressee_id===me.id),out=pals.filter(p=>p.status==='pending'&&p.requester_id===me.id),ok=pals.filter(p=>p.status==='accepted');
+  const other=p=>p.requester_id===me.id?p.addressee_id:p.requester_id;
+  const sec=[];
+  sec.push(h('div',{class:'card'},h('b',{text:'Add a Pal'}),h('div',{class:'cbar'},em,h('button',{class:'btn primary',text:'Send request',onclick:add}))));
+  if(inc.length)sec.push(h('div',{class:'card'},h('b',{text:'Pal requests'}),inc.map(p=>h('div',{class:'row',style:'margin-top:10px'},h('div',{class:'av',text:ini(nm(p.requester_id))}),h('div',{class:'sp'},h('b',{text:nm(p.requester_id)})),
+    h('button',{class:'btn primary',text:'Accept',onclick:()=>palAction(()=>sb.from('pals').update({status:'accepted'}).eq('id',p.id))}),h('button',{class:'btn ghost',text:'Decline',onclick:()=>palAction(()=>sb.from('pals').delete().eq('id',p.id))})))));
+  sec.push(h('div',{class:'muted',style:'margin:0 4px 8px',text:ok.length+' Pals'}));
+  ok.forEach(p=>sec.push(h('div',{class:'card row'},h('div',{class:'av',text:ini(nm(other(p)))}),h('div',{class:'sp'},h('b',{text:nm(other(p))}),h('div',{},h('span',{class:'pill',text:'Pal'}))),
+    h('button',{class:'btn ghost',text:'Message',onclick:()=>{chat=other(p);view='messages';render()}}),
+    h('button',{class:'btn ghost',text:'Remove',onclick:()=>{if(confirm('Remove this Pal?'))palAction(()=>sb.from('pals').delete().eq('id',p.id))}}))));
+  if(out.length)sec.push(h('div',{class:'card'},h('b',{text:'Waiting for a reply'}),out.map(p=>h('div',{class:'row',style:'margin-top:8px'},h('span',{class:'sp',text:nm(other(p))}),h('button',{class:'btn ghost',text:'Cancel',onclick:()=>palAction(()=>sb.from('pals').delete().eq('id',p.id))})))));
+  if(isAdmin)sec.push(adminCard());
+  return h('div',{},sec);
+}
+function adminCard(){
+  const em=h('input',{type:'email',placeholder:'Email to approve',maxlength:'320'});
+  const add=async()=>{const e=em.value.trim().toLowerCase();if(!validEmail(e))return toast('Please type a valid email.');const r=await sb.from('approved_emails').insert({email:e});if(r.error)return fail(r.error,r.error.code==='23505'?'That email is already approved.':'Could not approve.');await loadInvites();toast('Approved. They can now sign up.');render()};
+  em.onkeydown=e=>{if(e.key==='Enter')add()};
+  return h('div',{class:'card'},h('b',{text:'Admin: approved emails'}),h('p',{class:'muted',text:'Only approved emails can sign up for Orchid Pals.'}),
+    h('div',{class:'cbar'},em,h('button',{class:'btn primary',text:'Approve',onclick:add})),
+    invites.map(i=>h('div',{class:'row',style:'margin-top:10px'},h('span',{class:'sp',text:i.email}),i.is_admin?h('span',{class:'pill',text:'Admin'}):h('button',{class:'btn ghost',text:'Remove',onclick:async()=>{if(!confirm('Remove approval for '+i.email+'?'))return;const r=await sb.from('approved_emails').delete().eq('email',i.email);if(r.error)return fail(r.error);await loadInvites();render()}}))));
 }
 function appView(){
   const tabs=[['posts','Posts'],['messages','Messages'],['album','Album'],['pals','Pals']];
   const v={posts:postsView,messages:messagesView,album:albumView,pals:palsView}[view]();
+  const inc=pals.filter(p=>p.status==='pending'&&p.addressee_id===me.id).length;
   return h('div',{},
-    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals'})),h('span',{class:'sp'}),h('span',{class:'muted',text:S.me.name}),h('button',{class:'btn ghost',text:'Log out',onclick:()=>{S.me=null;save();render()}})),
-    h('nav',{class:'tabs'},tabs.map(([k,l])=>h('button',{class:'tab','aria-current':view===k,text:l,onclick:()=>{if(rec)return;view=k;render()}}))),
+    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals'})),h('span',{class:'sp'}),h('span',{class:'muted',text:me.name}),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
+    h('nav',{class:'tabs'},tabs.map(([k,l])=>h('button',{class:'tab','aria-current':view===k,text:l+(k==='pals'&&inc?' ('+inc+')':''),onclick:()=>{if(rec)return;view=k;render()}}))),
     h('main',{},v));
 }
-function render(){const a=$('#app');const y=window.scrollY;a.replaceChildren(S.me?appView():authView());window.scrollTo(0,y)}
-render();
+function noAccess(){
+  return h('div',{class:'center'},h('div',{class:'panel'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid'),h('h1',{text:'No access'}),h('p',{class:'sub',text:'This account is not approved for Orchid Pals. Ask the admin to approve your email.'}),h('button',{class:'btn primary wide',text:'Back to sign in',onclick:logout})));
+}
+function render(){const a=$('#app');const y=window.scrollY;const keep=$('#msgin');if(keep)chatDraft=keep.value;a.replaceChildren(me?appView():noAccess());window.scrollTo(0,y)}
+async function logout(){clearInterval(poll);try{await sb.auth.signOut()}catch(e){}home()}
+
+/* ---------- start ---------- */
+async function init(){
+  $('#app').replaceChildren(h('div',{class:'center'},h('p',{class:'muted',text:'Loading…'})));
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)return home();
+  sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')home()});
+  const pr=await sb.from('profiles').select('id,display_name,email').eq('id',session.user.id).maybeSingle();
+  if(pr.error||!pr.data){me=null;return render()}
+  me={id:pr.data.id,name:pr.data.display_name,email:pr.data.email};
+  const ad=await sb.from('approved_emails').select('email,is_admin');isAdmin=!ad.error&&(ad.data||[]).length>0;
+  try{await loadAll()}catch(e){fail(e,'Could not load your data. Please refresh.')}
+  render();
+  poll=setInterval(async()=>{if(document.hidden||rec||busy)return;try{if(view==='messages'){if(await loadMsgs()){render()}}else if(view==='pals'){const n=pals.length;await loadPeople();if(pals.length!==n)render()}}catch(e){}},6000);
+}
+init().catch(e=>{console.error(e);home()});
 })();
 </script>
 </body>
