@@ -68,8 +68,8 @@ audio{width:100%;height:38px;margin-top:10px}
 .modal .panel{background:#fff}
 .wm .lg{font-size:.62em;font-weight:700;letter-spacing:-.01em;color:#8b93a5;margin-left:2px}
 .pill{display:inline-block;font-size:.72rem;font-weight:700;background:rgba(124,58,237,.1);color:var(--brand);padding:2px 9px;border-radius:999px}
-.file-upload-btn{cursor:pointer;background:#f1f5f9;border:1px solid #cbd5e1;padding:8px 12px;border-radius:12px;font-size:1.1rem;display:grid;place-items:center;transition:background .15s}
-.file-upload-btn:hover{background:#e2e8f0}
+.img-upload-label {cursor:pointer;background:#fff;border:1px solid #e2e8f0;padding:8px 12px;border-radius:12px;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.img-upload-label:hover {background:#f8fafc}
 </style>
 </head>
 <body>
@@ -112,12 +112,11 @@ async function loadMsgs(){
   const ch=data.length!==msgs.length;
   msgs=data;
   
-  // Resolve signed URLs for images in messages if any
-  const imageMsgs = msgs.filter(m => m.image_path && !urls[m.image_path]);
-  if(imageMsgs.length) {
-    const paths = imageMsgs.map(m => m.image_path);
-    const {data: signedData} = await sb.storage.from('voice').createSignedUrls(paths, 3600);
-    (signedData || []).forEach(d => { if(d.signedUrl) urls[d.path] = d.signedUrl; });
+  // Create signed URLs for images stored in chat messages
+  const imgPaths = msgs.filter(m=>m.image_path&&!urls[m.image_path]).map(m=>m.image_path);
+  if(imgPaths.length){
+    const {data:imgUrls}=await sb.storage.from('voice').createSignedUrls(imgPaths,3600);
+    (imgUrls||[]).forEach(d=>{if(d.signedUrl)urls[d.path]=d.signedUrl});
   }
   return ch;
 }
@@ -203,7 +202,7 @@ function messagesView(){
   const list=h('div',{class:'pl'},ids.map(id=>{
     const last=[...msgs].reverse().find(m=>m.sender_id===id||m.recipient_id===id);
     let preview = 'Say hi';
-    if(last) {
+    if(last){
       if(last.image_path) preview = '📷 [Photo]';
       else if(last.body) preview = last.body.slice(0,22);
     }
@@ -216,46 +215,37 @@ function messagesView(){
   if(!ms.length)box.append(h('div',{class:'empty',text:'No messages yet. Say hi to '+nm(chat)+'!'}));
   
   ms.forEach(m=>{
-    const bubbleContent = [];
-    if(m.body) bubbleContent.push(h('div',{text:m.body}));
-    if(m.image_path) {
-      const imgUrl = urls[m.image_path] || '';
-      bubbleContent.push(imgUrl ? h('img',{src:imgUrl, alt:'Shared photo'}) : h('div',{class:'muted',text:'[Loading image...]'}));
+    const bubbleChildren = [];
+    if(m.body) bubbleChildren.push(h('div',{text:m.body}));
+    if(m.image_path && urls[m.image_path]) {
+      bubbleChildren.push(h('img',{src:urls[m.image_path]}));
+    } else if(m.image_path) {
+      bubbleChildren.push(h('div',{class:'muted',text:'[Loading image...]'}));
     }
-    box.append(h('div',{class:'m'+(m.sender_id===me.id?' me':'')+(/^(❤️|👍|😂) reacted/.test(m.body)?' react':'')}, bubbleContent));
+    box.append(h('div',{class:'m'+(m.sender_id===me.id?' me':'')}, bubbleChildren));
   });
 
   const inp=h('input',{type:'text',id:'msgin',maxlength:'2000',placeholder:'Message '+nm(chat)+'…',oninput:e=>chatDraft=e.target.value});inp.value=chatDraft;
   
-  const fileInput = h('input',{type:'file',accept:'image/*',style:'display:none'});
-  
-  const sendTextOrMedia = async (bodyText, imagePath) => {
-    const r=await sb.from('messages').insert({recipient_id:chat, body:bodyText||null, image_path:imagePath||null});
-    if(r.error)return fail(r.error,'Message not sent.');
-    await loadMsgs();render();
-    setTimeout(()=>{const x=$('#msgin');x&&x.focus()},0);
-  };
-
-  fileInput.onchange = async e => {
+  // Hidden file input for uploading images directly into chat
+  const fileInp = h('input',{type:'file',accept:'image/*',style:'display:none'});
+  fileInp.onchange = async (e)=>{
     const file = e.target.files[0];
-    if(!file)return;
-    if(file.size > 5 * 1024 * 1024) return toast('Image size should be less than 5MB.');
+    if(!file) return;
+    toast('Uploading photo...');
+    const path = me.id+'/'+crypto.randomUUID()+'.'+file.name.split('.').pop();
+    const up = await sb.storage.from('voice').upload(path, file);
+    if(up.error) return fail(up.error, 'Could not upload image.');
     
-    toast('Uploading image...');
-    const filePath = me.id + '/' + crypto.randomUUID() + '.' + file.name.split('.').pop();
-    const up = await sb.storage.from('voice').upload(filePath, file);
-    if(up.error) {
-      fail(up.error, 'Could not upload image.');
-      return;
-    }
-    await sendTextOrMedia(inp.value.trim() || 'Sent a photo 📷', filePath);
-    inp.value = '';
-    chatDraft = '';
+    const ins = await sb.from('messages').insert({recipient_id:chat, body:inp.value.trim()||null, image_path:path});
+    if(ins.error) return fail(ins.error, 'Could not send image message.');
+    inp.value=''; chatDraft='';
+    await loadMsgs(); render();
   };
 
-  const uploadBtn = h('label',{class:'file-upload-btn', title:'Upload Picture'},'🖼️',fileInput);
+  const uploadBtn = h('label',{class:'img-upload-label', title:'Send Image'}, '📷', fileInp);
 
-  const send=async()=>{const v=inp.value.trim();if(!v)return;inp.value='';chatDraft='';await sendTextOrMedia(v, null)};
+  const send=async()=>{const v=inp.value.trim();if(!v)return;inp.value='';chatDraft='';const r=await sb.from('messages').insert({recipient_id:chat,body:v});if(r.error)return fail(r.error,'Message not sent.');await loadMsgs();render();setTimeout(()=>{const x=$('#msgin');x&&x.focus()},0)};
   inp.onkeydown=e=>{if(e.key==='Enter')send()};
   setTimeout(()=>{box.scrollTop=box.scrollHeight},0);
   return h('div',{class:'chatwrap'},h('div',{class:'card'},list),h('div',{class:'card'},h('b',{text:nm(chat)}),h('div',{style:'margin-top:8px'},box),h('div',{class:'cbar'},uploadBtn,inp,h('button',{class:'btn primary',text:'Send',onclick:send}))));
