@@ -365,14 +365,17 @@ function appView(){
   const tabs=[['posts','Story'],['messages','Chat'],['notif','Notifications'],['pals','Pals'],['profile','Profile']];
   const v={posts:postsView,messages:messagesView,notif:notifView,pals:palsView,profile:profileView}[view]();
   return h('div',{},
-    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat · v3'})),h('span',{class:'sp'}),h('div',{style:'cursor:pointer;display:flex;align-items:center;gap:8px',onclick:()=>openProfile(me.id)},avEl(me.id),h('span',{class:'muted',text:me.name})),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
+    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat · v4'})),h('span',{class:'sp'}),h('div',{style:'cursor:pointer;display:flex;align-items:center;gap:8px',onclick:()=>openProfile(me.id)},avEl(me.id),h('span',{class:'muted',text:me.name})),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
     h('nav',{class:'tabs'},tabs.map(([k,l])=>tabButton(k,l,unread(k)))),
     h('main',{},v));
 }
 function noAccess(){
   return h('div',{class:'center'},h('div',{class:'panel'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid'),h('h1',{text:'No access'}),h('p',{class:'sub',text:'Your account could not be loaded. Please log out and log in again.'}),h('button',{class:'btn primary wide',text:'Back to sign in',onclick:logout})));
 }
-function render(){if(me)markSeen();const a=$('#app');const y=window.scrollY;
+let pressing=false,pendingRender=false;
+const endPress=()=>{pressing=false;setTimeout(()=>{if(pendingRender&&!pressing){pendingRender=false;render()}},80)};
+document.addEventListener('pointerdown',()=>{pressing=true},true);document.addEventListener('pointerup',endPress,true);document.addEventListener('pointercancel',endPress,true);
+function render(){if(pressing){pendingRender=true;return}if(me)markSeen();const a=$('#app');const y=window.scrollY;
   const ae=document.activeElement,fid=ae&&ae.id,ss=ae&&ae.selectionStart,se=ae&&ae.selectionEnd;
   const keep=$('#msgin');if(keep)chatDraft=keep.value;const kp=$('#postin');if(kp)draft.text=kp.value;
   try{a.replaceChildren(me?appView():noAccess())}catch(e){console.error(e);toast('Display error: '+(e.message||e))}window.scrollTo(0,y);
