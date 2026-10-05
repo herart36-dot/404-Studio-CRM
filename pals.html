@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orchid Pals</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1fb;--card:#fff;--ink:#14122e;--muted:#64748b;--line:rgba(20,18,46,.09);--brand:#7c3aed;--grad:linear-gradient(135deg,#7c3aed,#d946ef);--glass:rgba(255,255,255,.62);--sh:0 10px 40px rgba(60,70,140,.10);--dark:#1b1a2e;--danger:#be123c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}html,body{margin:0;min-height:100%}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--ink);line-height:1.5;background:radial-gradient(900px 520px at 6% 0%,#cfe3ff 0,transparent 60%),radial-gradient(800px 600px at 96% 8%,#ead7ff 0,transparent 55%),radial-gradient(900px 600px at 50% 100%,#c8f1e5 0,transparent 60%),#eef1fb;background-attachment:fixed}
+button,input,textarea{font:inherit;color:inherit}[hidden]{display:none!important}
+:focus-visible{outline:3px solid rgba(99,102,241,.45);outline-offset:2px}
+.wm{font-weight:800;font-size:1.4rem;letter-spacing:-.03em;display:inline-flex;align-items:baseline;color:var(--ink)}
+.wm b{color:#f97316;font-size:1.8em;line-height:.7;margin-right:1px}
+.center{min-height:100vh;display:grid;place-items:center;padding:24px}
+.panel,.card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.85);border-radius:28px;box-shadow:var(--sh)}
+.panel{padding:40px 32px;max-width:420px;width:100%;text-align:center}
+.panel .wm{font-size:2rem;justify-content:center;margin-bottom:14px}
+.panel h1{font-size:1.5rem;margin:0 0 8px}.panel p.sub{color:var(--muted);margin:0 0 24px}
+.btn{border:0;cursor:pointer;border-radius:999px;padding:10px 20px;font-weight:700;font-size:.92rem;transition:transform .15s,box-shadow .15s,background .15s;display:inline-block}
+.btn:active{transform:scale(.98)}
+.primary{background:var(--dark);color:#fff;box-shadow:0 8px 20px rgba(20,18,46,.25)}
+.ghost{background:#fff;border:1px solid #e2e8f0;color:var(--ink)}.ghost:hover{background:#f8fafc}
+.wide{width:100%}
+.field,input[type=text],input[type=email],input[type=password],textarea{width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:12px;background:rgba(255,255,255,.75)}
+.field+.field,input+input{margin-top:10px}
+textarea{resize:vertical;min-height:80px}
+.show{display:flex;gap:6px;align-items:center;justify-content:flex-start;margin:8px 2px 0;color:var(--muted);font-size:.85rem}
+.show input{width:auto;margin:0}
+.lnk{display:inline-block;margin-top:18px;background:none;border:0;color:#475f8a;font-size:.88rem;text-decoration:underline;cursor:pointer}
+.err{color:var(--danger);font-size:.9rem;margin-top:14px;min-height:0}
+.or{color:var(--muted);font-size:.8rem;margin:16px 0;display:flex;align-items:center;gap:10px}.or:before,.or:after{content:"";flex:1;height:1px;background:rgba(20,18,46,.1)}
+.soc{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px}
+.soc b{font-size:1rem}
+.note{font-size:.78rem;color:var(--muted);margin:14px 0 0}
+.top{display:flex;align-items:center;gap:10px;padding:14px 22px}.top .wm{font-size:1.4rem}
+.crmtag{font-size:.7rem;font-weight:800;letter-spacing:.12em;color:var(--muted);background:rgba(255,255,255,.7);padding:3px 10px;border-radius:999px}
+.tabs{display:flex;gap:6px;width:max-content;max-width:calc(100% - 40px);margin:4px auto 0;background:var(--dark);border-radius:30px;padding:8px;box-shadow:0 14px 40px rgba(20,18,46,.35);overflow-x:auto}
+.tab{border:0;background:none;cursor:pointer;padding:9px 18px;border-radius:999px;font-weight:700;color:#a9a8c4;white-space:nowrap}
+.tab[aria-current=true]{background:#fff;color:var(--dark)}
+main{max-width:720px;margin:0 auto;padding:20px 16px 40px}
+.card{padding:18px;margin-bottom:14px}
+.av{width:40px;height:40px;border-radius:50%;background:var(--grad);color:#fff;font-weight:800;font-size:.8rem;display:grid;place-items:center;flex:none}
+.row{display:flex;align-items:center;gap:10px}.sp{flex:1}.muted{color:var(--muted);font-size:.82rem}
+.rec{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:#ef4444;animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.25}}
+audio{width:100%;height:38px;margin-top:10px}
+.reacts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.rx{border:1px solid #e2e8f0;background:#fff;border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:700;font-size:.9rem;display:flex;gap:6px;align-items:center;transition:transform .15s}
+.rx:hover{transform:translateY(-2px)}.rx .e{font-size:1.2rem}
+.rx.on{background:rgba(124,58,237,.1);border-color:var(--brand);color:var(--brand)}
+.rx.pop .e{animation:pop .5s}@keyframes pop{30%{transform:scale(1.9) rotate(-12deg)}60%{transform:scale(.9) rotate(8deg)}}
+.fly{position:fixed;pointer-events:none;font-size:1.6rem;animation:fly 1s ease-out forwards;z-index:70}
+@keyframes fly{to{transform:translate(var(--dx),-120px) scale(1.4);opacity:0}}
+.chatwrap{display:grid;grid-template-columns:210px 1fr;gap:14px}@media(max-width:600px){.chatwrap{grid-template-columns:1fr}}
+.pl{display:flex;flex-direction:column;gap:4px}
+.pi{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:14px;border:0;background:none;cursor:pointer;text-align:left;width:100%}
+.pi:hover{background:rgba(255,255,255,.6)}.pi[aria-current=true]{background:rgba(124,58,237,.1)}
+.msgs{height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:4px}
+.m{max-width:80%;padding:8px 14px;border-radius:18px;background:#fff;align-self:flex-start;word-wrap:break-word}
+.m.me{align-self:flex-end;background:var(--dark);color:#fff}.m.react{font-style:italic}
+.cbar{display:flex;gap:8px;margin-top:10px}.cbar input{margin:0}
+.empty{text-align:center;color:var(--muted);padding:30px 10px}
+.modal{position:fixed;inset:0;background:rgba(20,18,46,.35);backdrop-filter:blur(4px);display:grid;place-items:center;padding:20px;z-index:60}
+.modal .panel{background:#fff}
+.wm .lg{font-size:.62em;font-weight:700;letter-spacing:-.01em;color:#8b93a5;margin-left:2px}
+.pill{display:inline-block;font-size:.72rem;font-weight:700;background:rgba(124,58,237,.1);color:var(--brand);padding:2px 9px;border-radius:999px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const REACTS=[{k:'heart',e:'❤️',n:'Heart'},{k:'like',e:'👍',n:'Like'},{k:'laugh',e:'😂',n:'Laugh'}];
+let mem=null;
+const load=()=>{try{const v=localStorage.getItem('orchidpals');if(v)return JSON.parse(v)}catch(e){}return mem};
+const save=()=>{mem=S;try{localStorage.setItem('orchidpals',JSON.stringify(S))}catch(e){toast('Storage is full, so the latest recording may not be kept.')}};
+const now=Date.now();
+let S=load()||{users:[],me:null,pals:[{id:'p1',name:'Mika Santos'},{id:'p2',name:'Jon Reyes'},{id:'p3',name:'Aria Lim'}],
+posts:[{id:'s1',by:'p1',name:'Mika Santos',text:'Good morning, Pals! Coffee first, then everything else ☕',audio:null,t:now-36e5,r:{heart:[],like:['p2'],laugh:[]}},
+{id:'s2',by:'p2',name:'Jon Reyes',text:'Finally finished my first song. Tell me what you think!',audio:null,t:now-9e6,r:{heart:['p3'],like:[],laugh:[]}},
+{id:'s3',by:'p3',name:'Aria Lim',text:'Rainy day thoughts 🌧️',audio:null,t:now-2e7,r:{heart:[],like:[],laugh:['p1']}}],msgs:[]};
+mem=S;
+let view='posts',chat=null,authMode='up',draft={text:'',audio:null},rec=null;
+const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
+const ini=n=>(n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const ago=t=>{const m=Math.floor((Date.now()-t)/6e4);return m<1?'just now':m<60?m+'m ago':m<1440?Math.floor(m/60)+'h ago':Math.floor(m/1440)+'d ago'};
+const palName=id=>id==='me'?S.me.name:(S.pals.find(p=>p.id===id)||{}).name||'Pal';
+function toast(t){const el=h('div',{text:t,style:'position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#1e1b4b;color:#fff;padding:10px 18px;border-radius:999px;z-index:99;font-size:.88rem;max-width:90%'});document.body.append(el);setTimeout(()=>el.remove(),2600)}
+
+/* ---------- Auth ---------- */
+const validEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+function signIn(u){S.me={name:u.name,email:u.email,provider:u.provider};save();render()}
+function social(provider){
+  const nm=h('input',{type:'text',placeholder:'Your name'}),em=h('input',{type:'email',placeholder:'Email on your '+provider+' account'}),er=h('div',{class:'err'});
+  const m=h('div',{class:'modal'},h('div',{class:'panel'},
+    h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals'})),h('h1',{text:'Continue with '+provider}),h('p',{class:'sub',text:'Demo sign-in: choose the account to use.'}),nm,em,er,
+    h('button',{class:'btn primary wide',style:'margin-top:4px',text:'Continue',onclick:()=>{if(!nm.value.trim())return er.textContent='Please enter your name.';if(!validEmail(em.value.trim()))return er.textContent='Please enter a valid email.';const email=em.value.trim().toLowerCase();let u=S.users.find(x=>x.email===email);if(!u){u={name:nm.value.trim(),email,provider};S.users.push(u)}m.remove();signIn(u)}}),
+    h('button',{class:'btn ghost wide',style:'margin-top:8px',text:'Cancel',onclick:()=>m.remove()}),
+    h('p',{class:'note',text:'Real '+provider+' sign-in needs an OAuth app and a server. This screen is ready to be swapped for it.'})));
+  document.body.append(m);nm.focus()}
+function authView(){
+  const up=authMode==='up';
+  const err=h('div',{class:'err',role:'alert',hidden:true});
+  const showErr=t=>{err.textContent=t;err.hidden=!t};
+  const name=h('input',{class:'field',type:'text',placeholder:'Your name',autocomplete:'name',maxlength:'60','aria-label':'Your name'});
+  const email=h('input',{class:'field',type:'email',placeholder:'Email',autocomplete:'username',maxlength:'320','aria-label':'Email'});
+  const qe=new URLSearchParams(location.search).get('email');if(qe)email.value=qe;
+  const pw=h('input',{class:'field',type:'password',placeholder:'Password',autocomplete:up?'new-password':'current-password',maxlength:'200','aria-label':'Password'});
+  const pw2=h('input',{class:'field',type:'password',placeholder:'Confirm password',autocomplete:'new-password',maxlength:'200','aria-label':'Confirm password'});
+  const chk=h('input',{type:'checkbox',onchange:e=>{pw.type=pw2.type=e.target.checked?'text':'password'}});
+  const enc=v=>btoa(unescape(encodeURIComponent(v)));
+  const go=()=>{showErr('');const e=email.value.trim().toLowerCase();
+    if(up&&!name.value.trim())return showErr('Please enter your name.');
+    if(!validEmail(e))return showErr('Please type a valid email address.');
+    if(pw.value.length<6)return showErr('Password must be at least 6 characters.');
+    const u=S.users.find(x=>x.email===e);
+    if(up){if(pw.value!==pw2.value)return showErr('The two passwords do not match.');if(u)return showErr('This email already has an account. Choose Log in.');const n={name:name.value.trim(),email:e,pw:enc(pw.value),provider:'email'};S.users.push(n);signIn(n)}
+    else{if(!u||u.pw!==enc(pw.value))return showErr('Wrong email or password. New here? Create your account.');signIn(u)}};
+  [email,pw,pw2,name].forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')go()}));
+  return h('div',{class:'center'},h('div',{class:'panel'},
+    h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals'})),
+    h('h1',{text:up?'Sign up':'Log in'}),
+    h('p',{class:'sub',text:up?'Type your own email, then choose a password.':'Use the email you signed up with.'}),
+    up?name:null,email,pw,up?pw2:null,
+    h('label',{class:'show'},chk,' Show password'),
+    h('button',{class:'btn primary wide',style:'margin-top:12px',text:up?'Create my account':'Log in',onclick:go}),
+    h('button',{class:'lnk',text:up?'Already have an account? Log in':'New here? Create your account',onclick:()=>{authMode=up?'in':'up';render()}}),
+    err,
+    h('div',{class:'or',text:'or continue with'}),
+    h('button',{class:'btn ghost wide soc',onclick:()=>social('Facebook')},h('b',{text:'f',style:'color:#1877f2'}),'Facebook'),
+    h('button',{class:'btn ghost wide soc',onclick:()=>social('Google')},h('b',{text:'G',style:'color:#ea4335'}),'Google'),
+    h('p',{class:'note',text:'Demo: accounts are saved in this browser only.'})));
+}
+
+/* ---------- Voice ---------- */
+async function startRec(){
+  try{
+    const st=await navigator.mediaDevices.getUserMedia({audio:true});const mr=new MediaRecorder(st);const ch=[];
+    mr.ondataavailable=e=>ch.push(e.data);
+    mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());const fr=new FileReader();fr.onload=()=>{draft.audio=fr.result;rec=null;render()};fr.readAsDataURL(new Blob(ch,{type:mr.mimeType}))};
+    mr.start();rec={mr,s:Date.now()};render();
+    setTimeout(()=>{if(rec&&rec.mr===mr&&mr.state==='recording')mr.stop()},60000);
+  }catch(e){toast('Microphone is not available. Please allow mic access.')}
+}
+const stopRec=()=>{if(rec)rec.mr.stop()};
+
+/* ---------- Reactions ---------- */
+function burst(btn,e){const r=btn.getBoundingClientRect();for(let i=0;i<5;i++){const f=h('div',{class:'fly',text:e,style:`left:${r.left+r.width/2}px;top:${r.top}px;--dx:${(i-2)*22}px;animation-delay:${i*60}ms`});document.body.append(f);setTimeout(()=>f.remove(),1300)}}
+function react(p,k,btn,e){
+  const arr=p.r[k],i=arr.indexOf('me');
+  if(i>-1){arr.splice(i,1);save();return render()}
+  arr.push('me');save();burst(btn,e);
+  if(p.by==='me')return render();
+  if(!S.pals.find(x=>x.id===p.by))S.pals.push({id:p.by,name:p.name});
+  const snip=p.text?p.text.slice(0,40)+(p.text.length>40?'…':''):'a voice post';
+  S.msgs.push({w:p.by,f:'me',x:e+' reacted to your post: “'+snip+'”',rx:1,t:Date.now()});save();
+  setTimeout(()=>{chat=p.by;view='messages';render();setTimeout(()=>{const i=$('#msgin');i&&i.focus()},50)},650);
+}
+
+/* ---------- Views ---------- */
+function postCard(p){
+  return h('div',{class:'card'},
+    h('div',{class:'row'},h('div',{class:'av',text:ini(p.name)}),h('div',{},h('b',{text:p.by==='me'?S.me.name+' (you)':p.name}),h('div',{class:'muted',text:ago(p.t)}))),
+    p.text?h('p',{text:p.text,style:'margin:12px 0 0;white-space:pre-wrap'}):null,
+    p.audio?h('audio',{controls:'',src:p.audio}):null,
+    h('div',{class:'reacts'},REACTS.map(r=>{const on=p.r[r.k].includes('me');const b=h('button',{class:'rx'+(on?' on':''),'aria-pressed':on,'aria-label':r.n},h('span',{class:'e',text:r.e}),String(p.r[r.k].length));b.onclick=()=>{b.classList.add('pop');react(p,r.k,b,r.e)};return b})),
+    h('div',{class:'muted',style:'margin-top:8px',text:'React to start a chat with the author.'}));
+}
+function postsView(){
+  const ta=h('textarea',{placeholder:'What\'s on your mind, '+S.me.name.split(' ')[0]+'? (text or a voice recording, no photos or video)',oninput:e=>draft.text=e.target.value});ta.value=draft.text;
+  const recUI=rec?h('div',{class:'rec'},h('span',{class:'dot'}),h('span',{text:'Recording… (max 60s)'}),h('button',{class:'btn ghost',text:'Stop',onclick:stopRec})):
+    h('div',{class:'rec'},h('button',{class:'btn ghost',text:draft.audio?'🎙️ Re-record':'🎙️ Record voice',onclick:startRec}),draft.audio?h('button',{class:'btn ghost',text:'Remove',onclick:()=>{draft.audio=null;render()}}):null,h('span',{class:'sp'}),
+      h('button',{class:'btn primary',text:'Post',onclick:()=>{if(!draft.text.trim()&&!draft.audio)return toast('Write something or record your voice first.');S.posts.unshift({id:'u'+Date.now(),by:'me',name:S.me.name,text:draft.text.trim(),audio:draft.audio,t:Date.now(),r:{heart:[],like:[],laugh:[]}});draft={text:'',audio:null};save();render()}}));
+  return h('div',{},h('div',{class:'card'},ta,draft.audio&&!rec?h('audio',{controls:'',src:draft.audio}):null,recUI),S.posts.map(postCard));
+}
+function messagesView(){
+  const pals=S.pals;
+  if(!pals.length)return h('div',{class:'empty',text:'Add a Pal first to start messaging.'});
+  if(!chat||!pals.find(p=>p.id===chat))chat=pals[0].id;
+  const list=h('div',{class:'pl'},pals.map(p=>{const last=[...S.msgs].reverse().find(m=>m.w===p.id);return h('button',{class:'pi','aria-current':chat===p.id,onclick:()=>{chat=p.id;render()}},h('div',{class:'av',text:ini(p.name)}),h('div',{},h('b',{text:p.name}),h('div',{class:'muted',text:last?last.x.slice(0,22):'Say hi'})))}));
+  const box=h('div',{class:'msgs'});const ms=S.msgs.filter(m=>m.w===chat);
+  if(!ms.length)box.append(h('div',{class:'empty',text:'No messages yet. Say hi to '+palName(chat)+'!'}));
+  ms.forEach(m=>box.append(h('div',{class:'m'+(m.f==='me'?' me':'')+(m.rx?' react':''),text:m.x})));
+  const inp=h('input',{type:'text',id:'msgin',placeholder:'Message '+palName(chat)+'…'});
+  const send=()=>{const v=inp.value.trim();if(!v)return;S.msgs.push({w:chat,f:'me',x:v,t:Date.now()});save();render();setTimeout(()=>{const i=$('#msgin');i&&i.focus()},0)};
+  inp.onkeydown=e=>{if(e.key==='Enter')send()};
+  setTimeout(()=>{box.scrollTop=box.scrollHeight},0);
+  return h('div',{class:'chatwrap'},h('div',{class:'card'},list),h('div',{class:'card'},h('b',{text:palName(chat)}),h('div',{style:'margin-top:8px'},box),h('div',{class:'cbar'},inp,h('button',{class:'btn primary',text:'Send',onclick:send}))));
+}
+function albumView(){
+  const mine=S.posts.filter(p=>p.by==='me'&&p.audio);
+  return h('div',{},h('div',{class:'card'},h('b',{text:'🎧 Your Voice Album'}),h('p',{class:'muted',text:'Every voice recording you post lands here. Photos and video are not part of Orchid Pals.'})),
+    mine.length?mine.map(p=>h('div',{class:'card'},h('div',{class:'muted',text:ago(p.t)}),p.text?h('p',{text:p.text,style:'margin:6px 0 0'}):null,h('audio',{controls:'',src:p.audio}))):h('div',{class:'empty',text:'No recordings yet. Record one from the Posts tab.'}));
+}
+function palsView(){
+  const em=h('input',{type:'text',placeholder:'Pal\'s name'}),
+  add=()=>{const n=em.value.trim();if(!n)return;S.pals.push({id:'p'+Date.now(),name:n});save();render()};
+  return h('div',{},h('div',{class:'card'},h('b',{text:'Add a Pal'}),h('div',{class:'cbar'},em,h('button',{class:'btn primary',text:'Add Pal',onclick:add}))),
+    h('div',{class:'muted',style:'margin:0 4px 8px',text:S.pals.length+' Pals'}),
+    S.pals.map(p=>h('div',{class:'card row'},h('div',{class:'av',text:ini(p.name)}),h('div',{class:'sp'},h('b',{text:p.name}),h('div',{},h('span',{class:'pill',text:'Pal'}))),h('button',{class:'btn ghost',text:'Message',onclick:()=>{chat=p.id;view='messages';render()}}))));
+}
+function appView(){
+  const tabs=[['posts','Posts'],['messages','Messages'],['album','Album'],['pals','Pals']];
+  const v={posts:postsView,messages:messagesView,album:albumView,pals:palsView}[view]();
+  return h('div',{},
+    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals'})),h('span',{class:'sp'}),h('span',{class:'muted',text:S.me.name}),h('button',{class:'btn ghost',text:'Log out',onclick:()=>{S.me=null;save();render()}})),
+    h('nav',{class:'tabs'},tabs.map(([k,l])=>h('button',{class:'tab','aria-current':view===k,text:l,onclick:()=>{if(rec)return;view=k;render()}}))),
+    h('main',{},v));
+}
+function render(){const a=$('#app');const y=window.scrollY;a.replaceChildren(S.me?appView():authView());window.scrollTo(0,y)}
+render();
+})();
+</script>
+</body>
+</html>
