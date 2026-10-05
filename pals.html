@@ -38,7 +38,7 @@ textarea{resize:vertical;min-height:80px}
 .top{display:flex;align-items:center;gap:10px;padding:14px 22px}.top .wm{font-size:1.4rem}
 .crmtag{font-size:.7rem;font-weight:800;letter-spacing:.12em;color:var(--muted);background:rgba(255,255,255,.7);padding:3px 10px;border-radius:999px}
 .tabs{display:flex;align-items:center;gap:8px;width:min(1000px,calc(100% - 28px));height:64px;margin:-6px auto 0;background:linear-gradient(135deg,#17162d,#24213f);border:1px solid rgba(255,255,255,.12);border-radius:28px;padding:8px;box-shadow:0 18px 48px rgba(20,18,46,.32),inset 0 1px 0 rgba(255,255,255,.08);overflow:visible}
-.tab{position:relative;flex:1;height:46px;border:0;background:transparent;cursor:pointer;padding:0;border-radius:21px;color:#aaa8c4;display:flex;align-items:center;justify-content:center;transition:transform .18s ease,background .18s ease,color .18s ease}.tab:hover{background:rgba(255,255,255,.08);color:#fff;transform:translateY(-1px)}.tabicon{width:28px;height:28px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 5px rgba(0,0,0,.18))}.tab[aria-current=true]{background:linear-gradient(145deg,#fff,#f2efff);color:var(--dark);box-shadow:0 7px 18px rgba(0,0,0,.2)}.tab[aria-current=true] .tabicon{width:28px;height:28px}.tabbadge{position:absolute;top:7px;right:calc(50% - 24px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#ef4444;color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;border:2px solid #24213f}
+.tab{position:relative;flex:1;height:46px;border:0;background:transparent;cursor:pointer;padding:0;border-radius:21px;color:#aaa8c4;display:flex;align-items:center;justify-content:center;transition:transform .18s ease,background .18s ease,color .18s ease}.tab:hover{background:rgba(255,255,255,.08);color:#fff;transform:translateY(-1px)}.tabicon{width:28px;height:28px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 5px rgba(0,0,0,.18))}.tab[aria-current=true]{background:linear-gradient(145deg,#fff,#f2efff);color:var(--dark);box-shadow:0 7px 18px rgba(0,0,0,.2)}.tab[aria-current=true] .tabicon{width:28px;height:28px}.tabbadge{position:absolute;top:2px;right:calc(50% - 24px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#ef4444;color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;border:2px solid #24213f}
 main{max-width:1000px;margin:0 auto;padding:6px 16px 40px}
 .card{padding:18px;margin-bottom:14px}
 .composer{padding:12px 20px 6px;margin-top:0}
@@ -94,14 +94,6 @@ const REACTS=[{k:'heart',e:'❤️',n:'Heart'},{k:'like',e:'👍',n:'Like'},{k:'
 const home=()=>location.replace('index.html');
 let me=null,isAdmin=false,names={},emails={},pals=[],posts=[],rx=[],msgs=[],urls={},invites=[];
 let view='posts',chat=null,chatDraft='',draft={text:'',blob:null,url:null,secs:0,mime:'',image:null,imageUrl:null},rec=null,busy=false,poll=null;
-  const NOTIFY_KEY='orchid_pals_seen_v1';
-  let seenNotify={chat:0,album:0};
-  try{seenNotify=Object.assign(seenNotify,JSON.parse(localStorage.getItem(NOTIFY_KEY)||'{}'))}catch(e){}
-  function saveSeen(){try{localStorage.setItem(NOTIFY_KEY,JSON.stringify(seenNotify))}catch(e){}}
-  function markSeen(k){seenNotify[k]=Date.now();saveSeen()}
-  function unreadChatCount(){return msgs.filter(m=>m.recipient_id===me.id&&new Date(m.created_at).getTime()>Number(seenNotify.chat||0)).length}
-  function newVoiceCount(){return posts.filter(p=>p.audio_path&&new Date(p.created_at).getTime()>Number(seenNotify.album||0)).length}
-
 const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
 const ini=n=>(n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const ago=t=>{const m=Math.floor((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?m+'m ago':m<1440?Math.floor(m/60)+'h ago':Math.floor(m/1440)+'d ago'};
@@ -232,8 +224,10 @@ function messagesView(){
   return h('div',{class:'chatwrap'},h('div',{class:'card'},h('b',{text:'Messages'}),h('p',{class:'muted',text:'Chat with your Pals'}),list),h('div',{class:'card'},h('div',{class:'chathead'},h('div',{class:'av',text:ini(nm(chat))}),h('div',{},h('b',{text:nm(chat)}),h('div',{class:'status',text:'● Pal'}))),box,h('div',{class:'chatinput'},inp,h('button',{class:'btn primary',text:'Send',onclick:send}))));
 }
 function albumView(){
-  const mine=posts.filter(p=>p.author_id===me.id&&p.audio_path);
+  const mine=posts.filter(p=>p.author_id===me.id&&p.audio_path),others=posts.filter(p=>p.author_id!==me.id&&p.audio_path);
   return h('div',{},h('div',{class:'card'},h('b',{text:'Your Voice Album'}),h('p',{class:'muted',text:'Your posted stories with voice recordings appear here. Photos can be shared directly in Story.'})),
+    others.length?h('div',{class:'card'},h('b',{text:'Voice from your Pals'})):null,
+    others.map(p=>h('div',{class:'card'},h('b',{text:nm(p.author_id)}),h('div',{class:'muted',text:ago(p.created_at)+' · '+p.audio_seconds+'s'}),p.body?h('p',{text:p.body,style:'margin:6px 0 0'}):null,urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):null)),
     mine.length?mine.map(p=>h('div',{class:'card'},h('div',{class:'muted',text:ago(p.created_at)+' · '+p.audio_seconds+'s'}),p.body?h('p',{text:p.body,style:'margin:6px 0 0'}):null,urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):null)):h('div',{class:'empty',text:'No recordings yet. Record one from the Story tab.'}));
 }
 async function palAction(fn,okMsg){const r=await fn();if(r&&r.error)return fail(r.error);try{await loadPeople();await loadPosts()}catch(e){fail(e)}if(okMsg)toast(okMsg);render()}
@@ -267,7 +261,35 @@ function adminCard(){
     h('div',{class:'cbar'},em,h('button',{class:'btn primary',text:'Approve',onclick:add})),
     invites.map(i=>h('div',{class:'row',style:'margin-top:10px'},h('span',{class:'sp',text:i.email}),i.is_admin?h('span',{class:'pill',text:'Admin'}):h('button',{class:'btn ghost',text:'Remove',onclick:async()=>{if(!confirm('Remove approval for '+i.email+'?'))return;const r=await sb.from('approved_emails').delete().eq('email',i.email);if(r.error)return fail(r.error);await loadInvites();render()}}))));
 }
-function tabButton(k,label,counts){
+/* ---------- notification badges ---------- */
+const T=x=>new Date(x.created_at).getTime();
+let seenTs=null;
+const seenKey=()=>'orchid_seen_'+me.id;
+const saveSeen=()=>{try{localStorage.setItem(seenKey(),JSON.stringify(seenTs))}catch(e){}};
+const badgeEl=n=>h('span',{class:'tabbadge',text:n>9?'9+':String(n)});
+const items=k=>k==='messages'?msgs.filter(m=>m.recipient_id===me.id):k==='posts'?posts.filter(p=>p.author_id!==me.id&&!p.audio_path):posts.filter(p=>p.author_id!==me.id&&p.audio_path);
+function initSeen(){
+  try{seenTs=JSON.parse(localStorage.getItem(seenKey()))}catch(e){seenTs=null}
+  if(!seenTs){seenTs={};['posts','messages','album'].forEach(k=>seenTs[k]=Math.max(0,...items(k).map(T)));saveSeen()}
+}
+function markSeen(){
+  if(!seenTs||!['posts','messages','album'].includes(view))return;
+  const latest=Math.max(0,...items(view).map(T));
+  if(latest>seenTs[view]){seenTs[view]=latest;saveSeen()}
+}
+function unread(k){
+  if(!me||!seenTs)return 0;
+  if(k==='pals')return pals.filter(p=>p.status==='pending'&&p.addressee_id===me.id).length;
+  if(k===view)return 0;
+  return items(k).filter(x=>T(x)>seenTs[k]).length;
+}
+function refreshBadges(){
+  document.querySelectorAll('.tab[data-k]').forEach(b=>{
+    const n=unread(b.dataset.k),old=b.querySelector('.tabbadge');
+    if(old)old.remove();if(n)b.append(badgeEl(n));
+  });
+}
+function tabButton(k,label,inc){
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','tabicon');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
   const markup={
     posts:'<path d="M3 10.8 12 3l9 7.8"></path><path d="M5.5 9.8V21h13V9.8"></path><path d="M9.5 21v-6h5v6"></path>',
@@ -276,24 +298,20 @@ function tabButton(k,label,counts){
     pals:'<circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="10" r="2.5"></circle><path d="M3.5 20a5.5 5.5 0 0 1 11 0M14 20a4 4 0 0 1 7.5 0"></path>'
   };
   svg.innerHTML=markup[k];
-  const count=Number(counts&&counts[k]||0);
-  const b=h('button',{class:'tab','aria-current':view===k,title:label,'aria-label':label,onclick:()=>{if(rec)return;view=k;markSeen(k==='messages'?'chat':k==='album'?'album':k);render()}});b.append(svg);if(count>0){b.append(h('span',{class:'tabbadge',text:count>9?'9+':String(count)}))}return b;
+  const b=h('button',{class:'tab','aria-current':view===k,title:label,'aria-label':label,'data-k':k,onclick:()=>{if(rec)return;view=k;render()}});b.append(svg);if(inc)b.append(badgeEl(inc));return b;
 }
 function appView(){
-  if(view==='messages')markSeen('chat');
-  if(view==='album')markSeen('album');
   const tabs=[['posts','Story'],['messages','Chat'],['album','Voice'],['pals','Pals']];
   const v={posts:postsView,messages:messagesView,album:albumView,pals:palsView}[view]();
-  const counts={messages:unreadChatCount(),album:newVoiceCount(),pals:pals.filter(p=>p.status==='pending'&&p.addressee_id===me.id).length};
   return h('div',{},
     h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat'})),h('span',{class:'sp'}),h('span',{class:'muted',text:me.name}),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
-    h('nav',{class:'tabs'},tabs.map(([k,l])=>tabButton(k,l,counts))),
+    h('nav',{class:'tabs'},tabs.map(([k,l])=>tabButton(k,l,unread(k)))),
     h('main',{},v));
 }
 function noAccess(){
   return h('div',{class:'center'},h('div',{class:'panel'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid'),h('h1',{text:'No access'}),h('p',{class:'sub',text:'Your account could not be loaded. Please log out and log in again.'}),h('button',{class:'btn primary wide',text:'Back to sign in',onclick:logout})));
 }
-function render(){const a=$('#app');const y=window.scrollY;const keep=$('#msgin');if(keep)chatDraft=keep.value;a.replaceChildren(me?appView():noAccess());window.scrollTo(0,y)}
+function render(){if(me)markSeen();const a=$('#app');const y=window.scrollY;const keep=$('#msgin');if(keep)chatDraft=keep.value;a.replaceChildren(me?appView():noAccess());window.scrollTo(0,y)}
 async function logout(){clearInterval(poll);try{await sb.auth.signOut()}catch(e){}home()}
 
 /* ---------- start ---------- */
@@ -307,8 +325,14 @@ async function init(){
   me={id:pr.data.id,name:pr.data.display_name,email:pr.data.email};
   const ad=await sb.from('approved_emails').select('email,is_admin');isAdmin=!ad.error&&(ad.data||[]).length>0;
   try{await loadAll()}catch(e){fail(e,'Could not load your data. Please refresh.')}
+  initSeen();
   render();
-  poll=setInterval(async()=>{if(document.hidden||rec||busy)return;try{if(view==='messages'){if(await loadMsgs()){render()}}else if(view==='pals'){const n=pals.length;await loadPeople();if(pals.length!==n)render()}}catch(e){}},6000);
+  poll=setInterval(async()=>{if(document.hidden||rec||busy)return;try{
+    const sig=()=>posts.length+':'+(posts[0]&&posts[0].id);const before=sig(),np=pals.length;
+    const mch=await loadMsgs();await loadPeople();await loadPosts();
+    const idle=!draft.text&&!draft.blob&&!draft.image&&!(document.activeElement&&document.activeElement.tagName==='TEXTAREA');
+    if((view==='messages'&&mch)||(view==='pals'&&pals.length!==np)||((view==='posts'||view==='album')&&sig()!==before&&idle))render();else refreshBadges();
+  }catch(e){}},6000);
 }
 init().catch(e=>{console.error(e);home()});
 })();
