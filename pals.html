@@ -84,6 +84,7 @@ audio{width:100%;height:38px;margin-top:10px}
 @media(min-width:1100px){.tabs{position:relative;z-index:2;width:min(940px,calc(100% - 440px));margin-top:-54px}main{max-width:none;width:min(972px,calc(100% - 408px))}}
 @media(max-width:600px){main{padding:12px 10px 28px}.top{padding:12px 14px}.tabs{width:calc(100% - 12px);height:78px;border-radius:24px;padding:8px;gap:5px}.tab{height:60px;border-radius:18px}.tabicon{width:29px;height:29px}.tab[aria-current=true] .tabicon{width:31px;height:31px}.tabbadge{top:4px;right:calc(50% - 22px)}.card{border-radius:20px;padding:15px}.chatwrap{grid-template-columns:1fr}.chatwrap>.card:first-child{max-height:150px;overflow:auto}.chatbox{height:48vh;min-height:300px}.socialopt{font-size:.78rem;padding:9px 4px}}
 .pill{display:inline-block;font-size:.72rem;font-weight:700;background:rgba(124,58,237,.1);color:var(--brand);padding:2px 9px;border-radius:999px}
+.cover{height:190px;background:var(--grad)}.pcard{padding:0;overflow:hidden}.phead{display:flex;align-items:flex-end;gap:14px;padding:0 18px 16px;margin-top:-52px;flex-wrap:wrap}.phead h2{margin:0;font-size:1.4rem}.av.big{width:108px;height:108px;font-size:1.7rem;border:4px solid #fff;box-shadow:var(--sh)}.pacts{display:flex;gap:8px;flex-wrap:wrap}.irow{display:flex;gap:8px;margin-top:10px;color:#334155;font-size:.92rem}.lbl{font-size:.8rem;font-weight:700;color:var(--muted);margin:12px 0 4px;display:block}
 </style>
 </head>
 <body>
@@ -97,10 +98,12 @@ const $=s=>document.querySelector(s);
 const REACTS=[{k:'heart',e:'❤️',n:'Heart'},{k:'like',e:'👍',n:'Like'},{k:'laugh',e:'😂',n:'Laugh'}];
 const home=()=>location.replace('index.html');
 let me=null,isAdmin=false,names={},emails={},pals=[],posts=[],rx=[],msgs=[],urls={},invites=[];
+let profs={},profId=null,editing=false,pdraft={};
 let view='posts',chat=null,chatDraft='',draft={text:'',blob:null,url:null,secs:0,mime:'',image:null,imageUrl:null},rec=null,busy=false,poll=null;
 const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
 const ini=n=>(n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const ago=t=>{const m=Math.floor((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?m+'m ago':m<1440?Math.floor(m/60)+'h ago':Math.floor(m/1440)+'d ago'};
+const avEl=id=>{const P=profs[id],u=P&&P.avatar_path&&urls[P.avatar_path];return u?h('div',{class:'av',style:"background:url('"+u+"') center/cover",role:'img','aria-label':nm(id)}):avEl(id)};
 const nm=id=>id===me.id?me.name:(names[id]||'Pal');
 const validEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
 function toast(t){const el=h('div',{text:t,style:'position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#1b1a2e;color:#fff;padding:10px 18px;border-radius:999px;z-index:99;font-size:.88rem;max-width:90%'});document.body.append(el);setTimeout(()=>el.remove(),3000)}
@@ -109,9 +112,11 @@ const acceptedIds=()=>pals.filter(p=>p.status==='accepted').map(p=>p.requester_i
 
 /* ---------- data ---------- */
 async function loadPeople(){
-  const [pr,pl]=await Promise.all([sb.from('profiles').select('id,display_name,email'),sb.from('pals').select('*')]);
+  const [pr,pl]=await Promise.all([sb.from('profiles').select('id,display_name,email,bio,work,location,avatar_path,cover_path,created_at'),sb.from('pals').select('*')]);
   if(pr.error)throw pr.error;if(pl.error)throw pl.error;
-  names={};emails={};pr.data.forEach(p=>{names[p.id]=p.display_name;emails[p.id]=p.email});pals=pl.data;
+  names={};emails={};profs={};pr.data.forEach(p=>{names[p.id]=p.display_name;emails[p.id]=p.email;profs[p.id]=p});pals=pl.data;
+  const ap=pr.data.flatMap(p=>[p.avatar_path,p.cover_path]).filter(x=>x&&!urls[x]);
+  if(ap.length){const {data}=await sb.storage.from('avatars').createSignedUrls(ap,3600);(data||[]).forEach(d=>{if(d.signedUrl)urls[d.path]=d.signedUrl})}
 }
 async function loadPosts(){
   const [po,re]=await Promise.all([sb.from('posts').select('*').order('created_at',{ascending:false}).limit(100),sb.from('reactions').select('post_id,user_id,kind')]);
@@ -198,7 +203,7 @@ function postCard(p){
   const actions=REACTS.map(r=>{const n=rx.filter(x=>x.post_id===p.id&&x.kind===r.k).length;const on=rx.some(x=>x.post_id===p.id&&x.kind===r.k&&x.user_id===me.id);
     const b=h('button',{class:'rx'+(on?' on':''),'aria-pressed':on,'aria-label':r.n},h('span',{class:'e',text:r.e}),n?String(n):r.n);b.onclick=()=>{b.classList.add('pop');react(p,r.k,b,r.e)};return b});
   return h('div',{class:'card'},
-    h('div',{class:'row'},h('div',{class:'av',text:ini(nm(p.author_id))}),h('div',{class:'sp'},h('b',{text:mine?me.name:nm(p.author_id)}),h('div',{class:'muted',text:ago(p.created_at)})),mine?h('button',{class:'btn ghost',text:'⋯',title:'Delete story',onclick:()=>delPost(p)}):null),
+    h('div',{class:'row'},h('div',{class:'row sp',style:'cursor:pointer',onclick:()=>openProfile(p.author_id)},avEl(p.author_id),h('div',{},h('b',{text:mine?me.name:nm(p.author_id)}),h('div',{class:'muted',text:ago(p.created_at)}))),mine?h('button',{class:'btn ghost',text:'⋯',title:'Delete story',onclick:()=>delPost(p)}):null),
     p.body?h('p',{text:p.body,style:'margin:12px 0 0;white-space:pre-wrap'}):null,
     p.image_path?(urls[p.image_path]?h('img',{class:'storyimg',src:urls[p.image_path],alt:'Story photo',loading:'lazy'}):h('div',{class:'muted',text:'Photo unavailable.'})):null,
     p.audio_path?(urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):h('div',{class:'muted',text:'Voice recording unavailable.'})):null,
@@ -210,21 +215,21 @@ function postsView(){
   const file=h('input',{type:'file',accept:'image/*',onchange:chooseImage});
   const preview=draft.imageUrl?h('div',{class:'preview'},h('img',{src:draft.imageUrl,alt:'Selected photo'}),h('button',{class:'btn ghost',text:'Remove photo',onclick:()=>{clearDraftImage();render()}})):null;
   const voice=h('div',{class:'attach'},rec?h('div',{class:'rec'},h('span',{class:'dot'}),h('span',{text:'Recording…'}),h('button',{class:'btn ghost',text:'Stop',onclick:stopRec})):h('button',{class:'socialopt',text:'Voice',onclick:startRec}),draft.blob?h('button',{class:'btn ghost',text:'Remove voice',onclick:()=>{clearDraftAudio();render()}}):null);
-  const composer=h('div',{class:'card composer'},h('div',{class:'row'},h('div',{class:'av',text:ini(me.name)}),h('b',{text:'Post your journal'})),h('div',{style:'margin-top:12px'},ta),preview,h('div',{class:'socialbar'},h('label',{class:'socialopt filebtn',text:'📷 Photo'},file),voice,h('button',{class:'socialopt',text:busy?'Posting…':'➤ Post',disabled:busy,onclick:publish})));
+  const composer=h('div',{class:'card composer'},h('div',{class:'row'},avEl(me.id),h('b',{text:'Post your journal'})),h('div',{style:'margin-top:12px'},ta),preview,h('div',{class:'socialbar'},h('label',{class:'socialopt filebtn',text:'📷 Photo'},file),voice,h('button',{class:'socialopt',text:busy?'Posting…':'➤ Post',disabled:busy,onclick:publish})));
   return h('div',{},composer,posts.length?posts.map(postCard):h('div',{class:'empty',text:'No stories yet. Share the first one!'}));
 }
 function messagesView(){
   const ids=acceptedIds();
   if(!ids.length)return h('div',{class:'empty',text:'Add a Pal first to start messaging.'});
   if(!chat||!ids.includes(chat))chat=ids[0];
-  const list=h('div',{class:'pl'},ids.map(id=>{const last=[...msgs].reverse().find(m=>m.sender_id===id||m.recipient_id===id);return h('button',{class:'pi','aria-current':chat===id,onclick:()=>{chatDraft='';chat=id;render()}},h('div',{class:'av',text:ini(nm(id))}),h('div',{style:'min-width:0'},h('b',{text:nm(id)}),h('div',{class:'muted previewtxt',text:last?last.body:'Say hi'})))}));
+  const list=h('div',{class:'pl'},ids.map(id=>{const last=[...msgs].reverse().find(m=>m.sender_id===id||m.recipient_id===id);return h('button',{class:'pi','aria-current':chat===id,onclick:()=>{chatDraft='';chat=id;render()}},avEl(id),h('div',{style:'min-width:0'},h('b',{text:nm(id)}),h('div',{class:'muted previewtxt',text:last?last.body:'Say hi'})))}));
   const box=h('div',{class:'chatbox'});const ms=msgs.filter(m=>m.sender_id===chat||m.recipient_id===chat);
   if(!ms.length)box.append(h('div',{class:'empty',text:'No messages yet. Say hi to '+nm(chat)+'!'}));
   ms.forEach(m=>box.append(h('div',{class:'m'+(m.sender_id===me.id?' me':'')+(/^(❤️|👍|😂) reacted/.test(m.body)?' react':''),text:m.body},h('span',{class:'time',text:ago(m.created_at)}))));
   const inp=h('input',{type:'text',id:'msgin',maxlength:'2000',placeholder:'Message '+nm(chat)+'…',oninput:e=>chatDraft=e.target.value});inp.value=chatDraft;
   const send=async()=>{const v=inp.value.trim();if(!v)return;inp.value='';chatDraft='';const r=await sb.from('messages').insert({recipient_id:chat,body:v});if(r.error)return fail(r.error,'Message not sent.');await loadMsgs();render();setTimeout(()=>{const x=$('#msgin');x&&x.focus()},0)};
   inp.onkeydown=e=>{if(e.key==='Enter')send()};setTimeout(()=>{box.scrollTop=box.scrollHeight},0);
-  return h('div',{class:'chatwrap'},h('div',{class:'card'},h('b',{text:'Messages'}),h('p',{class:'muted',text:'Chat with your Pals'}),list),h('div',{class:'card'},h('div',{class:'chathead'},h('div',{class:'av',text:ini(nm(chat))}),h('div',{},h('b',{text:nm(chat)}),h('div',{class:'status',text:'● Pal'}))),box,h('div',{class:'chatinput'},inp,h('button',{class:'btn primary',text:'Send',onclick:send}))));
+  return h('div',{class:'chatwrap'},h('div',{class:'card'},h('b',{text:'Messages'}),h('p',{class:'muted',text:'Chat with your Pals'}),list),h('div',{class:'card'},h('div',{class:'chathead'},avEl(chat),h('div',{},h('b',{text:nm(chat)}),h('div',{class:'status',text:'● Pal'}))),box,h('div',{class:'chatinput'},inp,h('button',{class:'btn primary',text:'Send',onclick:send}))));
 }
 function notifView(){
   const react=/^(❤️|👍|😂) reacted/;
@@ -252,10 +257,10 @@ function palsView(){
   const other=p=>p.requester_id===me.id?p.addressee_id:p.requester_id;
   const sec=[];
   sec.push(h('div',{class:'card'},h('b',{text:'Add a Pal'}),h('div',{class:'cbar'},em,h('button',{class:'btn primary',text:'Send request',onclick:add}))));
-  if(inc.length)sec.push(h('div',{class:'card'},h('b',{text:'Pal requests'}),inc.map(p=>h('div',{class:'row',style:'margin-top:10px'},h('div',{class:'av',text:ini(nm(p.requester_id))}),h('div',{class:'sp'},h('b',{text:nm(p.requester_id)})),
+  if(inc.length)sec.push(h('div',{class:'card'},h('b',{text:'Pal requests'}),inc.map(p=>h('div',{class:'row',style:'margin-top:10px'},avEl(p.requester_id),h('div',{class:'sp'},h('b',{text:nm(p.requester_id)})),
     h('button',{class:'btn primary',text:'Accept',onclick:()=>palAction(()=>sb.from('pals').update({status:'accepted'}).eq('id',p.id))}),h('button',{class:'btn ghost',text:'Decline',onclick:()=>palAction(()=>sb.from('pals').delete().eq('id',p.id))})))));
   sec.push(h('div',{class:'muted',style:'margin:0 4px 8px',text:ok.length+' Pals'}));
-  ok.forEach(p=>sec.push(h('div',{class:'card row'},h('div',{class:'av',text:ini(nm(other(p)))}),h('div',{class:'sp'},h('b',{text:nm(other(p))}),h('div',{},h('span',{class:'pill',text:'Pal'}))),
+  ok.forEach(p=>sec.push(h('div',{class:'card row'},avEl(other(p)),h('div',{class:'sp'},h('b',{text:nm(other(p))}),h('div',{},h('span',{class:'pill',text:'Pal'}))),
     h('button',{class:'btn ghost',text:'Message',onclick:()=>{chat=other(p);view='messages';render()}}),
     h('button',{class:'btn ghost',text:'Remove',onclick:()=>{if(confirm('Remove this Pal?'))palAction(()=>sb.from('pals').delete().eq('id',p.id))}}))));
   if(out.length)sec.push(h('div',{class:'card'},h('b',{text:'Waiting for a reply'}),out.map(p=>h('div',{class:'row',style:'margin-top:8px'},h('span',{class:'sp',text:nm(other(p))}),h('button',{class:'btn ghost',text:'Cancel',onclick:()=>palAction(()=>sb.from('pals').delete().eq('id',p.id))})))));
@@ -268,6 +273,50 @@ function adminCard(){
   return h('div',{class:'card'},h('b',{text:'Admin: approved emails'}),h('p',{class:'muted',text:'Only approved emails can sign up for Orchid Pals.'}),
     h('div',{class:'cbar'},em,h('button',{class:'btn primary',text:'Approve',onclick:add})),
     invites.map(i=>h('div',{class:'row',style:'margin-top:10px'},h('span',{class:'sp',text:i.email}),i.is_admin?h('span',{class:'pill',text:'Admin'}):h('button',{class:'btn ghost',text:'Remove',onclick:async()=>{if(!confirm('Remove approval for '+i.email+'?'))return;const r=await sb.from('approved_emails').delete().eq('email',i.email);if(r.error)return fail(r.error);await loadInvites();render()}}))));
+}
+
+/* ---------- profile ---------- */
+function openProfile(id){profId=id;editing=false;view='profile';window.scrollTo(0,0);render()}
+const relOf=id=>pals.find(p=>(p.requester_id===me.id&&p.addressee_id===id)||(p.requester_id===id&&p.addressee_id===me.id));
+function profileView(){
+  const id=profId||me.id,P=profs[id]||{},own=id===me.id;
+  if(editing&&own)return editView(P);
+  const cv=P.cover_path&&urls[P.cover_path],rel=relOf(id),mine=posts.filter(p=>p.author_id===id);
+  const big=avEl(id);big.classList.add('big');
+  const acts=own?[h('button',{class:'btn primary',text:'✏️ Edit profile',onclick:()=>{pdraft={name:me.name,bio:P.bio||'',work:P.work||'',location:P.location||'',avatar:null,cover:null};editing=true;render()}})]
+    :rel&&rel.status==='accepted'?[h('button',{class:'btn primary',text:'💬 Message',onclick:()=>{chat=id;view='messages';render()}}),h('span',{class:'pill',text:'Pals ✓'})]
+    :rel?[h('span',{class:'pill',text:'Request pending'})]:[h('button',{class:'btn primary',text:'👋 Add Pal',onclick:()=>palAction(()=>sb.from('pals').insert({addressee_id:id}),'Request sent.')})];
+  const info=[P.work&&['💼',P.work],P.location&&['📍','Lives in '+P.location],P.created_at&&['📅','Joined '+new Date(P.created_at).toLocaleDateString(undefined,{month:'long',year:'numeric'})],own&&['🤝',acceptedIds().length+' Pals']].filter(Boolean);
+  return h('div',{},
+    h('div',{class:'card pcard'},h('div',{class:'cover',style:cv?"background:url('"+cv+"') center/cover":null}),
+      h('div',{class:'phead'},big,h('div',{class:'sp'},h('h2',{text:nm(id)}),h('div',{class:'muted',text:mine.length+' posts'})),h('div',{class:'pacts'},acts))),
+    h('div',{class:'card'},h('b',{text:'Intro'}),h('p',{text:P.bio||(own?'Add a bio so your Pals know you.':'No bio yet.'),style:'margin:8px 0 0;white-space:pre-wrap'+(P.bio?'':';color:var(--muted)')}),info.map(([i,t])=>h('div',{class:'irow'},h('span',{text:i}),h('span',{text:t})))),
+    h('div',{class:'muted',style:'margin:0 4px 8px',text:own?'Your posts':nm(id).split(' ')[0]+"'s posts"}),
+    mine.length?mine.map(postCard):h('div',{class:'empty',text:own?'You have not posted yet.':'No posts to show.'}));
+}
+function editView(P){
+  const inp=(k,ph,max)=>{const i=h('input',{type:'text',placeholder:ph,maxlength:max,oninput:e=>pdraft[k]=e.target.value});i.value=pdraft[k];return i};
+  const bio=h('textarea',{placeholder:'Tell your Pals about yourself…',maxlength:'300',oninput:e=>pdraft.bio=e.target.value});bio.value=pdraft.bio;
+  const pick=(k,label)=>h('label',{class:'btn ghost filebtn',text:'📷 '+label+(pdraft[k]?' ✓ '+pdraft[k].name.slice(0,18):'')},h('input',{type:'file',accept:'image/*',onchange:e=>{const f=e.target.files[0];if(!f)return;if(!f.type.startsWith('image/'))return toast('Please choose an image.');if(f.size>8*1024*1024)return toast('Image must be 8MB or smaller.');pdraft[k]=f;render()}}));
+  return h('div',{class:'card'},h('b',{text:'Edit profile'}),
+    h('span',{class:'lbl',text:'Photos'}),h('div',{class:'attach'},pick('avatar','Profile photo'),pick('cover','Cover photo')),
+    h('span',{class:'lbl',text:'Name'}),inp('name','Your name','60'),h('span',{class:'lbl',text:'Bio'}),bio,
+    h('span',{class:'lbl',text:'Work'}),inp('work','Where do you work or study?','100'),h('span',{class:'lbl',text:'Lives in'}),inp('location','City / Country','100'),
+    h('div',{class:'cbar',style:'margin-top:16px'},h('button',{class:'btn primary',text:busy?'Saving…':'Save',disabled:busy,onclick:saveProfile}),h('button',{class:'btn ghost',text:'Cancel',onclick:()=>{editing=false;render()}})));
+}
+async function saveProfile(){
+  if(busy)return;const name=pdraft.name.trim();if(!name)return toast('Name is required.');
+  busy=true;render();const old=profs[me.id]||{};
+  try{
+    const up={display_name:name,bio:pdraft.bio.trim()||null,work:pdraft.work.trim()||null,location:pdraft.location.trim()||null};
+    for(const [k,col] of [['avatar','avatar_path'],['cover','cover_path']]){const f=pdraft[k];if(!f)continue;
+      const path=me.id+'/'+k+'-'+crypto.randomUUID()+'.'+(f.name.split('.').pop()||'jpg');
+      const r=await sb.storage.from('avatars').upload(path,f,{contentType:f.type});if(r.error)throw r.error;up[col]=path}
+    const r=await sb.from('profiles').update(up).eq('id',me.id);if(r.error)throw r.error;
+    for(const c of ['avatar_path','cover_path'])if(up[c]&&old[c])await sb.storage.from('avatars').remove([old[c]]);
+    me.name=name;editing=false;await loadPeople();toast('Profile saved.');
+  }catch(e){fail(e,'Could not save profile.')}
+  busy=false;render();
 }
 /* ---------- notification badges ---------- */
 const T=x=>new Date(x.created_at).getTime();
@@ -288,6 +337,7 @@ function markSeen(){
 }
 function unread(k){
   if(!me||!seenTs)return 0;
+  if(k==='profile')return 0;
   if(k==='pals')return pals.filter(p=>p.status==='pending'&&p.addressee_id===me.id).length;
   if(k===view)return 0;
   return items(k).filter(x=>T(x)>seenTs[k]).length;
@@ -304,16 +354,17 @@ function tabButton(k,label,inc){
     posts:'<path d="M3 10.8 12 3l9 7.8"></path><path d="M5.5 9.8V21h13V9.8"></path><path d="M9.5 21v-6h5v6"></path>',
     messages:'<path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.7 8.7 0 0 1-3.7-.8L4 20l1.3-3.7A7.2 7.2 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"></path><path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01"></path>',
     notif:'<path d="M6 9a6 6 0 0 1 12 0c0 6 2 7.5 2 7.5H4S6 15 6 9Z"></path><path d="M10 20a2 2 0 0 0 4 0"></path>',
+    profile:'<circle cx="12" cy="8" r="4"></circle><path d="M4.5 21a7.5 7.5 0 0 1 15 0"></path>',
     pals:'<circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="10" r="2.5"></circle><path d="M3.5 20a5.5 5.5 0 0 1 11 0M14 20a4 4 0 0 1 7.5 0"></path>'
   };
   svg.innerHTML=markup[k];
-  const b=h('button',{class:'tab','aria-current':view===k,title:label,'aria-label':label,'data-k':k,onclick:()=>{if(rec)return;if(k==='notif'&&view!=='notif'&&seenTs)notifPrev=seenTs.notif;view=k;render()}});b.append(svg);if(inc)b.append(badgeEl(inc));return b;
+  const b=h('button',{class:'tab','aria-current':view===k,title:label,'aria-label':label,'data-k':k,onclick:()=>{if(rec)return;if(k==='profile'){profId=me.id;editing=false}if(k==='notif'&&view!=='notif'&&seenTs)notifPrev=seenTs.notif;view=k;render()}});b.append(svg);if(inc)b.append(badgeEl(inc));return b;
 }
 function appView(){
-  const tabs=[['posts','Story'],['messages','Chat'],['notif','Notifications'],['pals','Pals']];
-  const v={posts:postsView,messages:messagesView,notif:notifView,pals:palsView}[view]();
+  const tabs=[['posts','Story'],['messages','Chat'],['notif','Notifications'],['pals','Pals'],['profile','Profile']];
+  const v={posts:postsView,messages:messagesView,notif:notifView,pals:palsView,profile:profileView}[view]();
   return h('div',{},
-    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat'})),h('span',{class:'sp'}),h('span',{class:'muted',text:me.name}),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
+    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat'})),h('span',{class:'sp'}),h('div',{style:'cursor:pointer;display:flex;align-items:center;gap:8px',onclick:()=>openProfile(me.id)},avEl(me.id),h('span',{class:'muted',text:me.name})),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
     h('nav',{class:'tabs'},tabs.map(([k,l])=>tabButton(k,l,unread(k)))),
     h('main',{},v));
 }
@@ -329,7 +380,7 @@ async function logout(){clearInterval(poll);if(rt)sb.removeChannel(rt);try{await
 
 /* ---------- realtime sync ---------- */
 let rt=null,rtTimer=null;const rtDirty=new Set();
-const VIEWS_FOR={posts:['posts','notif'],reactions:['posts'],messages:['messages','notif'],pals:['pals','messages','notif']};
+const VIEWS_FOR={posts:['posts','notif'],reactions:['posts'],messages:['messages','notif'],pals:['pals','messages','notif'],profiles:['posts','messages','pals','profile','notif']};
 const dataSig=()=>JSON.stringify([posts.length,posts[0]&&posts[0].id,rx.length,msgs.length,msgs[msgs.length-1]&&msgs[msgs.length-1].id,pals.map(p=>p.id+p.status).join()]);
 function onChange(payload){
   const t=payload.table,n=payload.new||{};rtDirty.add(t);
@@ -348,11 +399,11 @@ async function sync(){
   const dirty=[...rtDirty];rtDirty.clear();const before=dataSig();
   try{await loadPeople();await Promise.all([loadPosts(),loadMsgs()])}catch(e){return}
   const changed=dirty.length?dirty.some(t=>(VIEWS_FOR[t]||[]).includes(view)):dataSig()!==before;
-  if(changed)render();else refreshBadges();
+  if(changed&&!editing)render();else refreshBadges();
 }
 function startRealtime(){
   rt=sb.channel('orchid-live-'+me.id);
-  ['posts','reactions','messages','pals'].forEach(t=>rt.on('postgres_changes',{event:'*',schema:'public',table:t},onChange));
+  ['posts','reactions','messages','pals','profiles'].forEach(t=>rt.on('postgres_changes',{event:'*',schema:'public',table:t},onChange));
   rt.subscribe(st=>{if(st==='SUBSCRIBED')sync()});
 }
 
