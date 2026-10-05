@@ -66,6 +66,14 @@ audio{width:100%;height:38px;margin-top:10px}
 .modal{position:fixed;inset:0;background:rgba(20,18,46,.35);backdrop-filter:blur(4px);display:grid;place-items:center;padding:20px;z-index:60}
 .modal .panel{background:#fff}
 .wm .lg{font-size:.62em;font-weight:700;letter-spacing:-.01em;color:#8b93a5;margin-left:2px}
+
+/* Social-style UI */
+.socialbar{display:flex;gap:8px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.socialopt{flex:1;border:0;background:transparent;border-radius:12px;padding:10px 8px;font-weight:700;color:#475569;cursor:pointer}.socialopt:hover{background:#f8fafc}
+.storystrip{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 14px}.storychip{min-width:92px;height:122px;border-radius:16px;position:relative;overflow:hidden;border:1px solid rgba(20,18,46,.08);background:linear-gradient(145deg,#7c3aed,#ec4899);color:#fff;cursor:pointer;padding:0}.storychip img{width:100%;height:100%;object-fit:cover}.storychip:after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 35%,rgba(0,0,0,.55))}.storychip .storyname{position:absolute;z-index:2;bottom:8px;left:8px;right:8px;font-size:.72rem;font-weight:800;text-align:left}.storychip .storyav{position:absolute;z-index:3;top:8px;left:8px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#fff;color:var(--brand);font-size:.68rem;font-weight:800;border:2px solid #fff}
+.post-actions{display:flex;gap:6px;align-items:center;border-top:1px solid var(--line);margin-top:12px;padding-top:8px}.post-actions .rx{border:0;background:transparent;padding:7px 10px}.post-actions .rx:hover{background:#f8fafc}.post-actions .rx.on{background:rgba(124,58,237,.1)}
+.chathead{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}.chathead .status{font-size:.72rem;color:#16a34a}.chatbox{height:430px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:14px 4px}.m{position:relative;max-width:78%;padding:9px 13px;border-radius:18px 18px 18px 5px;background:#f1f5f9;align-self:flex-start;word-wrap:break-word}.m.me{align-self:flex-end;background:var(--dark);color:#fff;border-radius:18px 18px 5px 18px}.m.react{font-style:italic}.m .time{display:block;font-size:.62rem;opacity:.6;margin-top:3px}.chatinput{display:flex;gap:8px;align-items:center;border-top:1px solid var(--line);padding-top:10px}.chatinput input{margin:0;border-radius:999px}.chatinput button{flex:none}.pi{padding:10px;border-radius:16px}.pi .previewtxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px}
+@media(max-width:600px){main{padding:12px 10px 28px}.top{padding:12px 14px}.tabs{max-width:calc(100% - 20px);width:100%;justify-content:space-between}.tab{padding:9px 10px;font-size:.8rem}.card{border-radius:20px;padding:15px}.chatwrap{grid-template-columns:1fr}.chatwrap>.card:first-child{max-height:150px;overflow:auto}.chatbox{height:48vh;min-height:300px}.socialopt{font-size:.78rem;padding:9px 4px}}
 .pill{display:inline-block;font-size:.72rem;font-weight:700;background:rgba(124,58,237,.1);color:var(--brand);padding:2px 9px;border-radius:999px}
 </style>
 </head>
@@ -166,39 +174,49 @@ async function react(p,k,btn,e){
 }
 
 /* ---------- views ---------- */
+function storyStrip(){
+  const seen=new Set(), items=[];
+  posts.forEach(p=>{if(!seen.has(p.author_id)){seen.add(p.author_id);items.push(p)}});
+  if(!items.length)return null;
+  return h('div',{class:'storystrip'},items.slice(0,12).map(p=>{
+    const label=p.author_id===me.id?'Your story':nm(p.author_id);
+    const bg=p.image_path&&urls[p.image_path]?h('img',{src:urls[p.image_path],alt:'Story'}):null;
+    return h('button',{class:'storychip',onclick:()=>window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})},bg,h('div',{class:'storyav',text:ini(nm(p.author_id))}),h('div',{class:'storyname',text:label}));
+  }));
+}
 function postCard(p){
   const mine=p.author_id===me.id;
+  const actions=REACTS.map(r=>{const n=rx.filter(x=>x.post_id===p.id&&x.kind===r.k).length;const on=rx.some(x=>x.post_id===p.id&&x.kind===r.k&&x.user_id===me.id);
+    const b=h('button',{class:'rx'+(on?' on':''),'aria-pressed':on,'aria-label':r.n},h('span',{class:'e',text:r.e}),n?String(n):r.n);b.onclick=()=>{b.classList.add('pop');react(p,r.k,b,r.e)};return b});
   return h('div',{class:'card'},
-    h('div',{class:'row'},h('div',{class:'av',text:ini(nm(p.author_id))}),h('div',{class:'sp'},h('b',{text:mine?me.name+' (you)':nm(p.author_id)}),h('div',{class:'muted',text:ago(p.created_at)})),mine?h('button',{class:'btn ghost',text:'Delete',onclick:()=>delPost(p)}):null),
+    h('div',{class:'row'},h('div',{class:'av',text:ini(nm(p.author_id))}),h('div',{class:'sp'},h('b',{text:mine?me.name:nm(p.author_id)}),h('div',{class:'muted',text:ago(p.created_at)})),mine?h('button',{class:'btn ghost',text:'⋯',title:'Delete story',onclick:()=>delPost(p)}):null),
     p.body?h('p',{text:p.body,style:'margin:12px 0 0;white-space:pre-wrap'}):null,
     p.image_path?(urls[p.image_path]?h('img',{class:'storyimg',src:urls[p.image_path],alt:'Story photo',loading:'lazy'}):h('div',{class:'muted',text:'Photo unavailable.'})):null,
     p.audio_path?(urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):h('div',{class:'muted',text:'Voice recording unavailable.'})):null,
-    h('div',{class:'reacts'},REACTS.map(r=>{const n=rx.filter(x=>x.post_id===p.id&&x.kind===r.k).length;const on=rx.some(x=>x.post_id===p.id&&x.kind===r.k&&x.user_id===me.id);
-      const b=h('button',{class:'rx'+(on?' on':''),'aria-pressed':on,'aria-label':r.n},h('span',{class:'e',text:r.e}),String(n));b.onclick=()=>{b.classList.add('pop');react(p,r.k,b,r.e)};return b})),
-    mine?null:h('div',{class:'muted',style:'margin-top:8px',text:'React to start a chat with the author.'}));
+    h('div',{class:'post-actions'},actions)
+  );
 }
 function postsView(){
-  const ta=h('textarea',{placeholder:"Share a story, "+me.name.split(' ')[0]+"…",maxlength:'1000',oninput:e=>draft.text=e.target.value});ta.value=draft.text;
+  const ta=h('textarea',{placeholder:'What’s on your mind, '+me.name.split(' ')[0]+'?',maxlength:'1000',oninput:e=>draft.text=e.target.value});ta.value=draft.text;
   const file=h('input',{type:'file',accept:'image/*',onchange:chooseImage});
-  const recUI=rec?h('div',{class:'rec'},h('span',{class:'dot'}),h('span',{text:'Recording… (max 60s)'}),h('button',{class:'btn ghost',text:'Stop',onclick:stopRec})):
-    h('div',{class:'rec'},h('button',{class:'btn ghost',text:draft.blob?'🎙️ Re-record':'🎙️ Record voice',onclick:startRec}),draft.blob?h('button',{class:'btn ghost',text:'Remove voice',onclick:()=>{clearDraftAudio();render()}}):null,h('span',{class:'sp'}),h('button',{class:'btn primary',text:busy?'Posting…':'Post story',disabled:busy,onclick:publish}));
   const preview=draft.imageUrl?h('div',{class:'preview'},h('img',{src:draft.imageUrl,alt:'Selected photo'}),h('button',{class:'btn ghost',text:'Remove photo',onclick:()=>{clearDraftImage();render()}})):null;
-  return h('div',{},h('div',{class:'card'},h('b',{text:'Share your story'}),h('p',{class:'muted',text:'Post a message, add a picture, or record your voice for your Pals.'}),ta,preview,h('div',{class:'attach'},h('label',{class:'btn ghost filebtn',text:'📷 Add picture'},file),recUI)),
-    posts.length?posts.map(postCard):h('div',{class:'empty',text:'No stories yet. Share the first one!'}));
+  const voice=h('div',{class:'attach'},rec?h('div',{class:'rec'},h('span',{class:'dot'}),h('span',{text:'Recording…'}),h('button',{class:'btn ghost',text:'Stop',onclick:stopRec})):h('button',{class:'socialopt',text:'🎙️ Voice',onclick:startRec}),draft.blob?h('button',{class:'btn ghost',text:'Remove voice',onclick:()=>{clearDraftAudio();render()}}):null);
+  const composer=h('div',{class:'card'},h('div',{class:'row'},h('div',{class:'av',text:ini(me.name)}),h('b',{text:'Create a story'})),h('div',{style:'margin-top:12px'},ta),preview,h('div',{class:'socialbar'},h('label',{class:'socialopt filebtn',text:'📷 Photo'},file),voice,h('button',{class:'socialopt',text:busy?'Posting…':'➤ Post',disabled:busy,onclick:publish})));
+  const strip=storyStrip();
+  return h('div',{},strip,composer,posts.length?posts.map(postCard):h('div',{class:'empty',text:'No stories yet. Share the first one!'}));
 }
 function messagesView(){
   const ids=acceptedIds();
   if(!ids.length)return h('div',{class:'empty',text:'Add a Pal first to start messaging.'});
   if(!chat||!ids.includes(chat))chat=ids[0];
-  const list=h('div',{class:'pl'},ids.map(id=>{const last=[...msgs].reverse().find(m=>m.sender_id===id||m.recipient_id===id);return h('button',{class:'pi','aria-current':chat===id,onclick:()=>{chatDraft='';chat=id;render()}},h('div',{class:'av',text:ini(nm(id))}),h('div',{},h('b',{text:nm(id)}),h('div',{class:'muted',text:last?last.body.slice(0,22):'Say hi'})))}));
-  const box=h('div',{class:'msgs'});const ms=msgs.filter(m=>m.sender_id===chat||m.recipient_id===chat);
+  const list=h('div',{class:'pl'},ids.map(id=>{const last=[...msgs].reverse().find(m=>m.sender_id===id||m.recipient_id===id);return h('button',{class:'pi','aria-current':chat===id,onclick:()=>{chatDraft='';chat=id;render()}},h('div',{class:'av',text:ini(nm(id))}),h('div',{style:'min-width:0'},h('b',{text:nm(id)}),h('div',{class:'muted previewtxt',text:last?last.body:'Say hi'})))}));
+  const box=h('div',{class:'chatbox'});const ms=msgs.filter(m=>m.sender_id===chat||m.recipient_id===chat);
   if(!ms.length)box.append(h('div',{class:'empty',text:'No messages yet. Say hi to '+nm(chat)+'!'}));
-  ms.forEach(m=>box.append(h('div',{class:'m'+(m.sender_id===me.id?' me':'')+(/^(❤️|👍|😂) reacted/.test(m.body)?' react':''),text:m.body})));
+  ms.forEach(m=>box.append(h('div',{class:'m'+(m.sender_id===me.id?' me':'')+(/^(❤️|👍|😂) reacted/.test(m.body)?' react':''),text:m.body},h('span',{class:'time',text:ago(m.created_at)}))));
   const inp=h('input',{type:'text',id:'msgin',maxlength:'2000',placeholder:'Message '+nm(chat)+'…',oninput:e=>chatDraft=e.target.value});inp.value=chatDraft;
   const send=async()=>{const v=inp.value.trim();if(!v)return;inp.value='';chatDraft='';const r=await sb.from('messages').insert({recipient_id:chat,body:v});if(r.error)return fail(r.error,'Message not sent.');await loadMsgs();render();setTimeout(()=>{const x=$('#msgin');x&&x.focus()},0)};
-  inp.onkeydown=e=>{if(e.key==='Enter')send()};
-  setTimeout(()=>{box.scrollTop=box.scrollHeight},0);
-  return h('div',{class:'chatwrap'},h('div',{class:'card'},list),h('div',{class:'card'},h('b',{text:nm(chat)}),h('div',{style:'margin-top:8px'},box),h('div',{class:'cbar'},inp,h('button',{class:'btn primary',text:'Send',onclick:send}))));
+  inp.onkeydown=e=>{if(e.key==='Enter')send()};setTimeout(()=>{box.scrollTop=box.scrollHeight},0);
+  return h('div',{class:'chatwrap'},h('div',{class:'card'},h('b',{text:'Messages'}),h('p',{class:'muted',text:'Chat with your Pals'}),list),h('div',{class:'card'},h('div',{class:'chathead'},h('div',{class:'av',text:ini(nm(chat))}),h('div',{},h('b',{text:nm(chat)}),h('div',{class:'status',text:'● Pal'}))),box,h('div',{class:'chatinput'},inp,h('button',{class:'btn primary',text:'Send',onclick:send}))));
 }
 function albumView(){
   const mine=posts.filter(p=>p.author_id===me.id&&p.audio_path);
@@ -237,7 +255,7 @@ function adminCard(){
     invites.map(i=>h('div',{class:'row',style:'margin-top:10px'},h('span',{class:'sp',text:i.email}),i.is_admin?h('span',{class:'pill',text:'Admin'}):h('button',{class:'btn ghost',text:'Remove',onclick:async()=>{if(!confirm('Remove approval for '+i.email+'?'))return;const r=await sb.from('approved_emails').delete().eq('email',i.email);if(r.error)return fail(r.error);await loadInvites();render()}}))));
 }
 function appView(){
-  const tabs=[['posts','Story'],['messages','Chat'],['album','Voice Album'],['pals','Pals']];
+  const tabs=[['posts','🏠 Story'],['messages','💬 Chat'],['album','🎧 Voice'],['pals','👥 Pals']];
   const v={posts:postsView,messages:messagesView,album:albumView,pals:palsView}[view]();
   const inc=pals.filter(p=>p.status==='pending'&&p.addressee_id===me.id).length;
   return h('div',{},
