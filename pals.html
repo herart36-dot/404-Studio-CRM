@@ -94,6 +94,14 @@ const REACTS=[{k:'heart',e:'❤️',n:'Heart'},{k:'like',e:'👍',n:'Like'},{k:'
 const home=()=>location.replace('index.html');
 let me=null,isAdmin=false,names={},emails={},pals=[],posts=[],rx=[],msgs=[],urls={},invites=[];
 let view='posts',chat=null,chatDraft='',draft={text:'',blob:null,url:null,secs:0,mime:'',image:null,imageUrl:null},rec=null,busy=false,poll=null;
+  const NOTIFY_KEY='orchid_pals_seen_v1';
+  let seenNotify={chat:0,album:0};
+  try{seenNotify=Object.assign(seenNotify,JSON.parse(localStorage.getItem(NOTIFY_KEY)||'{}'))}catch(e){}
+  function saveSeen(){try{localStorage.setItem(NOTIFY_KEY,JSON.stringify(seenNotify))}catch(e){}}
+  function markSeen(k){seenNotify[k]=Date.now();saveSeen()}
+  function unreadChatCount(){return msgs.filter(m=>m.recipient_id===me.id&&new Date(m.created_at).getTime()>Number(seenNotify.chat||0)).length}
+  function newVoiceCount(){return posts.filter(p=>p.audio_path&&new Date(p.created_at).getTime()>Number(seenNotify.album||0)).length}
+
 const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
 const ini=n=>(n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const ago=t=>{const m=Math.floor((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?m+'m ago':m<1440?Math.floor(m/60)+'h ago':Math.floor(m/1440)+'d ago'};
@@ -259,7 +267,7 @@ function adminCard(){
     h('div',{class:'cbar'},em,h('button',{class:'btn primary',text:'Approve',onclick:add})),
     invites.map(i=>h('div',{class:'row',style:'margin-top:10px'},h('span',{class:'sp',text:i.email}),i.is_admin?h('span',{class:'pill',text:'Admin'}):h('button',{class:'btn ghost',text:'Remove',onclick:async()=>{if(!confirm('Remove approval for '+i.email+'?'))return;const r=await sb.from('approved_emails').delete().eq('email',i.email);if(r.error)return fail(r.error);await loadInvites();render()}}))));
 }
-function tabButton(k,label,inc){
+function tabButton(k,label,counts){
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','tabicon');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
   const markup={
     posts:'<path d="M3 10.8 12 3l9 7.8"></path><path d="M5.5 9.8V21h13V9.8"></path><path d="M9.5 21v-6h5v6"></path>',
@@ -268,15 +276,18 @@ function tabButton(k,label,inc){
     pals:'<circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="10" r="2.5"></circle><path d="M3.5 20a5.5 5.5 0 0 1 11 0M14 20a4 4 0 0 1 7.5 0"></path>'
   };
   svg.innerHTML=markup[k];
-  const b=h('button',{class:'tab','aria-current':view===k,title:label,'aria-label':label,onclick:()=>{if(rec)return;view=k;render()}});b.append(svg);if(k==='pals'&&inc){b.append(h('span',{class:'tabbadge',text:inc>9?'9+':String(inc)}))}return b;
+  const count=Number(counts&&counts[k]||0);
+  const b=h('button',{class:'tab','aria-current':view===k,title:label,'aria-label':label,onclick:()=>{if(rec)return;view=k;markSeen(k==='messages'?'chat':k==='album'?'album':k);render()}});b.append(svg);if(count>0){b.append(h('span',{class:'tabbadge',text:count>9?'9+':String(count)}))}return b;
 }
 function appView(){
+  if(view==='messages')markSeen('chat');
+  if(view==='album')markSeen('album');
   const tabs=[['posts','Story'],['messages','Chat'],['album','Voice'],['pals','Pals']];
   const v={posts:postsView,messages:messagesView,album:albumView,pals:palsView}[view]();
-  const inc=pals.filter(p=>p.status==='pending'&&p.addressee_id===me.id).length;
+  const counts={messages:unreadChatCount(),album:newVoiceCount(),pals:pals.filter(p=>p.status==='pending'&&p.addressee_id===me.id).length};
   return h('div',{},
     h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat'})),h('span',{class:'sp'}),h('span',{class:'muted',text:me.name}),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
-    h('nav',{class:'tabs'},tabs.map(([k,l])=>tabButton(k,l,inc))),
+    h('nav',{class:'tabs'},tabs.map(([k,l])=>tabButton(k,l,counts))),
     h('main',{},v));
 }
 function noAccess(){
