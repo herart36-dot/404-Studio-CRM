@@ -206,7 +206,7 @@ function postCard(p){
   );
 }
 function postsView(){
-  const ta=h('textarea',{placeholder:'Post your journal, '+me.name.split(' ')[0]+'…',maxlength:'1000',oninput:e=>draft.text=e.target.value});ta.value=draft.text;
+  const ta=h('textarea',{id:'postin',placeholder:'Post your journal, '+me.name.split(' ')[0]+'…',maxlength:'1000',oninput:e=>draft.text=e.target.value});ta.value=draft.text;
   const file=h('input',{type:'file',accept:'image/*',onchange:chooseImage});
   const preview=draft.imageUrl?h('div',{class:'preview'},h('img',{src:draft.imageUrl,alt:'Selected photo'}),h('button',{class:'btn ghost',text:'Remove photo',onclick:()=>{clearDraftImage();render()}})):null;
   const voice=h('div',{class:'attach'},rec?h('div',{class:'rec'},h('span',{class:'dot'}),h('span',{text:'Recording…'}),h('button',{class:'btn ghost',text:'Stop',onclick:stopRec})):h('button',{class:'socialopt',text:'Voice',onclick:startRec}),draft.blob?h('button',{class:'btn ghost',text:'Remove voice',onclick:()=>{clearDraftAudio();render()}}):null);
@@ -320,8 +320,41 @@ function appView(){
 function noAccess(){
   return h('div',{class:'center'},h('div',{class:'panel'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid'),h('h1',{text:'No access'}),h('p',{class:'sub',text:'Your account could not be loaded. Please log out and log in again.'}),h('button',{class:'btn primary wide',text:'Back to sign in',onclick:logout})));
 }
-function render(){if(me)markSeen();const a=$('#app');const y=window.scrollY;const keep=$('#msgin');if(keep)chatDraft=keep.value;a.replaceChildren(me?appView():noAccess());window.scrollTo(0,y)}
-async function logout(){clearInterval(poll);try{await sb.auth.signOut()}catch(e){}home()}
+function render(){if(me)markSeen();const a=$('#app');const y=window.scrollY;
+  const ae=document.activeElement,fid=ae&&ae.id,ss=ae&&ae.selectionStart,se=ae&&ae.selectionEnd;
+  const keep=$('#msgin');if(keep)chatDraft=keep.value;const kp=$('#postin');if(kp)draft.text=kp.value;
+  a.replaceChildren(me?appView():noAccess());window.scrollTo(0,y);
+  if(fid==='msgin'||fid==='postin'){const n=document.getElementById(fid);if(n){n.focus();try{n.setSelectionRange(ss,se)}catch(e){}}}}
+async function logout(){clearInterval(poll);if(rt)sb.removeChannel(rt);try{await sb.auth.signOut()}catch(e){}home()}
+
+/* ---------- realtime sync ---------- */
+let rt=null,rtTimer=null;const rtDirty=new Set();
+const VIEWS_FOR={posts:['posts','notif'],reactions:['posts'],messages:['messages','notif'],pals:['pals','messages','notif']};
+const dataSig=()=>JSON.stringify([posts.length,posts[0]&&posts[0].id,rx.length,msgs.length,msgs[msgs.length-1]&&msgs[msgs.length-1].id,pals.map(p=>p.id+p.status).join()]);
+function onChange(payload){
+  const t=payload.table,n=payload.new||{};rtDirty.add(t);
+  if(payload.eventType==='INSERT'){
+    if(t==='messages'&&n.recipient_id===me.id&&n.sender_id!==me.id){
+      if(/^(❤️|👍|😂) reacted/.test(n.body||''))toast(n.body.slice(0,2)+' '+nm(n.sender_id)+' reacted to your post');
+      else if(!(view==='messages'&&chat===n.sender_id))toast('💬 New message from '+nm(n.sender_id));
+    }else if(t==='posts'&&n.author_id!==me.id&&view!=='posts')toast('📝 '+nm(n.author_id)+' shared a new story');
+    else if(t==='pals'&&n.addressee_id===me.id)toast('👋 New Pal request');
+  }
+  clearTimeout(rtTimer);rtTimer=setTimeout(sync,250);
+}
+async function sync(){
+  if(!me)return;
+  if(rec||busy){clearTimeout(rtTimer);rtTimer=setTimeout(sync,1500);return}
+  const dirty=[...rtDirty];rtDirty.clear();const before=dataSig();
+  try{await loadPeople();await Promise.all([loadPosts(),loadMsgs()])}catch(e){return}
+  const changed=dirty.length?dirty.some(t=>(VIEWS_FOR[t]||[]).includes(view)):dataSig()!==before;
+  if(changed)render();else refreshBadges();
+}
+function startRealtime(){
+  rt=sb.channel('orchid-live-'+me.id);
+  ['posts','reactions','messages','pals'].forEach(t=>rt.on('postgres_changes',{event:'*',schema:'public',table:t},onChange));
+  rt.subscribe(st=>{if(st==='SUBSCRIBED')sync()});
+}
 
 /* ---------- start ---------- */
 async function init(){
@@ -336,12 +369,9 @@ async function init(){
   try{await loadAll()}catch(e){fail(e,'Could not load your data. Please refresh.')}
   initSeen();
   render();
-  poll=setInterval(async()=>{if(document.hidden||rec||busy)return;try{
-    const sig=()=>posts.length+':'+(posts[0]&&posts[0].id);const before=sig(),np=pals.length;
-    const mch=await loadMsgs();await loadPeople();await loadPosts();
-    const idle=!draft.text&&!draft.blob&&!draft.image&&!(document.activeElement&&document.activeElement.tagName==='TEXTAREA');
-    if((view==='messages'&&mch)||(view==='pals'&&pals.length!==np)||((view==='posts'||view==='notif')&&sig()!==before&&idle))render();else refreshBadges();
-  }catch(e){}},6000);
+  startRealtime();
+  poll=setInterval(()=>{if(!document.hidden)sync()},30000); // safety net only
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
 }
 init().catch(e=>{console.error(e);home()});
 })();
