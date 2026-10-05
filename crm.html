@@ -68,6 +68,9 @@ main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
 .due{font-size:.82rem;font-weight:600;color:var(--muted)}.due.over{color:var(--danger)}.due.today{color:var(--warn)}
 .chk{width:22px;height:22px;margin-top:2px;accent-color:var(--brand);flex:none;cursor:pointer}
 .done .t{text-decoration:line-through;color:var(--muted)}
+.pill.hot{background:#fee2e2;color:#991b1b}.pill.warm{background:#ffedd5;color:#9a3412}.pill.cool{background:#e0f2fe;color:#075985}
+.next{padding:18px 22px;margin-bottom:16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;border-left:6px solid #f97316}
+.next .k{font-size:.82rem;font-weight:700;color:var(--muted)}.next .w{font-size:1.15rem;font-weight:800;letter-spacing:-.02em}
 .empty{text-align:center;color:var(--muted);padding:36px 16px}
 .empty b{display:block;color:var(--ink);margin-bottom:4px}
 .err{color:var(--danger);font-size:.88rem;margin-top:10px;min-height:1.2em}
@@ -162,8 +165,15 @@ const inqFields=()=>[
   {k:'message',label:'What they asked for',type:'textarea'}
 ];
 const addInquiry=()=>openForm({title:'New inquiry',fields:inqFields(),saveText:'Add inquiry',onSave:v=>run(sb.from('crm_inquiries').insert(v),'Inquiry added.')});
-const editInquiry=i=>openForm({title:'Edit inquiry',fields:inqFields(),values:i,onSave:v=>run(sb.from('crm_inquiries').update(v).eq('id',i.id),'Inquiry saved.')});
-const setStatus=(i,s)=>run(sb.from('crm_inquiries').update({status:s}).eq('id',i.id));
+const editInquiry=i=>openForm({title:'Edit inquiry',fields:inqFields(),values:i,onSave:v=>run(sb.from('crm_inquiries').update({...v,...touchPatch(i,v.status||i.status)}).eq('id',i.id),'Inquiry saved.')});
+const nowIso=()=>new Date().toISOString();
+const dur=ms=>{const m=Math.round(ms/6e4);return m<60?Math.max(m,1)+'m':m<2880?Math.round(m/60)+'h':Math.round(m/1440)+'d'};
+const waitMs=i=>Date.now()-new Date(i.created_at);
+const idleDays=i=>(Date.now()-new Date(i.last_touch||i.created_at))/864e5;
+const touchPatch=(i,s)=>({status:s,last_touch:nowIso(),...(s!=='new'&&!i.contacted_at?{contacted_at:nowIso()}:{})});
+const setStatus=(i,s)=>run(sb.from('crm_inquiries').update(touchPatch(i,s)).eq('id',i.id));
+const logTouch=i=>run(sb.from('crm_inquiries').update({last_touch:nowIso()}).eq('id',i.id),'Touch logged. The clock restarts.');
+const isActive=i=>i.status==='contacted'||i.status==='quoted';
 const delInquiry=i=>{if(confirm('Delete the inquiry from '+i.name+'?'))run(sb.from('crm_inquiries').delete().eq('id',i.id),'Inquiry deleted.')};
 async function convert(i){
   const ex=i.email&&clients.find(c=>(c.email||'').toLowerCase()===i.email.toLowerCase());
@@ -172,7 +182,7 @@ async function convert(i){
     const r=await sb.from('crm_clients').insert({name:i.name,email:i.email,phone:i.phone,notes:i.message}).select('id').single();
     if(r.error)return fail(r.error);cid=r.data.id;
   }
-  await run(sb.from('crm_inquiries').update({client_id:cid,status:i.status==='lost'?'lost':'won'}).eq('id',i.id),ex?'Linked to existing client.':'Client created.');
+  await run(sb.from('crm_inquiries').update({client_id:cid,...touchPatch(i,i.status==='lost'?'lost':'won')}).eq('id',i.id),ex?'Linked to existing client.':'Client created.');
 }
 
 /* ---- clients ---- */
@@ -214,28 +224,54 @@ function taskRow(t){
       h('div',{class:'s'},dueEl(t),t.client_id?h('span',{text:(t.due_date?' · ':'')+clientName(t.client_id)}):null),
       h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editTask(t)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delTask(t)}))));
 }
+function signal(i){
+  if(i.status==='new'){const h1=waitMs(i)/36e5;return h('span',{class:'pill '+(h1>24?'hot':h1>4?'warm':'cool'),text:'Waiting '+dur(waitMs(i))})}
+  if(isActive(i)&&idleDays(i)>=5)return h('span',{class:'pill '+(idleDays(i)>=10?'hot':'warm'),text:'Going cold · '+Math.floor(idleDays(i))+'d quiet'});
+  if(i.status==='lost'&&idleDays(i)>=30)return h('span',{class:'pill cool',text:'Worth revisiting'});
+  return null;
+}
 function inquiryRow(i){
   const sel=h('select',{'aria-label':'Status for '+i.name,style:'width:auto;padding:6px 10px;border-radius:999px;font-size:.8rem;font-weight:700',onchange:e=>setStatus(i,e.target.value)},STATUSES.map(s=>h('option',{value:s,text:cap(s)})));
   sel.value=i.status;
   return h('div',{class:'card item'},h('div',{class:'body'},
-    h('div',{class:'t'},i.name,h('span',{class:'pill '+i.status,text:cap(i.status)})),
+    h('div',{class:'t'},i.name,h('span',{class:'pill '+i.status,text:cap(i.status)}),signal(i)),
     h('div',{class:'s',text:[i.email,i.phone,i.source,ago(i.created_at)].filter(Boolean).join(' · ')}),
     i.message?h('div',{class:'m',text:i.message}):null,
     i.client_id?h('div',{class:'s',style:'margin-top:4px',text:'Client: '+clientName(i.client_id)}):null,
     h('div',{class:'acts'},sel,
+      isActive(i)?h('button',{class:'btn ghost sm',text:'Log a touch',onclick:()=>logTouch(i)}):null,
       i.client_id?null:h('button',{class:'btn blue sm',text:'Make client',onclick:()=>convert(i)}),
       h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editInquiry(i)}),
       h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delInquiry(i)}))));
 }
 
 /* ---- views ---- */
+function nextMove(){
+  const od=tasks.filter(isOverdue).sort((a,b)=>a.due_date<b.due_date?-1:1)[0];
+  if(od)return{k:'Overdue task',w:od.title,b:'Mark done',go:()=>toggleTask(od)};
+  const nw=inquiries.filter(i=>i.status==='new').sort((a,b)=>waitMs(b)-waitMs(a))[0];
+  if(nw)return{k:'Longest wait',w:'Reply to '+nw.name+' (waiting '+dur(waitMs(nw))+')',b:"I've replied",go:()=>setStatus(nw,'contacted')};
+  const co=inquiries.filter(i=>isActive(i)&&idleDays(i)>=5).sort((a,b)=>idleDays(b)-idleDays(a))[0];
+  if(co)return{k:'Going cold',w:'Follow up with '+co.name+' (quiet for '+Math.floor(idleDays(co))+' days)',b:'Log a touch',go:()=>logTouch(co)};
+  return null;
+}
+function nextCard(){
+  const n=nextMove();
+  return h('div',{class:'card next'},h('div',{class:'body',style:'flex:1;min-width:200px'},
+    h('div',{class:'k',text:n?'Do this next · '+n.k:'Do this next'}),h('div',{class:'w',text:n?n.w:'Nothing is waiting on you.'})),
+    n?h('button',{class:'btn primary',text:n.b,onclick:n.go}):null);
+}
+function avgReply(){
+  const d=inquiries.filter(i=>i.contacted_at).map(i=>new Date(i.contacted_at)-new Date(i.created_at));
+  return d.length?dur(d.reduce((a,b)=>a+b,0)/d.length):'–';
+}
 function overview(){
   const nNew=inquiries.filter(i=>i.status==='new').length;
   const open=tasks.filter(t=>!t.done),over=open.filter(isOverdue).length;
   const stat=(v,l,hot)=>h('div',{class:'card stat'+(hot&&v>0?' hot':'')},h('div',{class:'v',text:String(v)}),h('div',{class:'l',text:l}));
   const recent=inquiries.slice(0,5),upcoming=open.slice(0,6);
-  return h('div',{},
-    h('div',{class:'stats'},stat(nNew,'New inquiries'),stat(open.length,'Open tasks'),stat(over,'Overdue tasks',true),stat(clients.length,'Clients')),
+  return h('div',{},nextCard(),
+    h('div',{class:'stats'},stat(nNew,'New inquiries'),stat(avgReply(),'Avg first reply'),stat(open.length,'Open tasks'),stat(over,'Overdue tasks',true),stat(clients.length,'Clients')),
     h('div',{class:'grid2'},
       h('div',{},h('div',{class:'bar'},h('h3',{style:'margin:0',text:'Latest inquiries'}),h('span',{class:'sp'}),h('button',{class:'btn ghost sm',text:'Add inquiry',onclick:addInquiry})),
         recent.length?h('div',{class:'list'},recent.map(inquiryRow)):empty('No inquiries yet','Add one when someone gets in touch.')),
