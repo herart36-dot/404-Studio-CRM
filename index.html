@@ -3,149 +3,236 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Orchid · Sign in</title>
+<title>Orchid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#eef1fb; --card:#fff; --ink:#14122e; --muted:#64748b; --line:#e2e8f0; --danger:#be123c; --ok:#047857; }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; }
-  body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif; color: var(--ink); line-height: 1.5;
-    background: radial-gradient(900px 520px at 6% 0%, #cfe3ff 0, transparent 60%), radial-gradient(800px 600px at 96% 8%, #ead7ff 0, transparent 55%), radial-gradient(900px 600px at 50% 100%, #c8f1e5 0, transparent 60%), #eef1fb;
-    background-attachment: fixed; }
-  .center { min-height: 100%; display: grid; place-items: center; padding: 24px; }
-  .panel { background: rgba(255,255,255,.8); border: 1px solid rgba(255,255,255,.9); border-radius: 28px; padding: 40px 32px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 10px 40px rgba(60,70,140,.12); }
-  .wm { font-weight: 800; font-size: 2rem; letter-spacing: -.03em; display: inline-flex; align-items: baseline; justify-content: center; margin-bottom: 14px; }
-  .wm b { color: #f97316; font-size: 1.8em; line-height: .7; margin-right: 1px; }
-  h1 { font-size: 1.5rem; margin: 0 0 8px; }
-  p.sub { color: var(--muted); margin: 0 0 22px; font-size: .95rem; }
-  .field { width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; font: inherit; color: var(--ink); margin-top: 10px; }
-  .field:focus { outline: 2px solid #7c3aed55; border-color: #7c3aed; }
-  .btn { width: 100%; margin-top: 14px; border: 0; cursor: pointer; border-radius: 999px; padding: 12px 20px; font: inherit; font-weight: 700; background: #1b1a2e; color: #fff; box-shadow: 0 8px 20px rgba(20,18,46,.25); }
-  .btn:disabled { opacity: .6; cursor: default; }
-  .link { background: none; border: 0; color: var(--muted); font: inherit; font-size: .9rem; margin-top: 16px; cursor: pointer; text-decoration: underline; }
-  .msg { margin-top: 14px; font-size: .9rem; color: var(--danger); }
-  .msg.ok { color: var(--ok); }
-  .show { display: flex; gap: 6px; align-items: center; justify-content: flex-start; margin: 8px 2px 0; color: var(--muted); font-size: .85rem; }
-  [hidden] { display: none !important; }
+:root{--ink:#14122e;--muted:#64748b;--line:#e2e8f0;--danger:#be123c;--ok:#047857}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--ink);line-height:1.5;background:#eef1fb;overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:-1;background:#14122e;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:3px}
+.bg:after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(14,12,44,.78),rgba(40,18,76,.72) 55%,rgba(14,12,44,.82))}
+.tile{position:relative;overflow:hidden;background:#2a2550 center/cover;transition:opacity 1s}
+.tile:before{content:"";position:absolute;inset:0;background:inherit;animation:kb 22s ease-in-out infinite alternate}
+.tile:nth-child(even):before{animation-delay:-9s}
+.tile.dim{opacity:.3}
+@keyframes kb{to{transform:scale(1.12) translate(-1.5%,1.5%)}}
+@media(max-width:640px){.bg{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr)}}
+.center{min-height:100%;display:grid;place-items:center;padding:24px}
+.wm{font-weight:800;font-size:2rem;letter-spacing:-.03em;display:inline-flex;align-items:baseline;justify-content:center}
+.wm b{color:#f97316;font-size:1.8em;line-height:.7;margin-right:1px}
+.wm .lg{font-size:.6em;font-weight:700;color:#6b7280;margin-left:.35em;letter-spacing:-.01em}
+.wm.sm{font-size:1.3rem}.wm.xl{font-size:4.2rem}
+h1{font-size:1.6rem;margin:12px 0 6px;letter-spacing:-.02em}h2{font-size:clamp(1.7rem,5vw,2.4rem);line-height:1.15;margin:8px 0;letter-spacing:-.03em}
+p.sub{color:var(--muted);margin:0 0 20px;font-size:.98rem}
+.kick{font-size:.75rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#7c3aed}
+.ic{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;flex:none;box-shadow:0 8px 18px rgba(20,18,46,.18)}
+.ic.crm{background:linear-gradient(135deg,#2563eb,#06b6d4)}.ic.pals{background:linear-gradient(135deg,#7c3aed,#d946ef)}
+.ic svg{width:28px;height:28px}.ic.big{width:72px;height:72px;border-radius:22px}.ic.big svg{width:42px;height:42px}
+/* story */
+.story{position:relative;width:100%;max-width:640px;height:min(600px,88vh)}
+.s{position:absolute;inset:0 0 70px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;opacity:0;transform:scale(.95) translateY(16px);filter:blur(8px);transition:opacity .7s,transform .7s,filter .7s;pointer-events:none}
+.s.on{opacity:1;transform:none;filter:none;pointer-events:auto}
+.s.on .r{animation:rise .8s both;animation-delay:calc(var(--d,0)*.18s)}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.s .t{max-width:30em;color:var(--muted);font-size:1.05rem;margin:4px 0 0}
+.grad{background:linear-gradient(90deg,#7c3aed,#d946ef,#f97316);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ctl{position:absolute;left:0;right:0;bottom:0;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.bar{position:absolute;left:0;right:0;top:-4px;height:3px;border-radius:3px;background:rgba(20,18,46,.08);overflow:hidden}
+.bar i{display:block;height:100%;width:100%;transform-origin:left;background:linear-gradient(90deg,#7c3aed,#d946ef);animation:fill 6.5s linear both}.bar.done i{animation:none;transform:none}
+@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.dots{display:flex;gap:7px}.dots b{width:8px;height:8px;border-radius:8px;background:rgba(20,18,46,.18);transition:.4s}.dots b.on{width:26px;background:#14122e}
+.skip,.backbtn,.link{background:none;border:0;font:inherit;color:var(--muted);cursor:pointer}.skip{font-size:.9rem}.skip:hover{color:var(--ink)}
+.pill{border:0;cursor:pointer;border-radius:999px;padding:11px 24px;font:inherit;font-weight:700;color:#fff;background:#1b1a2e;box-shadow:0 8px 20px rgba(20,18,46,.25);transition:transform .15s}.pill:hover{transform:translateY(-2px)}
+/* CRM visual */
+.pipe{display:flex;gap:10px;margin-top:22px}.col{width:92px;padding:8px;border-radius:14px;background:rgba(255,255,255,.7);display:grid;gap:6px;align-content:start;min-height:96px}
+.col i{height:18px;border-radius:7px;background:#dbe7ff}.col i:nth-child(2){background:#c9f0ee}.col u{height:18px;border-radius:7px;background:linear-gradient(90deg,#2563eb,#06b6d4);animation:hop 4s ease-in-out infinite;text-decoration:none}
+@keyframes hop{0%,15%{transform:translateX(0)}45%,100%{transform:translateX(204px)}}
+/* Pals visual */
+.floaty{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:16px;max-width:460px}
+.th{display:flex;align-items:center;gap:8px;background:#fff;border-radius:18px 18px 18px 6px;padding:8px 14px 8px 8px;font-size:.88rem;font-weight:600;box-shadow:0 8px 20px rgba(60,70,140,.12);animation:bob 4s ease-in-out infinite alternate}
+.th:nth-child(2){animation-delay:-1.3s}.th:nth-child(3){animation-delay:-2.6s}
+.th em{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:.75rem;font-weight:800;background:linear-gradient(135deg,#7c3aed,#d946ef)}
+@keyframes bob{to{transform:translateY(-8px)}}
+.swap{display:flex;align-items:center;gap:12px;margin-top:18px;font-size:.85rem;font-weight:700;color:var(--ink)}
+.alb{width:44px;height:44px;border-radius:10px;position:relative;box-shadow:0 6px 14px rgba(20,18,46,.2)}.alb:after{content:"";position:absolute;inset:14px;border-radius:50%;background:#fff;opacity:.9}
+.alb.a{background:linear-gradient(135deg,#f97316,#d946ef);animation:spin 3s ease-in-out infinite alternate}.alb.b{background:linear-gradient(135deg,#06b6d4,#7c3aed);animation:spin 3s ease-in-out infinite alternate-reverse}
+@keyframes spin{to{transform:rotate(14deg) translateY(-4px)}}
+.noph{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:.78rem;font-weight:700;color:#7c3aed;background:#f3e8ff;border-radius:999px;padding:4px 12px}
+/* chooser + form */
+.panel{background:rgba(255,255,255,.72);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.95);border-radius:30px;padding:36px 30px 28px;max-width:440px;width:100%;text-align:center;box-shadow:0 18px 60px rgba(60,70,140,.16);animation:rise .7s both}
+.card{display:flex;align-items:center;gap:14px;width:100%;margin-top:12px;padding:14px 16px;text-align:left;font:inherit;color:inherit;cursor:pointer;background:#fff;border:1.5px solid transparent;border-radius:22px;box-shadow:0 6px 20px rgba(60,70,140,.10);transition:transform .18s,box-shadow .18s,border-color .18s}
+.card:hover,.card:focus-visible{transform:translateY(-3px);outline:0;box-shadow:0 14px 30px rgba(60,70,140,.18)}
+.card[data-p=crm]:hover{border-color:#06b6d4}.card[data-p=pals]:hover{border-color:#d946ef}
+.ct{flex:1;min-width:0}.ct small{display:block;color:var(--muted);font-size:.82rem;font-weight:500;margin-top:2px}.arr{color:#94a3b8;font-size:1.2rem;transition:transform .18s}.card:hover .arr{transform:translateX(4px);color:var(--ink)}
+.flogo{display:flex;align-items:center;justify-content:center;gap:12px}.backbtn{display:block;font-size:.88rem;margin:-10px 0 14px -6px;padding:4px 6px;border-radius:8px}.backbtn:hover{color:var(--ink);background:rgba(20,18,46,.05)}
+.field{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit;color:var(--ink);margin-top:10px}.field:focus{outline:2px solid #7c3aed55;border-color:#7c3aed}
+.btn{width:100%;margin-top:14px;border:0;cursor:pointer;border-radius:999px;padding:13px 20px;font:inherit;font-weight:700;color:#fff}
+#form.pals .btn{background:linear-gradient(135deg,#7c3aed,#d946ef);box-shadow:0 8px 20px rgba(124,58,237,.35)}#form.crm .btn{background:linear-gradient(135deg,#2563eb,#06b6d4);box-shadow:0 8px 20px rgba(37,99,235,.3)}.btn:disabled{opacity:.6}
+.link{font-size:.9rem;margin-top:16px;text-decoration:underline}.msg{margin-top:14px;font-size:.9rem;color:var(--danger)}.msg.ok{color:var(--ok)}
+.show{display:flex;gap:6px;align-items:center;margin:8px 2px 0;color:var(--muted);font-size:.85rem}[hidden]{display:none!important}
+@media(max-width:480px){.wm.xl{font-size:3.2rem}.col{width:74px}@keyframes hop{0%,15%{transform:translateX(0)}45%,100%{transform:translateX(168px)}}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important;transition-duration:.01s!important}}
+.story{color:#fff}.story .wm .lg{color:#cbd5e1}.story .s .t,.story .swap p{color:#e2e8f0}
+.kick{color:#e9d5ff}.grad{background:linear-gradient(90deg,#c4b5fd,#f0abfc,#fdba74);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bar{background:rgba(255,255,255,.22)}.dots b{background:rgba(255,255,255,.35)}.dots b.on{background:#fff}
+.skip{color:#cbd5e1}.skip:hover{color:#fff}.pill{background:#fff;color:#14122e}
+.swap{color:#fff}.s h2{text-shadow:0 2px 24px rgba(10,8,30,.45)}
+.panel{background:rgba(255,255,255,.93)}
 </style>
 </head>
 <body>
+<div class="bg" id="bg"><div class="tile" style="background-image:url('https://images.unsplash.com/photo-1758876022356-9e7597f556d8?auto=format&fit=crop&w=900&q=70')"></div><div class="tile" style="background-image:url('https://images.unsplash.com/photo-1758873272562-aa5459cbf34b?auto=format&fit=crop&w=900&q=70')"></div><div class="tile" style="background-image:url('https://images.unsplash.com/photo-1770777843445-2a1621b1201d?auto=format&fit=crop&w=900&q=70')"></div><div class="tile" style="background-image:url('https://images.unsplash.com/photo-1713946598501-d6b32e7c2464?auto=format&fit=crop&w=900&q=70')"></div><div class="tile" style="background-image:url('https://images.unsplash.com/photo-1537511446984-935f663eb1f4?auto=format&fit=crop&w=900&q=70')"></div><div class="tile" style="background-image:url('https://images.unsplash.com/photo-1758876202507-f789e0ab34e1?auto=format&fit=crop&w=900&q=70')"></div></div>
 <div class="center">
-  <div class="panel">
-    <div class="wm"><b>O</b>rchid</div>
-    <div id="loading"><p class="sub">Loading…</p></div>
-    <div id="form" hidden>
-      <h1 id="title">Log in</h1>
-      <p class="sub" id="sub">Use the email your admin added.</p>
-      <input id="email" class="field" type="email" placeholder="Email" autocomplete="username" maxlength="320" aria-label="Email">
-      <input id="pass" class="field" type="password" placeholder="Password" autocomplete="current-password" maxlength="200" aria-label="Password">
-      <input id="pass2" class="field" type="password" placeholder="Confirm password" autocomplete="new-password" maxlength="200" aria-label="Confirm password" hidden>
-      <label class="show"><input id="showpw" type="checkbox"> Show password</label>
-      <button id="go" class="btn" type="button">Log in</button>
-      <div id="msg" class="msg" role="alert" hidden></div>
-      <button id="swap" class="link" type="button">New here? Create your password</button>
-    </div>
-  </div>
+
+<!-- STORY -->
+<div class="story" id="story">
+  <section class="s on">
+    <div class="kick r">Hello</div>
+    <div class="wm xl r" style="--d:1"><b>O</b>rchid</div>
+    <h2 class="r" style="--d:2">What is <span class="grad">Orchid</span>?</h2>
+    <p class="t r" style="--d:3">A small family of apps made to help people get organised and feel connected.</p>
+  </section>
+  <section class="s">
+    <div class="kick r">Our vision</div>
+    <h2 class="r" style="--d:1">Work that feels <span class="grad">calm</span>.</h2>
+    <h2 class="r" style="--d:2">Connection that feels <span class="grad">real</span>.</h2>
+    <p class="t r" style="--d:4">Tools that put people first: less noise, less pressure and no performing for a crowd.</p>
+  </section>
+  <section class="s">
+    <div class="kick r">Meet the first one</div>
+    <span class="ic crm big r" data-ic="crm" style="--d:1"></span>
+    <div class="wm r" style="--d:2"><b>O</b>rchid<span class="lg">CRM</span></div>
+    <p class="t r" style="--d:3">One calm home for every inquiry, client and task, so nothing slips through.</p>
+    <div class="pipe r" style="--d:4"><div class="col"><u></u><i></i></div><div class="col"><i></i></div><div class="col"><i></i></div></div>
+  </section>
+  <section class="s">
+    <div class="kick r">And the second</div>
+    <span class="ic pals big r" data-ic="pals" style="--d:1"></span>
+    <div class="wm r" style="--d:2"><b>O</b>rchid<span class="lg">Pals</span></div>
+    <p class="t r" style="--d:3">A social space for thoughts, not selfies. Post how you feel in words.</p>
+    <span class="noph r" style="--d:3">No photos of people, ever</span>
+    <div class="floaty r" style="--d:4"><div class="th"><em>M</em>Rainy day, good playlist.</div><div class="th"><em>J</em>Small win today.</div><div class="th"><em>A</em>Need a quiet evening.</div></div>
+    <div class="swap r" style="--d:5"><span class="alb a"></span>Album Exchange<span class="alb b"></span></div>
+    <p class="t r" style="--d:5;font-size:.88rem;margin-top:0">Swap the albums you love with your pals.</p>
+  </section>
+  <div class="ctl"><div class="bar"><i></i></div><button class="skip" id="skip" type="button">Skip</button><div class="dots" id="dots"><b class="on"></b><b></b><b></b><b></b></div><button class="pill" id="next" type="button">Next</button></div>
+</div>
+
+<!-- CHOOSE -->
+<div class="panel" id="pick" hidden>
+  <div class="wm"><b>O</b>rchid</div>
+  <h1>Welcome</h1>
+  <p class="sub">What would you like to open?</p>
+  <button class="card" type="button" data-p="crm"><span class="ic crm" data-ic="crm"></span><span class="ct"><span class="wm sm"><b>O</b>rchid<span class="lg">CRM</span></span><small>Inquiries, clients and tasks</small></span><span class="arr">→</span></button>
+  <button class="card" type="button" data-p="pals"><span class="ic pals" data-ic="pals"></span><span class="ct"><span class="wm sm"><b>O</b>rchid<span class="lg">Pals</span></span><small>Share your thoughts, swap albums</small></span><span class="arr">→</span></button>
+  <button id="replay" class="link" type="button">Watch the intro again</button>
+</div>
+
+<!-- SIGN IN -->
+<div class="panel" id="form" hidden>
+  <button id="back" class="backbtn" type="button">← Back</button>
+  <div class="flogo" id="flogo"></div>
+  <h1 id="title">Log in</h1>
+  <p class="sub" id="sub">Use the email your admin added.</p>
+  <input id="email" class="field" type="email" placeholder="Email" autocomplete="username" maxlength="320" aria-label="Email">
+  <input id="pass" class="field" type="password" placeholder="Password" autocomplete="current-password" maxlength="200" aria-label="Password">
+  <input id="pass2" class="field" type="password" placeholder="Confirm password" autocomplete="new-password" maxlength="200" aria-label="Confirm password" hidden>
+  <label class="show" id="showrow"><input id="showpw" type="checkbox"> Show password</label>
+  <button id="go" class="btn" type="button">Log in</button>
+  <div id="msg" class="msg" role="alert" hidden></div>
+  <button id="swap" class="link" type="button">New here? Create your password</button>
+</div>
 </div>
 
 <script>
-// ---------------------------------------------------------------
-// Orchid: one sign-in for both CRMs.
-// The email decides which CRM opens. Each CRM still checks its own
-// database, so this list only chooses where to send people.
-// ---------------------------------------------------------------
-const LEGAL_USERS = [
+const ICONS={
+crm:'<svg viewBox="0 0 28 28" fill="none"><rect x="4" y="14" width="5" height="10" rx="2" fill="#fff"/><rect x="11.5" y="8" width="5" height="16" rx="2" fill="#fff"/><rect x="19" y="3" width="5" height="21" rx="2" fill="#fff" opacity=".75"/></svg>',
+pals:'<svg viewBox="0 0 28 28" fill="none"><circle cx="11" cy="12" r="7" fill="#fff"/><circle cx="18.5" cy="16" r="7" fill="#fff" fill-opacity=".35" stroke="#fff" stroke-width="1.6"/><circle cx="23" cy="6" r="2.6" fill="#f97316"/><path d="M8 13.6c1.4 1.8 4.6 1.8 6 0" stroke="#7c3aed" stroke-width="1.6" stroke-linecap="round"/></svg>'};
+document.querySelectorAll('[data-ic]').forEach(e=>e.innerHTML=ICONS[e.dataset.ic]);
+
+// ---- intro story ----
+const slides=[...document.querySelectorAll('.s')],dots=[...document.querySelectorAll('#dots b')],last=slides.length-1,bar=document.querySelector('.bar');
+const tiles=[...document.querySelectorAll('.tile')],HL=[[0,1,2,3,4,5],[1,5],[0,2],[3,4]];
+let idx=0,timer;
+function show(n){
+  idx=n;tiles.forEach((t,k)=>t.classList.toggle('dim',!HL[n].includes(k)));slides.forEach((s,k)=>s.classList.toggle('on',k===n));dots.forEach((d,k)=>d.classList.toggle('on',k===n));
+  bar.classList.toggle('done',n===last);const f=bar.firstElementChild;f.style.animation='none';f.offsetWidth;f.style.animation='';
+  clearTimeout(timer);if(n<last)timer=setTimeout(()=>show(n+1),6500);
+  $('next').textContent=n===last?'Get started':'Next';
+}
+function toPick(){clearTimeout(timer);tiles.forEach(t=>t.classList.remove('dim'));$('story').hidden=true;$('form').hidden=true;$('pick').hidden=false}
+function replay(){$('pick').hidden=true;$('story').hidden=false;show(0)}
+
+// ---- sign-in (same rules as before) ----
+const LEGAL_USERS=[
   'herart36@gmail.com'          // opens Orchid Legal
   // '@somefirm.com'            // a whole domain also works
 ];
-// Orchid Pals is a demo with no database, so these emails go straight to it (no password check here).
-const PALS_USERS = [
-  'keancarl.donato.ab@ust.edu.ph'   // opens Orchid Pals
-];
-// Everyone else (keandonato@404studio.click, students, etc.) opens the 404 Studio CRM.
-
-const APPS = {
-  crm:   { url: 'https://acxrobzulaswsubfoghg.supabase.co', key: 'sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD', page: 'crm.html' },
-  legal: { url: 'https://djymgcwvfevvvxhhpxcj.supabase.co', key: 'sb_publishable_2ymWgVfW4kw8rBkZcetl8A_XzYwwiHa', page: 'legal.html' }
+// Everyone else opens the 404 Studio CRM. Orchid Pals is a demo with no database: email only.
+const APPS={
+  crm:  {url:'https://acxrobzulaswsubfoghg.supabase.co',key:'sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD',page:'crm.html'},
+  legal:{url:'https://djymgcwvfevvvxhhpxcj.supabase.co',key:'sb_publishable_2ymWgVfW4kw8rBkZcetl8A_XzYwwiHa',page:'legal.html'}
 };
-
-const $ = id => document.getElementById(id);
-const matches = (list, e) => list.some(x => { x = x.toLowerCase(); return x.startsWith('@') ? e.endsWith(x) : e === x; });
-const routeFor = email => {
-  const e = String(email || '').trim().toLowerCase();
-  if (matches(PALS_USERS, e)) return 'pals';
-  return LEGAL_USERS.some(x => { x = x.toLowerCase(); return x.startsWith('@') ? e.endsWith(x) : e === x; }) ? 'legal' : 'crm';
-};
-const go = k => location.replace(APPS[k].page);
-const goPals = email => location.replace('pals.html?email=' + encodeURIComponent(email));
-
-let mode = 'in', clients = {};
-
-function setMode(m) {
-  mode = m;
-  const up = m === 'up';
-  $('title').textContent = up ? 'Create your password' : 'Log in';
-  $('sub').textContent = up ? 'Use the email your admin added, then choose a password.' : 'Use the email your admin added.';
-  $('pass2').hidden = !up;
-  $('pass').autocomplete = up ? 'new-password' : 'current-password';
-  $('go').textContent = up ? 'Create account' : 'Log in';
-  $('swap').textContent = up ? 'Already have a password? Log in' : 'New here? Create your password';
-  say('');
+function $(id){return document.getElementById(id)}
+const routeFor=email=>{const e=String(email||'').trim().toLowerCase();return LEGAL_USERS.some(x=>{x=x.toLowerCase();return x.startsWith('@')?e.endsWith(x):e===x})?'legal':'crm'};
+const go=k=>location.replace(APPS[k].page);
+const goPals=email=>location.replace('pals.html?email='+encodeURIComponent(email));
+let mode='in',product='crm',clients={};
+function say(t,ok){const m=$('msg');m.textContent=t;m.className='msg'+(ok?' ok':'');m.hidden=!t}
+function render(){
+  const pals=product==='pals',up=mode==='up'&&!pals;
+  $('form').className='panel '+product;
+  $('title').textContent=pals?'Welcome, pal':(up?'Create your password':'Log in');
+  $('sub').textContent=pals?'Enter your email to continue to Orchid Pals.':(up?'Use the email your admin added, then choose a password.':'Use the email your admin added.');
+  $('pass').hidden=pals;$('pass2').hidden=!up;$('showrow').hidden=pals;$('swap').hidden=pals;
+  $('pass').autocomplete=up?'new-password':'current-password';
+  $('go').textContent=pals?'Continue to Orchid Pals':(up?'Create account':'Log in');
+  $('swap').textContent=up?'Already have a password? Log in':'New here? Create your password';say('');
 }
-function say(text, ok) { const m = $('msg'); m.textContent = text; m.className = 'msg' + (ok ? ' ok' : ''); m.hidden = !text; }
-
-async function submit() {
-  const email = $('email').value.trim(), pass = $('pass').value;
-  say('');
-  if (routeFor(email) === 'pals') return goPals(email);
-  if (!email || !pass) return say('Enter your email and password.');
-  if (mode === 'up' && pass !== $('pass2').value) return say('The two passwords do not match.');
-  const k = routeFor(email), c = clients[k];
-  $('go').disabled = true;
-  try {
-    if (mode === 'up') {
-      const { data, error } = await c.auth.signUp({ email, password: pass, options: { emailRedirectTo: location.origin + location.pathname } });
-      if (error) return say(error.message);
-      if (data.session) return go(k);
-      setMode('in'); return say('Check your email and tap the confirmation link, then log in here.', true);
+function choose(p){
+  product=p;mode='in';const c=document.querySelector('.card[data-p='+p+']');
+  $('flogo').innerHTML=c.querySelector('.ic').outerHTML+c.querySelector('.wm').outerHTML;
+  const w=$('flogo').querySelector('.wm');w.classList.remove('sm');w.style.fontSize='1.7rem';
+  $('pick').hidden=true;$('form').hidden=false;render();$('email').focus();
+}
+async function submit(){
+  const email=$('email').value.trim(),pass=$('pass').value;say('');
+  if(product==='pals'){if(!/^\S+@\S+\.\S+$/.test(email))return say('Enter a valid email address.');return goPals(email)}
+  if(!email||!pass)return say('Enter your email and password.');
+  if(mode==='up'&&pass!==$('pass2').value)return say('The two passwords do not match.');
+  const k=routeFor(email),c=clients[k];if(!c)return say('Still loading, try again in a moment.');
+  $('go').disabled=true;
+  try{
+    if(mode==='up'){
+      const{data,error}=await c.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname}});
+      if(error)return say(error.message);if(data.session)return go(k);
+      mode='in';render();return say('Check your email and tap the confirmation link, then log in here.',true);
     }
-    const { error } = await c.auth.signInWithPassword({ email, password: pass });
-    if (error) return say(error.message === 'Invalid login credentials' ? 'Wrong email or password. If you just signed up, confirm your email first.' : error.message);
+    const{error}=await c.auth.signInWithPassword({email,password:pass});
+    if(error)return say(error.message==='Invalid login credentials'?'Wrong email or password. If you just signed up, confirm your email first.':error.message);
     go(k);
-  } catch (e) { say(e.message || 'Something went wrong. Please try again.'); }
-  finally { $('go').disabled = false; }
+  }catch(e){say(e.message||'Something went wrong. Please try again.')}finally{$('go').disabled=false}
 }
-
-async function boot() {
-  await new Promise((resolve, reject) => {
-    const sc = document.createElement('script');
-    sc.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';
-    sc.onload = resolve; sc.onerror = () => reject(new Error('Could not load the sign-in service. Check your connection and refresh.'));
-    document.head.appendChild(sc);
-  });
-  // Create both clients in the same tick so an email-confirmation link (token in the URL) is read by each.
-  for (const k of Object.keys(APPS)) clients[k] = window.supabase.createClient(APPS[k].url, APPS[k].key);
-  // Already signed in? Send them to the right CRM.
-  for (const k of Object.keys(APPS)) {
-    const { data: { session } } = await clients[k].auth.getSession();
-    if (!session) continue;
-    if (routeFor(session.user.email) === k) return go(k);
-    await clients[k].auth.signOut({ scope: 'local' });   // leftover session for the wrong CRM
+async function boot(){
+  await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';s.onload=res;s.onerror=()=>rej(new Error('Could not load the sign-in service. Check your connection and refresh.'));document.head.appendChild(s)});
+  for(const k of Object.keys(APPS))clients[k]=window.supabase.createClient(APPS[k].url,APPS[k].key);
+  for(const k of Object.keys(APPS)){   // already signed in? go straight to the right CRM
+    const{data:{session}}=await clients[k].auth.getSession();if(!session)continue;
+    if(routeFor(session.user.email)===k)return go(k);
+    await clients[k].auth.signOut({scope:'local'});
   }
-  $('loading').hidden = true; $('form').hidden = false; $('email').focus();
 }
-
-function palsCheck() {
-  const pals = routeFor($('email').value) === 'pals';
-  ['pass', 'pass2'].forEach(id => { $(id).hidden = pals || (id === 'pass2' && mode !== 'up'); });
-  document.querySelector('.show').hidden = pals;
-  $('go').textContent = pals ? 'Continue to Orchid Pals' : (mode === 'up' ? 'Create account' : 'Log in');
-}
-$('email').addEventListener('input', palsCheck);
-$('go').addEventListener('click', submit);
-$('swap').addEventListener('click', () => { setMode(mode === 'in' ? 'up' : 'in'); palsCheck(); });
-$('showpw').addEventListener('change', e => { const t = e.target.checked ? 'text' : 'password'; $('pass').type = t; $('pass2').type = t; });
-['email', 'pass', 'pass2'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') submit(); }));
-boot().catch(e => { $('loading').hidden = true; $('form').hidden = false; say(e.message || 'Something went wrong.'); });
+$('next').onclick=()=>idx<last?show(idx+1):toPick();$('skip').onclick=toPick;$('replay').onclick=replay;
+$('story').addEventListener('click',e=>{if(!e.target.closest('button')&&idx<last)show(idx+1)});
+document.addEventListener('keydown',e=>{if($('story').hidden)return;if(e.key==='ArrowRight'&&idx<last)show(idx+1);if(e.key==='ArrowLeft'&&idx>0)show(idx-1)});
+document.querySelectorAll('.card').forEach(b=>b.onclick=()=>choose(b.dataset.p));
+$('back').onclick=()=>{$('form').hidden=true;$('pick').hidden=false;say('')};
+$('go').onclick=submit;$('swap').onclick=()=>{mode=mode==='in'?'up':'in';render()};
+$('showpw').onchange=e=>{const t=e.target.checked?'text':'password';$('pass').type=t;$('pass2').type=t};
+['email','pass','pass2'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')submit()}));
+show(0);
+boot().catch(e=>{toPick();choose('crm');say(e.message||'Something went wrong.')});
 </script>
 </body>
 </html>
