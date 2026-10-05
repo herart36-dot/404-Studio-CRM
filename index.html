@@ -184,9 +184,10 @@ const APPS={
 };
 function $(id){return document.getElementById(id)}
 const routeFor=email=>{const e=String(email||'').trim().toLowerCase();return LEGAL_USERS.some(x=>{x=x.toLowerCase();return x.startsWith('@')?e.endsWith(x):e===x})?'legal':'crm'};
-const go=k=>location.replace(APPS[k].page);
+const mark=()=>{try{sessionStorage.setItem('orchid_redir',String(Date.now()))}catch(e){}};
+const go=k=>{mark();location.replace(APPS[k].page)};
 const PALS={url:'https://dqvvidwzuvrxojpfukqe.supabase.co',key:'sb_publishable_v8eV56c-CwARaIlAL8IXYg_KA99WcXX'};
-const goPals=()=>{try{localStorage.setItem('orchid_last','pals')}catch(e){}location.replace('pals.html')};
+const goPals=()=>{mark();try{localStorage.setItem('orchid_last','pals')}catch(e){}location.replace('pals.html')};
 let fpq=null;
 let mode='in',product='crm',clients={};
 function say(t,ok){const m=$('msg');m.textContent=t;m.className='msg'+(ok?' ok':'');m.hidden=!t}
@@ -271,6 +272,9 @@ async function boot(){
   clients.pals=window.supabase.createClient(PALS.url,PALS.key);
   const qs=new URLSearchParams(location.search+'&'+location.hash.slice(1)),oe=qs.get('error_description');
   if(oe){history.replaceState(null,'',location.pathname);toPick();choose('pals');return say(oe)}
+  // loop guard: if an app page just bounced us back here, stop auto-redirecting
+  let bounced=false;try{bounced=Date.now()-(+sessionStorage.getItem('orchid_redir')||0)<10000;sessionStorage.removeItem('orchid_redir')}catch(e){}
+  if(bounced){toPick();return}
   let last='';try{last=localStorage.getItem('orchid_last')||''}catch(e){}
   if(last==='pals'){const{data:{session}}=await clients.pals.auth.getSession();if(session)return goPals()}
   for(const k of Object.keys(APPS)){   // already signed in? go straight to the right CRM
