@@ -57,6 +57,10 @@ const LEGAL_USERS = [
   'herart36@gmail.com'          // opens Orchid Legal
   // '@somefirm.com'            // a whole domain also works
 ];
+// Orchid Pals is a demo with no database, so these emails go straight to it (no password check here).
+const PALS_USERS = [
+  'keancarl.donato.ab@ust.edu.ph'   // opens Orchid Pals
+];
 // Everyone else (keandonato@404studio.click, students, etc.) opens the 404 Studio CRM.
 
 const APPS = {
@@ -65,11 +69,14 @@ const APPS = {
 };
 
 const $ = id => document.getElementById(id);
+const matches = (list, e) => list.some(x => { x = x.toLowerCase(); return x.startsWith('@') ? e.endsWith(x) : e === x; });
 const routeFor = email => {
   const e = String(email || '').trim().toLowerCase();
+  if (matches(PALS_USERS, e)) return 'pals';
   return LEGAL_USERS.some(x => { x = x.toLowerCase(); return x.startsWith('@') ? e.endsWith(x) : e === x; }) ? 'legal' : 'crm';
 };
 const go = k => location.replace(APPS[k].page);
+const goPals = email => location.replace('pals.html?email=' + encodeURIComponent(email));
 
 let mode = 'in', clients = {};
 
@@ -89,6 +96,7 @@ function say(text, ok) { const m = $('msg'); m.textContent = text; m.className =
 async function submit() {
   const email = $('email').value.trim(), pass = $('pass').value;
   say('');
+  if (routeFor(email) === 'pals') return goPals(email);
   if (!email || !pass) return say('Enter your email and password.');
   if (mode === 'up' && pass !== $('pass2').value) return say('The two passwords do not match.');
   const k = routeFor(email), c = clients[k];
@@ -126,8 +134,15 @@ async function boot() {
   $('loading').hidden = true; $('form').hidden = false; $('email').focus();
 }
 
+function palsCheck() {
+  const pals = routeFor($('email').value) === 'pals';
+  ['pass', 'pass2'].forEach(id => { $(id).hidden = pals || (id === 'pass2' && mode !== 'up'); });
+  document.querySelector('.show').hidden = pals;
+  $('go').textContent = pals ? 'Continue to Orchid Pals' : (mode === 'up' ? 'Create account' : 'Log in');
+}
+$('email').addEventListener('input', palsCheck);
 $('go').addEventListener('click', submit);
-$('swap').addEventListener('click', () => setMode(mode === 'in' ? 'up' : 'in'));
+$('swap').addEventListener('click', () => { setMode(mode === 'in' ? 'up' : 'in'); palsCheck(); });
 $('showpw').addEventListener('change', e => { const t = e.target.checked ? 'text' : 'password'; $('pass').type = t; $('pass2').type = t; });
 ['email', 'pass', 'pass2'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') submit(); }));
 boot().catch(e => { $('loading').hidden = true; $('form').hidden = false; say(e.message || 'Something went wrong.'); });
