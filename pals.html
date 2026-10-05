@@ -41,6 +41,10 @@ textarea{resize:vertical;min-height:80px}
 .tab{position:relative;flex:1;height:46px;border:0;background:transparent;cursor:pointer;padding:0;border-radius:21px;color:#aaa8c4;display:flex;align-items:center;justify-content:center;transition:transform .18s ease,background .18s ease,color .18s ease}.tab:hover{background:rgba(255,255,255,.08);color:#fff;transform:translateY(-1px)}.tabicon{width:28px;height:28px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 5px rgba(0,0,0,.18))}.tab[aria-current=true]{background:linear-gradient(145deg,#fff,#f2efff);color:var(--dark);box-shadow:0 7px 18px rgba(0,0,0,.2)}.tab[aria-current=true] .tabicon{width:28px;height:28px}.tabbadge{position:absolute;top:2px;right:calc(50% - 24px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#ef4444;color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;border:2px solid #24213f}
 main{max-width:1000px;margin:0 auto;padding:6px 16px 40px}
 .card{padding:18px;margin-bottom:14px}
+.notifitem{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;padding:12px 16px;margin-bottom:10px}
+.notifitem.new{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(255,255,255,.9))}
+.nicon{font-size:1.5rem;flex:none}.ntext{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ndot{width:10px;height:10px;border-radius:50%;background:#ef4444;flex:none}
 .composer{padding:12px 20px 6px;margin-top:0}
 .composer textarea{min-height:56px}
 .composer .socialbar{margin-top:8px;padding-top:4px}
@@ -223,12 +227,17 @@ function messagesView(){
   inp.onkeydown=e=>{if(e.key==='Enter')send()};setTimeout(()=>{box.scrollTop=box.scrollHeight},0);
   return h('div',{class:'chatwrap'},h('div',{class:'card'},h('b',{text:'Messages'}),h('p',{class:'muted',text:'Chat with your Pals'}),list),h('div',{class:'card'},h('div',{class:'chathead'},h('div',{class:'av',text:ini(nm(chat))}),h('div',{},h('b',{text:nm(chat)}),h('div',{class:'status',text:'● Pal'}))),box,h('div',{class:'chatinput'},inp,h('button',{class:'btn primary',text:'Send',onclick:send}))));
 }
-function albumView(){
-  const mine=posts.filter(p=>p.author_id===me.id&&p.audio_path),others=posts.filter(p=>p.author_id!==me.id&&p.audio_path);
-  return h('div',{},h('div',{class:'card'},h('b',{text:'Your Voice Album'}),h('p',{class:'muted',text:'Your posted stories with voice recordings appear here. Photos can be shared directly in Story.'})),
-    others.length?h('div',{class:'card'},h('b',{text:'Voice from your Pals'})):null,
-    others.map(p=>h('div',{class:'card'},h('b',{text:nm(p.author_id)}),h('div',{class:'muted',text:ago(p.created_at)+' · '+p.audio_seconds+'s'}),p.body?h('p',{text:p.body,style:'margin:6px 0 0'}):null,urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):null)),
-    mine.length?mine.map(p=>h('div',{class:'card'},h('div',{class:'muted',text:ago(p.created_at)+' · '+p.audio_seconds+'s'}),p.body?h('p',{text:p.body,style:'margin:6px 0 0'}):null,urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):null)):h('div',{class:'empty',text:'No recordings yet. Record one from the Story tab.'}));
+function notifView(){
+  const react=/^(❤️|👍|😂) reacted/;
+  const list=[
+    ...msgs.filter(m=>m.recipient_id===me.id).map(m=>({t:T(m),at:m.created_at,who:m.sender_id,kind:'msg',icon:react.test(m.body)?m.body.slice(0,2):'💬',text:nm(m.sender_id)+(react.test(m.body)?' reacted to your post':' sent you a message'),snip:react.test(m.body)?'':m.body})),
+    ...posts.filter(p=>p.author_id!==me.id).map(p=>({t:T(p),at:p.created_at,who:p.author_id,kind:'post',icon:p.audio_path?'🎙️':p.image_path?'📷':'📝',text:nm(p.author_id)+(p.audio_path?' shared a voice story':' shared a new story'),snip:p.body||''})),
+    ...pals.filter(p=>p.status==='pending'&&p.addressee_id===me.id).map(p=>({t:p.created_at?new Date(p.created_at).getTime():0,at:p.created_at,who:p.requester_id,kind:'req',icon:'👋',text:nm(p.requester_id)+' sent you a Pal request',snip:''}))
+  ].sort((a,b)=>b.t-a.t).slice(0,40);
+  const prev=notifPrev==null?Infinity:notifPrev;
+  const go=n=>{if(n.kind==='msg'){chat=n.who;view='messages'}else if(n.kind==='post')view='posts';else view='pals';render()};
+  return h('div',{},h('div',{class:'card'},h('b',{text:'Notifications'}),h('p',{class:'muted',text:'New stories, messages, voice notes and Pal requests show up here.'})),
+    list.length?list.map(n=>h('button',{class:'card notifitem'+(n.t>prev?' new':''),onclick:()=>go(n)},h('span',{class:'nicon',text:n.icon}),h('span',{class:'ntext'},h('b',{text:n.text}),n.snip?h('span',{class:'muted',text:n.snip.length>70?n.snip.slice(0,70)+'…':n.snip}):null,h('span',{class:'muted',text:n.at?ago(n.at):''})),n.t>prev?h('span',{class:'ndot'}):null)):h('div',{class:'empty',text:'No notifications yet.'}));
 }
 async function palAction(fn,okMsg){const r=await fn();if(r&&r.error)return fail(r.error);try{await loadPeople();await loadPosts()}catch(e){fail(e)}if(okMsg)toast(okMsg);render()}
 function palsView(){
@@ -267,13 +276,14 @@ let seenTs=null;
 const seenKey=()=>'orchid_seen_'+me.id;
 const saveSeen=()=>{try{localStorage.setItem(seenKey(),JSON.stringify(seenTs))}catch(e){}};
 const badgeEl=n=>h('span',{class:'tabbadge',text:n>9?'9+':String(n)});
-const items=k=>k==='messages'?msgs.filter(m=>m.recipient_id===me.id):k==='posts'?posts.filter(p=>p.author_id!==me.id&&!p.audio_path):posts.filter(p=>p.author_id!==me.id&&p.audio_path);
+let notifPrev=null;
+const items=k=>{const m=msgs.filter(x=>x.recipient_id===me.id),po=posts.filter(p=>p.author_id!==me.id);return k==='messages'?m:k==='posts'?po:[...m,...po]};
 function initSeen(){
   try{seenTs=JSON.parse(localStorage.getItem(seenKey()))}catch(e){seenTs=null}
-  if(!seenTs){seenTs={};['posts','messages','album'].forEach(k=>seenTs[k]=Math.max(0,...items(k).map(T)));saveSeen()}
+  if(!seenTs||seenTs.notif==null){seenTs={};['posts','messages','notif'].forEach(k=>seenTs[k]=Math.max(0,...items(k).map(T)));saveSeen()}
 }
 function markSeen(){
-  if(!seenTs||!['posts','messages','album'].includes(view))return;
+  if(!seenTs||!['posts','messages','notif'].includes(view))return;
   const latest=Math.max(0,...items(view).map(T));
   if(latest>seenTs[view]){seenTs[view]=latest;saveSeen()}
 }
@@ -294,15 +304,15 @@ function tabButton(k,label,inc){
   const markup={
     posts:'<path d="M3 10.8 12 3l9 7.8"></path><path d="M5.5 9.8V21h13V9.8"></path><path d="M9.5 21v-6h5v6"></path>',
     messages:'<path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.7 8.7 0 0 1-3.7-.8L4 20l1.3-3.7A7.2 7.2 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"></path><path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01"></path>',
-    album:'<path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"></path><path d="M6.5 11.5a5.5 5.5 0 0 0 11 0M12 17v4M9 21h6"></path>',
+    notif:'<path d="M6 9a6 6 0 0 1 12 0c0 6 2 7.5 2 7.5H4S6 15 6 9Z"></path><path d="M10 20a2 2 0 0 0 4 0"></path>',
     pals:'<circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="10" r="2.5"></circle><path d="M3.5 20a5.5 5.5 0 0 1 11 0M14 20a4 4 0 0 1 7.5 0"></path>'
   };
   svg.innerHTML=markup[k];
-  const b=h('button',{class:'tab','aria-current':view===k,title:label,'aria-label':label,'data-k':k,onclick:()=>{if(rec)return;view=k;render()}});b.append(svg);if(inc)b.append(badgeEl(inc));return b;
+  const b=h('button',{class:'tab','aria-current':view===k,title:label,'aria-label':label,'data-k':k,onclick:()=>{if(rec)return;if(k==='notif'&&view!=='notif'&&seenTs)notifPrev=seenTs.notif;view=k;render()}});b.append(svg);if(inc)b.append(badgeEl(inc));return b;
 }
 function appView(){
-  const tabs=[['posts','Story'],['messages','Chat'],['album','Voice'],['pals','Pals']];
-  const v={posts:postsView,messages:messagesView,album:albumView,pals:palsView}[view]();
+  const tabs=[['posts','Story'],['messages','Chat'],['notif','Notifications'],['pals','Pals']];
+  const v={posts:postsView,messages:messagesView,notif:notifView,pals:palsView}[view]();
   return h('div',{},
     h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat'})),h('span',{class:'sp'}),h('span',{class:'muted',text:me.name}),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
     h('nav',{class:'tabs'},tabs.map(([k,l])=>tabButton(k,l,unread(k)))),
@@ -331,7 +341,7 @@ async function init(){
     const sig=()=>posts.length+':'+(posts[0]&&posts[0].id);const before=sig(),np=pals.length;
     const mch=await loadMsgs();await loadPeople();await loadPosts();
     const idle=!draft.text&&!draft.blob&&!draft.image&&!(document.activeElement&&document.activeElement.tagName==='TEXTAREA');
-    if((view==='messages'&&mch)||(view==='pals'&&pals.length!==np)||((view==='posts'||view==='album')&&sig()!==before&&idle))render();else refreshBadges();
+    if((view==='messages'&&mch)||(view==='pals'&&pals.length!==np)||((view==='posts'||view==='notif')&&sig()!==before&&idle))render();else refreshBadges();
   }catch(e){}},6000);
 }
 init().catch(e=>{console.error(e);home()});
