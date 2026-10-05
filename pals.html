@@ -38,7 +38,7 @@ textarea{resize:vertical;min-height:80px}
 .top{display:flex;align-items:center;gap:10px;padding:14px 22px}.top .wm{font-size:1.4rem}
 .crmtag{font-size:.7rem;font-weight:800;letter-spacing:.12em;color:var(--muted);background:rgba(255,255,255,.7);padding:3px 10px;border-radius:999px}
 .tabs{display:flex;gap:6px;width:max-content;max-width:calc(100% - 40px);margin:4px auto 0;background:var(--dark);border-radius:30px;padding:8px;box-shadow:0 14px 40px rgba(20,18,46,.35);overflow-x:auto}
-.tab{border:0;background:none;cursor:pointer;padding:9px 18px;border-radius:999px;font-weight:700;color:#a9a8c4;white-space:nowrap}
+.tab{border:0;background:none;cursor:pointer;padding:9px 18px;border-radius:999px;font-weight:700;color:#a9a8c4;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:7px}.tabicon{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.tab[aria-current=true] .tabicon{color:var(--dark)}
 .tab[aria-current=true]{background:#fff;color:var(--dark)}
 main{max-width:720px;margin:0 auto;padding:20px 16px 40px}
 .card{padding:18px;margin-bottom:14px}
@@ -200,7 +200,7 @@ function postsView(){
   const ta=h('textarea',{placeholder:'What’s on your mind, '+me.name.split(' ')[0]+'?',maxlength:'1000',oninput:e=>draft.text=e.target.value});ta.value=draft.text;
   const file=h('input',{type:'file',accept:'image/*',onchange:chooseImage});
   const preview=draft.imageUrl?h('div',{class:'preview'},h('img',{src:draft.imageUrl,alt:'Selected photo'}),h('button',{class:'btn ghost',text:'Remove photo',onclick:()=>{clearDraftImage();render()}})):null;
-  const voice=h('div',{class:'attach'},rec?h('div',{class:'rec'},h('span',{class:'dot'}),h('span',{text:'Recording…'}),h('button',{class:'btn ghost',text:'Stop',onclick:stopRec})):h('button',{class:'socialopt',text:'🎙️ Voice',onclick:startRec}),draft.blob?h('button',{class:'btn ghost',text:'Remove voice',onclick:()=>{clearDraftAudio();render()}}):null);
+  const voice=h('div',{class:'attach'},rec?h('div',{class:'rec'},h('span',{class:'dot'}),h('span',{text:'Recording…'}),h('button',{class:'btn ghost',text:'Stop',onclick:stopRec})):h('button',{class:'socialopt',text:'Voice',onclick:startRec}),draft.blob?h('button',{class:'btn ghost',text:'Remove voice',onclick:()=>{clearDraftAudio();render()}}):null);
   const composer=h('div',{class:'card'},h('div',{class:'row'},h('div',{class:'av',text:ini(me.name)}),h('b',{text:'Create a story'})),h('div',{style:'margin-top:12px'},ta),preview,h('div',{class:'socialbar'},h('label',{class:'socialopt filebtn',text:'📷 Photo'},file),voice,h('button',{class:'socialopt',text:busy?'Posting…':'➤ Post',disabled:busy,onclick:publish})));
   const strip=storyStrip();
   return h('div',{},strip,composer,posts.length?posts.map(postCard):h('div',{class:'empty',text:'No stories yet. Share the first one!'}));
@@ -220,8 +220,8 @@ function messagesView(){
 }
 function albumView(){
   const mine=posts.filter(p=>p.author_id===me.id&&p.audio_path);
-  return h('div',{},h('div',{class:'card'},h('b',{text:'🎧 Your Voice Album'}),h('p',{class:'muted',text:'Your posted stories with voice recordings appear here. Photos can be shared directly in Story.'})),
-    mine.length?mine.map(p=>h('div',{class:'card'},h('div',{class:'muted',text:ago(p.created_at)+' · '+p.audio_seconds+'s'}),p.body?h('p',{text:p.body,style:'margin:6px 0 0'}):null,urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):null)):h('div',{class:'empty',text:'No recordings yet. Record one from the Posts tab.'}));
+  return h('div',{},h('div',{class:'card'},h('b',{text:'Your Voice Album'}),h('p',{class:'muted',text:'Your posted stories with voice recordings appear here. Photos can be shared directly in Story.'})),
+    mine.length?mine.map(p=>h('div',{class:'card'},h('div',{class:'muted',text:ago(p.created_at)+' · '+p.audio_seconds+'s'}),p.body?h('p',{text:p.body,style:'margin:6px 0 0'}):null,urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):null)):h('div',{class:'empty',text:'No recordings yet. Record one from the Story tab.'}));
 }
 async function palAction(fn,okMsg){const r=await fn();if(r&&r.error)return fail(r.error);try{await loadPeople();await loadPosts()}catch(e){fail(e)}if(okMsg)toast(okMsg);render()}
 function palsView(){
@@ -254,13 +254,24 @@ function adminCard(){
     h('div',{class:'cbar'},em,h('button',{class:'btn primary',text:'Approve',onclick:add})),
     invites.map(i=>h('div',{class:'row',style:'margin-top:10px'},h('span',{class:'sp',text:i.email}),i.is_admin?h('span',{class:'pill',text:'Admin'}):h('button',{class:'btn ghost',text:'Remove',onclick:async()=>{if(!confirm('Remove approval for '+i.email+'?'))return;const r=await sb.from('approved_emails').delete().eq('email',i.email);if(r.error)return fail(r.error);await loadInvites();render()}}))));
 }
+function tabButton(k,label,inc){
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','tabicon');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
+  const markup={
+    posts:'<path d="M3 10.8 12 3l9 7.8"></path><path d="M5.5 9.8V21h13V9.8"></path><path d="M9.5 21v-6h5v6"></path>',
+    messages:'<path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.7 8.7 0 0 1-3.7-.8L4 20l1.3-3.7A7.2 7.2 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"></path><path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01"></path>',
+    album:'<path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"></path><path d="M6.5 11.5a5.5 5.5 0 0 0 11 0M12 17v4M9 21h6"></path>',
+    pals:'<circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="10" r="2.5"></circle><path d="M3.5 20a5.5 5.5 0 0 1 11 0M14 20a4 4 0 0 1 7.5 0"></path>'
+  };
+  svg.innerHTML=markup[k];
+  const b=h('button',{class:'tab','aria-current':view===k,onclick:()=>{if(rec)return;view=k;render()}});b.append(svg,document.createTextNode(label+(k==='pals'&&inc?' ('+inc+')':'')));return b;
+}
 function appView(){
-  const tabs=[['posts','🏠 Story'],['messages','💬 Chat'],['album','🎧 Voice'],['pals','👥 Pals']];
+  const tabs=[['posts','Story'],['messages','Chat'],['album','Voice'],['pals','Pals']];
   const v={posts:postsView,messages:messagesView,album:albumView,pals:palsView}[view]();
   const inc=pals.filter(p=>p.status==='pending'&&p.addressee_id===me.id).length;
   return h('div',{},
     h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat'})),h('span',{class:'sp'}),h('span',{class:'muted',text:me.name}),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
-    h('nav',{class:'tabs'},tabs.map(([k,l])=>h('button',{class:'tab','aria-current':view===k,text:l+(k==='pals'&&inc?' ('+inc+')':''),onclick:()=>{if(rec)return;view=k;render()}}))),
+    h('nav',{class:'tabs'},tabs.map(([k,l])=>tabButton(k,l,inc))),
     h('main',{},v));
 }
 function noAccess(){
