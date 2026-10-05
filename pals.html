@@ -94,6 +94,7 @@ audio{width:100%;height:38px;margin-top:10px}
 const SB_URL='https://dqvvidwzuvrxojpfukqe.supabase.co';
 const SB_KEY='sb_publishable_v8eV56c-CwARaIlAL8IXYg_KA99WcXX';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
+window.addEventListener('error',e=>{try{toast('Error: '+e.message)}catch(_){}});
 const $=s=>document.querySelector(s);
 const REACTS=[{k:'heart',e:'❤️',n:'Heart'},{k:'like',e:'👍',n:'Like'},{k:'laugh',e:'😂',n:'Laugh'}];
 const home=()=>location.replace('index.html');
@@ -364,7 +365,7 @@ function appView(){
   const tabs=[['posts','Story'],['messages','Chat'],['notif','Notifications'],['pals','Pals'],['profile','Profile']];
   const v={posts:postsView,messages:messagesView,notif:notifView,pals:palsView,profile:profileView}[view]();
   return h('div',{},
-    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat'})),h('span',{class:'sp'}),h('div',{style:'cursor:pointer;display:flex;align-items:center;gap:8px',onclick:()=>openProfile(me.id)},avEl(me.id),h('span',{class:'muted',text:me.name})),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
+    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat · v3'})),h('span',{class:'sp'}),h('div',{style:'cursor:pointer;display:flex;align-items:center;gap:8px',onclick:()=>openProfile(me.id)},avEl(me.id),h('span',{class:'muted',text:me.name})),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
     h('nav',{class:'tabs'},tabs.map(([k,l])=>tabButton(k,l,unread(k)))),
     h('main',{},v));
 }
@@ -374,7 +375,7 @@ function noAccess(){
 function render(){if(me)markSeen();const a=$('#app');const y=window.scrollY;
   const ae=document.activeElement,fid=ae&&ae.id,ss=ae&&ae.selectionStart,se=ae&&ae.selectionEnd;
   const keep=$('#msgin');if(keep)chatDraft=keep.value;const kp=$('#postin');if(kp)draft.text=kp.value;
-  a.replaceChildren(me?appView():noAccess());window.scrollTo(0,y);
+  try{a.replaceChildren(me?appView():noAccess())}catch(e){console.error(e);toast('Display error: '+(e.message||e))}window.scrollTo(0,y);
   if(fid==='msgin'||fid==='postin'){const n=document.getElementById(fid);if(n){n.focus();try{n.setSelectionRange(ss,se)}catch(e){}}}}
 async function logout(){clearInterval(poll);if(rt)sb.removeChannel(rt);try{await sb.auth.signOut()}catch(e){}home()}
 
