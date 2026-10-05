@@ -249,26 +249,30 @@ async function logoutAll(){
   lastPass='';who='';try{localStorage.removeItem('orchid_last')}catch(e){}
   $('email').value=$('pass').value=$('pass2').value='';showLogin();
 }
+const withTimeout=(p,ms=15000)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('This is taking too long. Check your connection and try again.')),ms))]);
 async function submit(){
   const email=$('email').value.trim().toLowerCase(),pass=$('pass').value,up=mode==='up';say('');
   if(!/^\S+@\S+\.\S+$/.test(email))return say('Enter a valid email address.');
   if(!pass)return say('Enter your email and password.');
   if(up){if(pass.length<8)return say('Password must be at least 8 characters.');if(pass!==$('pass2').value)return say('The two passwords do not match.')}
   const k=routeFor(email),c=clients[k];if(!c)return say('Still loading, try again in a moment.');
-  $('go').disabled=true;
+  $('go').disabled=true;$('go').textContent='Please wait…';
   try{
     if(up){
-      const{data,error}=await c.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname}});
+      const{data,error}=await withTimeout(c.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname}}));
       if(error)return say(/already registered/i.test(error.message)?'This email already has a password. Log in instead.':error.message);
       if(!data.session){mode='in';renderForm();return say('Check your email and tap the confirmation link, then log in here.',true)}
     }else{
-      const{error}=await c.auth.signInWithPassword({email,password:pass});
+      const{error}=await withTimeout(c.auth.signInWithPassword({email,password:pass}));
       if(error)return say(error.message==='Invalid login credentials'?'Wrong email or password. If you just signed up, confirm your email first.':error.message);
     }
     lastPass=pass;showPick(email);
     connectPals(email,pass).catch(()=>{});   // link Pals in the background; re-checked when Pals is opened
-  }catch(e){say(e.message||'Something went wrong. Please try again.')}finally{$('go').disabled=false}
+  }catch(e){say(e.message||'Something went wrong. Please try again.')}finally{$('go').disabled=false;$('go').textContent=mode==='up'?'Create account':'Log in'}
 }
+function showErr(m){const id=$('pick').hidden?'msg':'pmsg';say('Something went wrong: '+m,false,id)}
+window.addEventListener('error',e=>showErr(e.message||'unknown error'));
+window.addEventListener('unhandledrejection',e=>showErr((e.reason&&e.reason.message)||'unknown error'));
 async function boot(){
   await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';s.onload=res;s.onerror=()=>rej(new Error('Could not load the sign-in service. Check your connection and refresh.'));document.head.appendChild(s)});
   for(const k of Object.keys(APPS))clients[k]=window.supabase.createClient(APPS[k].url,APPS[k].key);
@@ -282,7 +286,7 @@ async function boot(){
     await clients[k].auth.signOut({scope:'local'});
   }
 }
-$('next').onclick=()=>idx<last?show(idx+1):showLogin();$('skip').onclick=toPick;$('replay').onclick=replay;
+$('next').onclick=()=>idx<last?show(idx+1):showLogin();$('skip').onclick=showLogin;$('replay').onclick=replay;
 $('story').addEventListener('click',e=>{if(!e.target.closest('button')&&idx<last)show(idx+1)});
 document.addEventListener('keydown',e=>{if($('story').hidden)return;if(e.key==='ArrowRight'&&idx<last)show(idx+1);if(e.key==='ArrowLeft'&&idx>0)show(idx-1)});
 document.querySelectorAll('.card').forEach(b=>b.onclick=()=>{if(b.dataset.p==='pals')return openPals();location.assign(APPS[routeFor(who)].page)});
