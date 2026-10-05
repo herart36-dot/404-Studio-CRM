@@ -99,7 +99,7 @@ const $=s=>document.querySelector(s);
 const REACTS=[{k:'heart',e:'❤️',n:'Heart'},{k:'like',e:'👍',n:'Like'},{k:'laugh',e:'😂',n:'Laugh'}];
 const home=()=>location.replace('index.html');
 let me=null,isAdmin=false,names={},emails={},pals=[],posts=[],rx=[],msgs=[],urls={},invites=[];
-let profs={},profId=null,editing=false,pdraft={};
+let searchQ='',profs={},profId=null,editing=false,pdraft={};
 let view='posts',chat=null,chatDraft='',draft={text:'',blob:null,url:null,secs:0,mime:'',image:null,imageUrl:null},rec=null,busy=false,poll=null;
 const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
 const ini=n=>(n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
@@ -113,7 +113,7 @@ const acceptedIds=()=>pals.filter(p=>p.status==='accepted').map(p=>p.requester_i
 
 /* ---------- data ---------- */
 async function loadPeople(){
-  const [pr,pl]=await Promise.all([sb.from('profiles').select('id,display_name,email,bio,work,location,avatar_path,cover_path,created_at'),sb.from('pals').select('*')]);
+  const [pr,pl]=await Promise.all([sb.from('profiles').select('id,display_name,email,bio,work,location,avatar_path,cover_path,created_at,position,company,work_started'),sb.from('pals').select('*')]);
   if(pr.error)throw pr.error;if(pl.error)throw pl.error;
   names={};emails={};profs={};pr.data.forEach(p=>{names[p.id]=p.display_name;emails[p.id]=p.email;profs[p.id]=p});pals=pl.data;
   const ap=pr.data.flatMap(p=>[p.avatar_path,p.cover_path]).filter(x=>x&&!urls[x]);
@@ -276,6 +276,19 @@ function adminCard(){
     invites.map(i=>h('div',{class:'row',style:'margin-top:10px'},h('span',{class:'sp',text:i.email}),i.is_admin?h('span',{class:'pill',text:'Admin'}):h('button',{class:'btn ghost',text:'Remove',onclick:async()=>{if(!confirm('Remove approval for '+i.email+'?'))return;const r=await sb.from('approved_emails').delete().eq('email',i.email);if(r.error)return fail(r.error);await loadInvites();render()}}))));
 }
 
+const tenure=d=>{if(!d)return '';const a=new Date(d),n=new Date();let m=(n.getFullYear()-a.getFullYear())*12+n.getMonth()-a.getMonth();if(n.getDate()<a.getDate())m--;if(m<1)return 'Less than a month';const y=Math.floor(m/12),r=m%12;return [y?y+(y>1?' years':' year'):'',r?r+(r>1?' months':' month'):''].filter(Boolean).join(' ')};
+const workCard=P=>(P.position||P.company)?h('div',{class:'card'},h('b',{text:'Work'}),h('div',{class:'irow'},h('span',{text:'💼'}),h('span',{},h('b',{text:P.position||''}),P.position&&P.company?' at ':'',P.company||'')),P.work_started?h('div',{class:'irow'},h('span',{text:'⏱️'}),h('span',{text:tenure(P.work_started)+(P.company?' at '+P.company:'')})):null):null;
+function searchView(){
+  const inp=h('input',{type:'text',id:'searchin',placeholder:'Search people by name, position or company…',maxlength:'60',autocomplete:'off'});inp.value=searchQ;
+  const box=h('div',{});
+  const draw=()=>{const q=searchQ.trim().toLowerCase();
+    const list=Object.values(profs).filter(P=>P.id!==me.id&&(!q||[P.display_name,P.position,P.company,P.bio].some(x=>x&&x.toLowerCase().includes(q))));
+    box.replaceChildren(...(list.length?list.map(P=>{const rel=relOf(P.id);
+      return h('div',{class:'card row',style:'cursor:pointer',onclick:()=>openProfile(P.id)},avEl(P.id),h('div',{class:'sp',style:'min-width:0'},h('b',{text:P.display_name}),h('div',{class:'muted',text:[P.position,P.company].filter(Boolean).join(' · ')||'Orchid Pals member'})),rel?h('span',{class:'pill',text:rel.status==='accepted'?'Pal':'Pending'}):null,h('button',{class:'btn ghost',text:'View',onclick:e=>{e.stopPropagation();openProfile(P.id)}}))}):[h('div',{class:'empty',text:q?'No one found for “'+searchQ.trim()+'”.':'No other members yet.'})]))};
+  inp.oninput=e=>{searchQ=e.target.value;draw()};draw();setTimeout(()=>{if(!document.activeElement||document.activeElement===document.body)inp.focus()},0);
+  return h('div',{},h('div',{class:'card'},h('b',{text:'Search people'}),h('div',{style:'margin-top:10px'},inp)),box);
+}
+function openSearch(){searchQ='';view='search';editing=false;window.scrollTo(0,0);render()}
 /* ---------- profile ---------- */
 function openProfile(id){profId=id;editing=false;view='profile';window.scrollTo(0,0);render()}
 const relOf=id=>pals.find(p=>(p.requester_id===me.id&&p.addressee_id===id)||(p.requester_id===id&&p.addressee_id===me.id));
@@ -284,14 +297,15 @@ function profileView(){
   if(editing&&own)return editView(P);
   const cv=P.cover_path&&urls[P.cover_path],rel=relOf(id),mine=posts.filter(p=>p.author_id===id);
   const big=avEl(id);big.classList.add('big');
-  const acts=own?[h('button',{class:'btn primary',text:'✏️ Edit profile',onclick:()=>{pdraft={name:me.name,bio:P.bio||'',work:P.work||'',location:P.location||'',avatar:null,cover:null};editing=true;render()}})]
+  const acts=own?[h('button',{class:'btn primary',text:'✏️ Edit profile',onclick:()=>{pdraft={name:me.name,bio:P.bio||'',location:P.location||'',avatar:null,cover:null};editing=true;render()}})]
     :rel&&rel.status==='accepted'?[h('button',{class:'btn primary',text:'💬 Message',onclick:()=>{chat=id;view='messages';render()}}),h('span',{class:'pill',text:'Pals ✓'})]
     :rel?[h('span',{class:'pill',text:'Request pending'})]:[h('button',{class:'btn primary',text:'👋 Add Pal',onclick:()=>palAction(()=>sb.from('pals').insert({addressee_id:id}),'Request sent.')})];
-  const info=[P.work&&['💼',P.work],P.location&&['📍','Lives in '+P.location],P.created_at&&['📅','Joined '+new Date(P.created_at).toLocaleDateString(undefined,{month:'long',year:'numeric'})],own&&['🤝',acceptedIds().length+' Pals']].filter(Boolean);
+  const info=[P.location&&['📍','Lives in '+P.location],P.created_at&&['📅','Joined '+new Date(P.created_at).toLocaleDateString(undefined,{month:'long',year:'numeric'})],own&&['🤝',acceptedIds().length+' Pals']].filter(Boolean);
   return h('div',{},
     h('div',{class:'card pcard'},h('div',{class:'cover',style:cv?"background:url('"+cv+"') center/cover":null}),
       h('div',{class:'phead'},big,h('div',{class:'sp'},h('h2',{text:nm(id)}),h('div',{class:'muted',text:mine.length+' posts'})),h('div',{class:'pacts'},acts))),
     h('div',{class:'card'},h('b',{text:'Intro'}),h('p',{text:P.bio||(own?'Add a bio so your Pals know you.':'No bio yet.'),style:'margin:8px 0 0;white-space:pre-wrap'+(P.bio?'':';color:var(--muted)')}),info.map(([i,t])=>h('div',{class:'irow'},h('span',{text:i}),h('span',{text:t})))),
+    workCard(P),
     h('div',{class:'muted',style:'margin:0 4px 8px',text:own?'Your posts':nm(id).split(' ')[0]+"'s posts"}),
     mine.length?mine.map(postCard):h('div',{class:'empty',text:own?'You have not posted yet.':'No posts to show.'}));
 }
@@ -302,14 +316,14 @@ function editView(P){
   return h('div',{class:'card'},h('b',{text:'Edit profile'}),
     h('span',{class:'lbl',text:'Photos'}),h('div',{class:'attach'},pick('avatar','Profile photo'),pick('cover','Cover photo')),
     h('span',{class:'lbl',text:'Name'}),inp('name','Your name','60'),h('span',{class:'lbl',text:'Bio'}),bio,
-    h('span',{class:'lbl',text:'Work'}),inp('work','Where do you work or study?','100'),h('span',{class:'lbl',text:'Lives in'}),inp('location','City / Country','100'),
+    h('span',{class:'lbl',text:'Lives in'}),inp('location','City / Country','100'),
     h('div',{class:'cbar',style:'margin-top:16px'},h('button',{class:'btn primary',text:busy?'Saving…':'Save',disabled:busy,onclick:saveProfile}),h('button',{class:'btn ghost',text:'Cancel',onclick:()=>{editing=false;render()}})));
 }
 async function saveProfile(){
   if(busy)return;const name=pdraft.name.trim();if(!name)return toast('Name is required.');
   busy=true;render();const old=profs[me.id]||{};
   try{
-    const up={display_name:name,bio:pdraft.bio.trim()||null,work:pdraft.work.trim()||null,location:pdraft.location.trim()||null};
+    const up={display_name:name,bio:pdraft.bio.trim()||null,location:pdraft.location.trim()||null};
     for(const [k,col] of [['avatar','avatar_path'],['cover','cover_path']]){const f=pdraft[k];if(!f)continue;
       const path=me.id+'/'+k+'-'+crypto.randomUUID()+'.'+(f.name.split('.').pop()||'jpg');
       const r=await sb.storage.from('avatars').upload(path,f,{contentType:f.type});if(r.error)throw r.error;up[col]=path}
@@ -363,9 +377,9 @@ function tabButton(k,label,inc){
 }
 function appView(){
   const tabs=[['posts','Story'],['messages','Chat'],['notif','Notifications'],['pals','Pals'],['profile','Profile']];
-  const v={posts:postsView,messages:messagesView,notif:notifView,pals:palsView,profile:profileView}[view]();
+  const v={posts:postsView,messages:messagesView,notif:notifView,pals:palsView,profile:profileView,search:searchView}[view]();
   return h('div',{},
-    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat · v4'})),h('span',{class:'sp'}),h('div',{style:'cursor:pointer;display:flex;align-items:center;gap:8px',onclick:()=>openProfile(me.id)},avEl(me.id),h('span',{class:'muted',text:me.name})),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
+    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat · v5'})),h('span',{class:'sp'}),h('button',{class:'btn ghost',title:'Search people','aria-label':'Search people',text:'🔍',style:'padding:8px 12px',onclick:openSearch}),h('div',{style:'cursor:pointer;display:flex;align-items:center;gap:8px',onclick:()=>openProfile(me.id)},avEl(me.id),h('span',{class:'muted',text:me.name})),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
     h('nav',{class:'tabs'},tabs.map(([k,l])=>tabButton(k,l,unread(k)))),
     h('main',{},v));
 }
@@ -377,14 +391,14 @@ const endPress=()=>{pressing=false;setTimeout(()=>{if(pendingRender&&!pressing){
 document.addEventListener('pointerdown',()=>{pressing=true},true);document.addEventListener('pointerup',endPress,true);document.addEventListener('pointercancel',endPress,true);
 function render(){if(pressing){pendingRender=true;return}if(me)markSeen();const a=$('#app');const y=window.scrollY;
   const ae=document.activeElement,fid=ae&&ae.id,ss=ae&&ae.selectionStart,se=ae&&ae.selectionEnd;
-  const keep=$('#msgin');if(keep)chatDraft=keep.value;const kp=$('#postin');if(kp)draft.text=kp.value;
+  const keep=$('#msgin');if(keep)chatDraft=keep.value;const kp=$('#postin');if(kp)draft.text=kp.value;const ks=$('#searchin');if(ks)searchQ=ks.value;
   try{a.replaceChildren(me?appView():noAccess())}catch(e){console.error(e);toast('Display error: '+(e.message||e))}window.scrollTo(0,y);
-  if(fid==='msgin'||fid==='postin'){const n=document.getElementById(fid);if(n){n.focus();try{n.setSelectionRange(ss,se)}catch(e){}}}}
+  if(fid==='msgin'||fid==='postin'||fid==='searchin'){const n=document.getElementById(fid);if(n){n.focus();try{n.setSelectionRange(ss,se)}catch(e){}}}}
 async function logout(){clearInterval(poll);if(rt)sb.removeChannel(rt);try{await sb.auth.signOut()}catch(e){}home()}
 
 /* ---------- realtime sync ---------- */
 let rt=null,rtTimer=null;const rtDirty=new Set();
-const VIEWS_FOR={posts:['posts','notif'],reactions:['posts'],messages:['messages','notif'],pals:['pals','messages','notif'],profiles:['posts','messages','pals','profile','notif']};
+const VIEWS_FOR={posts:['posts','notif'],reactions:['posts'],messages:['messages','notif'],pals:['pals','messages','notif'],profiles:['posts','messages','pals','profile','search','notif']};
 const dataSig=()=>JSON.stringify([posts.length,posts[0]&&posts[0].id,rx.length,msgs.length,msgs[msgs.length-1]&&msgs[msgs.length-1].id,pals.map(p=>p.id+p.status).join()]);
 function onChange(payload){
   const t=payload.table,n=payload.new||{};rtDirty.add(t);
