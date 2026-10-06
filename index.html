@@ -27,7 +27,7 @@ h1{font-size:1.6rem;margin:12px 0 6px;letter-spacing:-.02em}h2{font-size:clamp(1
 p.sub{color:var(--muted);margin:0 0 20px;font-size:.98rem}
 .kick{font-size:.75rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#7c3aed}
 .ic{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;flex:none;box-shadow:0 8px 18px rgba(20,18,46,.18)}
-.ic.crm{background:linear-gradient(135deg,#2563eb,#06b6d4)}.ic.pals{background:linear-gradient(135deg,#7c3aed,#d946ef)}
+.ic.crm{background:linear-gradient(135deg,#2563eb,#06b6d4)}.ic.pals{background:linear-gradient(135deg,#7c3aed,#d946ef)}.ic.solo{background:linear-gradient(135deg,#059669,#84cc16)}
 .ic svg{width:28px;height:28px}.ic.big{width:72px;height:72px;border-radius:22px}.ic.big svg{width:42px;height:42px}
 /* story */
 .story{position:relative;width:100%;max-width:640px;height:min(600px,88vh)}
@@ -63,7 +63,7 @@ p.sub{color:var(--muted);margin:0 0 20px;font-size:.98rem}
 .panel{background:rgba(255,255,255,.72);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.95);border-radius:30px;padding:36px 30px 28px;max-width:440px;width:100%;text-align:center;box-shadow:0 18px 60px rgba(60,70,140,.16);animation:rise .7s both}
 .card{display:flex;align-items:center;gap:14px;width:100%;margin-top:12px;padding:14px 16px;text-align:left;font:inherit;color:inherit;cursor:pointer;background:#fff;border:1.5px solid transparent;border-radius:22px;box-shadow:0 6px 20px rgba(60,70,140,.10);transition:transform .18s,box-shadow .18s,border-color .18s}
 .card:hover,.card:focus-visible{transform:translateY(-3px);outline:0;box-shadow:0 14px 30px rgba(60,70,140,.18)}
-.card[data-p=crm]:hover{border-color:#06b6d4}.card[data-p=pals]:hover{border-color:#d946ef}
+.card[data-p=crm]:hover{border-color:#06b6d4}.card[data-p=pals]:hover{border-color:#d946ef}.card[data-p=solo]:hover{border-color:#84cc16}
 .ct{flex:1;min-width:0}.ct small{display:block;color:var(--muted);font-size:.82rem;font-weight:500;margin-top:2px}.arr{color:#94a3b8;font-size:1.2rem;transition:transform .18s}.card:hover .arr{transform:translateX(4px);color:var(--ink)}
 .flogo{display:flex;align-items:center;justify-content:center;gap:12px}.backbtn{display:block;font-size:.88rem;margin:-10px 0 14px -6px;padding:4px 6px;border-radius:8px}.backbtn:hover{color:var(--ink);background:rgba(20,18,46,.05)}
 .field{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit;color:var(--ink);margin-top:10px}.field:focus{outline:2px solid #7c3aed55;border-color:#7c3aed}
@@ -143,6 +143,7 @@ p.sub{color:var(--muted);margin:0 0 20px;font-size:.98rem}
   <p class="sub">What would you like to open?</p>
   <button class="card" type="button" data-p="crm"><span class="ic crm" data-ic="crm"></span><span class="ct"><span class="wm sm"><b>O</b>rchid<span class="lg">CRM</span></span><small>Inquiries, clients and tasks</small></span><span class="arr">→</span></button>
   <button class="card" type="button" data-p="pals"><span class="ic pals" data-ic="pals"></span><span class="ct"><span class="wm sm"><b>O</b>rchid<span class="lg">Pals</span></span><small>Share your thoughts, swap albums</small></span><span class="arr">→</span></button>
+  <button class="card" type="button" data-p="solo"><span class="ic solo" data-ic="solo"></span><span class="ct"><span class="wm sm"><b>O</b>rchid<span class="lg">Solopreneur</span></span><small>Leads, customers and jobs for small business</small></span><span class="arr">→</span></button>
   <div class="fix" id="fix" hidden>
     <p id="fixmsg"></p>
     <input id="fixpass" class="field" type="password" placeholder="Password" autocomplete="current-password" maxlength="200" aria-label="Password to connect Pals">
@@ -156,6 +157,7 @@ p.sub{color:var(--muted);margin:0 0 20px;font-size:.98rem}
 <script>
 const ICONS={
 crm:'<svg viewBox="0 0 28 28" fill="none"><rect x="4" y="14" width="5" height="10" rx="2" fill="#fff"/><rect x="11.5" y="8" width="5" height="16" rx="2" fill="#fff"/><rect x="19" y="3" width="5" height="21" rx="2" fill="#fff" opacity=".75"/></svg>',
+solo:'<svg viewBox="0 0 28 28" fill="none"><path d="M5 12l2-6h14l2 6" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M6 12v11h16V12" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><rect x="11" y="16" width="6" height="7" rx="1.5" fill="#fff" opacity=".75"/><circle cx="23" cy="5" r="2.4" fill="#f97316"/></svg>',
 pals:'<svg viewBox="0 0 28 28" fill="none"><circle cx="11" cy="12" r="7" fill="#fff"/><circle cx="18.5" cy="16" r="7" fill="#fff" fill-opacity=".35" stroke="#fff" stroke-width="1.6"/><circle cx="23" cy="6" r="2.6" fill="#f97316"/><path d="M8 13.6c1.4 1.8 4.6 1.8 6 0" stroke="#7c3aed" stroke-width="1.6" stroke-linecap="round"/></svg>'};
 document.querySelectorAll('[data-ic]').forEach(e=>e.innerHTML=ICONS[e.dataset.ic]);
 
@@ -198,7 +200,7 @@ function renderForm(){
   $('pass').autocomplete=up?'new-password':'current-password';say('');
 }
 function showPick(email){
-  clearTimeout(timer);tiles.forEach(t=>t.classList.remove('dim'));who=email;
+  clearTimeout(timer);tiles.forEach(t=>t.classList.remove('dim'));who=email;const sc=document.querySelector('[data-p=solo]');if(sc)sc.hidden=routeFor(email)==='legal';
   $('who').textContent='Signed in as '+email;$('story').hidden=true;$('form').hidden=true;$('pick').hidden=false;$('fix').hidden=true;say('',0,'pmsg');
 }
 // Link Pals silently using the same email + password (creates the Pals account on first use).
@@ -289,7 +291,7 @@ async function boot(){
 $('next').onclick=()=>idx<last?show(idx+1):showLogin();$('skip').onclick=showLogin;$('replay').onclick=replay;
 $('story').addEventListener('click',e=>{if(!e.target.closest('button')&&idx<last)show(idx+1)});
 document.addEventListener('keydown',e=>{if($('story').hidden)return;if(e.key==='ArrowRight'&&idx<last)show(idx+1);if(e.key==='ArrowLeft'&&idx>0)show(idx-1)});
-document.querySelectorAll('.card').forEach(b=>b.onclick=()=>{if(b.dataset.p==='pals')return openPals();location.assign(APPS[routeFor(who)].page)});
+document.querySelectorAll('.card').forEach(b=>b.onclick=()=>{if(b.dataset.p==='pals')return openPals();if(b.dataset.p==='solo')return location.assign('solopreneur.html');location.assign(APPS[routeFor(who)].page)});
 $('back').onclick=replay;$('logout').onclick=logoutAll;
 $('go').onclick=submit;$('swap').onclick=()=>{mode=mode==='in'?'up':'in';renderForm()};
 $('fixgo').onclick=fixPals;
