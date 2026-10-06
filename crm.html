@@ -75,6 +75,19 @@ main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
 .empty b{display:block;color:var(--ink);margin-bottom:4px}
 .err{color:var(--danger);font-size:.88rem;margin-top:10px;min-height:1.2em}
 
+/* cases */
+.pill.open{background:#dbeafe;color:#1d4ed8}.pill.in_progress{background:#fef3c7;color:#92400e}.pill.waiting{background:#ede9fe;color:#5b21b6}.pill.resolved{background:#d1fae5;color:#065f46}.pill.closed{background:#e2e8f0;color:#475569}
+.pill.urgent,.pill.esc{background:#991b1b;color:#fff}.pill.ch{background:#eef2ff;color:#3730a3}
+.modal.wide{max-width:680px}
+.tl{display:flex;flex-direction:column;gap:6px;margin:14px 0 10px;max-height:240px;overflow:auto}
+.tl .n{padding:8px 12px;border-radius:12px;background:#f1f5f9;font-size:.88rem;overflow-wrap:anywhere;white-space:pre-wrap}
+.tl .n.reply{background:#dbeafe}.tl .n.system{background:transparent;color:var(--muted);font-size:.8rem;padding:2px 12px}
+.tl .who{font-size:.72rem;color:var(--muted);font-weight:700}
+.sla-wrap{overflow-x:auto;margin:8px 0 4px}
+.sla-grid{display:grid;grid-template-columns:70px repeat(3,minmax(70px,1fr)) minmax(150px,1.8fr);gap:8px;align-items:center;min-width:600px}
+.sla-grid input{width:100%;padding:7px 10px;border:1px solid #e2e8f0;border-radius:10px;background:#fff}
+.sec{margin:20px 0 4px;font-size:1rem}
+.hint{color:var(--muted);font-size:.82rem;margin:0 0 6px}
 /* modal */
 .scrim{position:fixed;inset:0;background:rgba(20,18,46,.45);display:grid;place-items:center;padding:18px;z-index:50}
 .modal{background:#fff;border-radius:24px;padding:24px;width:100%;max-width:460px;max-height:92vh;overflow:auto;box-shadow:0 30px 80px rgba(20,18,46,.35)}
@@ -95,11 +108,14 @@ const sb=window.supabase.createClient(SB_URL,SB_KEY);
 
 const $=s=>document.querySelector(s);
 const home=()=>location.replace('index.html');
+const out=()=>location.replace('index.html?logout=1');
 const STATUSES=['new','contacted','quoted','won','lost'];
 const PRIORITIES=['low','normal','high'];
 
 let me=null,clients=[],inquiries=[],tasks=[];
+let cases=[],policies=[],rules=[],casesErr=false,caseFilter='all';
 let view='overview',q='',inqFilter='all',taskFilter='open';
+caseFilter='active';
 
 /* ---- tiny DOM helper (text is always set as text, never HTML) ---- */
 const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]===true)el.setAttribute(k,'');else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&x!==false&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
@@ -115,13 +131,17 @@ const nullify=o=>{for(const k in o)if(typeof o[k]==='string'){o[k]=o[k].trim();i
 
 /* ---- data ---- */
 async function loadAll(){
-  const [c,i,t]=await Promise.all([
+  const [c,i,t,cs,sp,rr]=await Promise.all([
     sb.from('crm_clients').select('*').order('name'),
     sb.from('crm_inquiries').select('*').order('created_at',{ascending:false}),
-    sb.from('crm_tasks').select('*').order('due_date',{ascending:true,nullsFirst:false})
+    sb.from('crm_tasks').select('*').order('due_date',{ascending:true,nullsFirst:false}),
+    sb.from('crm_cases').select('*').order('created_at',{ascending:false}),
+    sb.from('crm_sla_policies').select('*'),
+    sb.from('crm_routing_rules').select('*').order('position',{ascending:true})
   ]);
   const e=c.error||i.error||t.error;if(e)throw e;
   clients=c.data;inquiries=i.data;tasks=t.data;
+  casesErr=!!(cs.error||sp.error||rr.error);cases=cs.data||[];policies=sp.data||[];rules=rr.data||[];
 }
 async function run(p,okMsg){const r=await p;if(r.error)return fail(r.error);try{await loadAll()}catch(e){return fail(e,'Saved, but could not refresh. Please reload.')}if(okMsg)toast(okMsg);render()}
 
@@ -241,14 +261,210 @@ function inquiryRow(i){
     h('div',{class:'acts'},sel,
       isActive(i)?h('button',{class:'btn ghost sm',text:'Log a touch',onclick:()=>logTouch(i)}):null,
       i.client_id?null:h('button',{class:'btn blue sm',text:'Make client',onclick:()=>convert(i)}),
+      caseBtn(i),
       h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editInquiry(i)}),
       h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delInquiry(i)}))));
+}
+
+/* ---- cases: emails, chats and calls become tickets, with routing, SLA clocks and escalation ---- */
+const CASE_STATUSES=['open','in_progress','waiting','resolved','closed'];
+const CASE_PRIO=['low','normal','high','urgent'];
+const PRANK={low:0,normal:1,high:2,urgent:3};
+const CHANNELS=[['email','Email'],['chat','Chat'],['call','Call'],['web','Website'],['other','Other']];
+const caseFilters=[['active','Active'],['breached','SLA breached'],['mine','Mine'],['unassigned','Unassigned'],['resolved','Resolved'],['all','All']];
+const stLabel=s=>s==='in_progress'?'In progress':cap(s);
+const chLabel=c=>(CHANNELS.find(x=>x[0]===c)||[c,cap(c)])[1];
+const caseNo=c=>'CS-'+String(c.number).padStart(4,'0');
+const isLive=c=>c.status==='open'||c.status==='in_progress'||c.status==='waiting';
+const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+function sla(c){
+  const t=Date.now();
+  if(c.status==='resolved'||c.status==='closed'){const late=c.resolved_at&&c.resolve_due_at&&new Date(c.resolved_at)>new Date(c.resolve_due_at);return{t:late?'Resolved late':'Resolved within SLA',cls:late?'warm':'cool',breach:false}}
+  if(c.status==='waiting')return{t:'SLA paused · waiting on customer',cls:'cool',breach:false};
+  const rd=c.response_due_at&&new Date(c.response_due_at),sd=c.resolve_due_at&&new Date(c.resolve_due_at);
+  if(!c.first_response_at&&rd&&rd<t)return{t:'Reply overdue by '+dur(t-rd),cls:'hot',breach:true};
+  if(sd&&sd<t)return{t:'Resolution overdue by '+dur(t-sd),cls:'hot',breach:true};
+  if(!c.first_response_at&&rd){const left=rd-t,tot=rd-new Date(c.created_at);return{t:'Reply due in '+dur(left),cls:left<tot*.25?'warm':'cool',breach:false}}
+  if(sd){const left=sd-t,tot=sd-new Date(c.created_at);return{t:'Resolve in '+dur(left),cls:left<tot*.25?'warm':'cool',breach:false}}
+  return{t:'No SLA',cls:'cool',breach:false};
+}
+const caseFields=()=>[
+  {k:'subject',label:'What is the issue?',req:true},
+  {k:'channel',label:'Where did it come from?',type:'select',options:CHANNELS.map(([v,t])=>({v,t})),def:'email'},
+  {k:'priority',label:'Priority (routing rules may raise it)',type:'select',options:CASE_PRIO.map(p=>({v:p,t:cap(p)})),def:'normal'},
+  {k:'requester_name',label:'Customer name'},
+  {k:'requester_email',label:'Customer email',type:'email'},
+  {k:'requester_phone',label:'Customer phone',type:'tel'},
+  {k:'assigned_to',label:'Assign to (email)',type:'email',placeholder:'Leave empty to route automatically'},
+  {k:'client_id',label:'Client',type:'select',options:clientOptions()},
+  {k:'description',label:'Details',type:'textarea'}
+];
+const addCase=(pre={})=>openForm({title:'New case',fields:caseFields(),values:{channel:'email',priority:'normal',client_id:'',...pre.values},saveText:'Create case',onSave:v=>run(sb.from('crm_cases').insert({...v,...pre.extra}),'Case created. Routing rules and SLA clocks applied.')});
+const editCase=c=>openForm({title:'Edit '+caseNo(c),fields:caseFields(),values:{...c,client_id:c.client_id||''},onSave:v=>run(sb.from('crm_cases').update(v).eq('id',c.id),'Case saved.')});
+const caseFromInquiry=i=>addCase({values:{subject:'Inquiry from '+i.name,channel:'web',requester_name:i.name,requester_email:i.email||'',requester_phone:i.phone||'',description:i.message||'',client_id:i.client_id||''},extra:{inquiry_id:i.id,source_ref:'inquiry:'+i.id}});
+const caseBtn=i=>{const ex=cases.find(c=>c.inquiry_id===i.id);return h('button',{class:'btn ghost sm',text:ex?'View case':'Open case',onclick:()=>ex?openCase(ex.id):caseFromInquiry(i)})};
+const setCaseStatus=(c,s)=>run(sb.from('crm_cases').update({status:s}).eq('id',c.id));
+const assignCase=c=>openForm({title:'Assign '+caseNo(c),fields:[{k:'assigned_to',label:'Assign to (email)',type:'email',placeholder:'Leave empty to unassign'}],values:{assigned_to:c.assigned_to||''},saveText:'Assign',onSave:v=>run(sb.from('crm_cases').update({assigned_to:v.assigned_to}).eq('id',c.id),'Assignment saved.')});
+const takeCase=c=>run(sb.from('crm_cases').update({assigned_to:me.email}).eq('id',c.id),'Assigned to you.');
+const delCase=c=>{if(confirm('Delete '+caseNo(c)+' and its history?'))run(sb.from('crm_cases').delete().eq('id',c.id),'Case deleted.')};
+async function escalateCase(c){
+  if(!confirm('Escalate '+caseNo(c)+'? Its priority goes up one step and it moves to the escalation contact for its priority.'))return;
+  const r=await sb.rpc('crm_escalate_case',{p_id:c.id});if(r.error)return fail(r.error);
+  try{await loadAll()}catch(e){return fail(e)}toast('Escalated.');render();
+}
+async function sweep(){try{const r=await sb.rpc('crm_run_escalations');if(!r.error&&r.data>0){await loadAll();render()}}catch(e){console.error(e)}}
+function caseRow(c){
+  const s=sla(c),live=isLive(c);
+  const sel=h('select',{'aria-label':'Status for '+caseNo(c),style:'width:auto;padding:6px 10px;border-radius:999px;font-size:.8rem;font-weight:700',onchange:e=>setCaseStatus(c,e.target.value)},CASE_STATUSES.map(x=>h('option',{value:x,text:stLabel(x)})));
+  sel.value=c.status;
+  const who=[c.requester_name||c.requester_email,c.assigned_to?'Assigned to '+c.assigned_to:'Unassigned',ago(c.created_at)].filter(Boolean).join(' · ');
+  return h('div',{class:'card item'},h('div',{class:'body'},
+    h('div',{class:'t'},h('span',{class:'muted',text:caseNo(c)+' '}),c.subject,
+      h('span',{class:'pill '+c.status,text:stLabel(c.status)}),
+      c.priority!=='normal'?h('span',{class:'pill '+c.priority,text:cap(c.priority)}):null,
+      h('span',{class:'pill ch',text:chLabel(c.channel)}),
+      c.escalation_level?h('span',{class:'pill esc',text:'Escalated L'+c.escalation_level}):null),
+    h('div',{class:'s'},h('span',{class:'pill '+s.cls,style:'margin:0 8px 0 0',text:s.t}),who),
+    c.description?h('div',{class:'m',text:c.description.length>220?c.description.slice(0,220)+'…':c.description}):null,
+    h('div',{class:'acts'},sel,
+      h('button',{class:'btn blue sm',text:'Details',onclick:()=>openCase(c.id)}),
+      live&&(c.assigned_to||'').toLowerCase()!==me.email.toLowerCase()?h('button',{class:'btn ghost sm',text:'Take it',onclick:()=>takeCase(c)}):null,
+      live?h('button',{class:'btn ghost sm',text:'Assign',onclick:()=>assignCase(c)}):null,
+      live&&c.escalation_level<2?h('button',{class:'btn ghost sm',text:'Escalate',onclick:()=>escalateCase(c)}):null,
+      h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editCase(c)}),
+      h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delCase(c)}))));
+}
+function caseInFilter(c){
+  const live=isLive(c);
+  if(caseFilter==='active')return live;
+  if(caseFilter==='breached')return live&&sla(c).breach;
+  if(caseFilter==='mine')return live&&(c.assigned_to||'').toLowerCase()===me.email.toLowerCase();
+  if(caseFilter==='unassigned')return live&&!c.assigned_to;
+  if(caseFilter==='resolved')return !live;
+  return true;
+}
+function casesView(){
+  if(casesErr)return empty('Cases are not set up yet','The case tables could not be loaded. Ask your admin to run the case management setup, then reload.');
+  const list=cases.filter(c=>caseInFilter(c)&&match(c,['subject','description','requester_name','requester_email','assigned_to'])).sort((a,b)=>{
+    const la=isLive(a),lb=isLive(b);if(la!==lb)return la?-1:1;
+    if(la){const ba=sla(a).breach,bb=sla(b).breach;if(ba!==bb)return ba?-1:1;if(PRANK[a.priority]!==PRANK[b.priority])return PRANK[b.priority]-PRANK[a.priority];return new Date(a.created_at)-new Date(b.created_at)}
+    return new Date(b.created_at)-new Date(a.created_at)});
+  return h('div',{},
+    h('div',{class:'bar'},searchBar('Search cases'),chips(caseFilters,caseFilter,v=>caseFilter=v),h('span',{class:'sp'}),h('button',{class:'btn ghost',text:'Rules & SLA',onclick:openCaseSettings}),h('button',{class:'btn blue',text:'New case',onclick:()=>addCase()})),
+    list.length?h('div',{class:'list'},list.map(caseRow)):empty(cases.length?'Nothing here':'No cases yet',cases.length?'Try a different filter or search.':'Log an email, chat or call as a case, or open one from an inquiry.',cases.length?null:h('button',{class:'btn blue',text:'New case',onclick:()=>addCase()})));
+}
+function openCase(id){
+  const get=()=>cases.find(x=>x.id===id);
+  if(!get())return;
+  const head=h('div'),log=h('div',{class:'tl'}),err=h('div',{class:'err',role:'alert'});
+  const txt=h('textarea',{placeholder:'What did you tell the customer, or what should the team know?','aria-label':'Reply or note'});
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)};
+  const esc=e=>{if(e.key==='Escape')close()};
+  function paintHead(){
+    const c=get();if(!c)return close();const s=sla(c);
+    head.replaceChildren(
+      h('h2',{text:caseNo(c)+' · '+c.subject}),
+      h('div',{style:'margin:6px 0'},h('span',{class:'pill '+c.status,style:'margin-left:0',text:stLabel(c.status)}),c.priority!=='normal'?h('span',{class:'pill '+c.priority,text:cap(c.priority)}):null,h('span',{class:'pill ch',text:chLabel(c.channel)}),c.escalation_level?h('span',{class:'pill esc',text:'Escalated L'+c.escalation_level}):null,h('span',{class:'pill '+s.cls,text:s.t})),
+      h('div',{class:'muted',style:'font-size:.85rem',text:[c.requester_name,c.requester_email,c.requester_phone].filter(Boolean).join(' · ')||'No customer details'}),
+      h('div',{class:'muted',style:'font-size:.85rem',text:(c.assigned_to?'Assigned to '+c.assigned_to:'Unassigned')+(c.routed_rule?' · Rule: '+c.routed_rule:'')+' · Opened '+ago(c.created_at)}),
+      c.description?h('div',{style:'margin-top:10px;white-space:pre-wrap;overflow-wrap:anywhere',text:c.description}):null);
+  }
+  async function loadNotes(){
+    const r=await sb.from('crm_case_notes').select('*').eq('case_id',id).order('created_at',{ascending:true});
+    if(r.error){log.replaceChildren(h('div',{class:'muted',text:'Could not load the history.'}));return}
+    log.replaceChildren(...r.data.map(n=>h('div',{class:'n '+n.kind},h('div',{class:'who',text:[n.kind==='system'?null:cap(n.kind),n.author,ago(n.created_at)].filter(Boolean).join(' · ')}),n.body)));
+    log.scrollTop=log.scrollHeight;
+  }
+  async function add(kind){
+    const body=txt.value.trim();if(!body){err.textContent='Write something first.';return}
+    err.textContent='';btns.forEach(b=>b.disabled=true);
+    try{
+      const r=await sb.from('crm_case_notes').insert({case_id:id,kind,body,author:me.email});
+      if(r.error){err.textContent='Could not save. Please try again.';return}
+      txt.value='';await loadAll();paintHead();await loadNotes();render();
+    }catch(e){err.textContent='Saved, but could not refresh. Please reload.'}
+    finally{btns.forEach(b=>b.disabled=false)}
+  }
+  const bReply=h('button',{class:'btn blue',text:'Log reply sent',onclick:()=>add('reply')});
+  const bNote=h('button',{class:'btn ghost',text:'Add internal note',onclick:()=>add('note')});
+  const btns=[bReply,bNote];
+  const scrim=h('div',{class:'scrim',onclick:e=>{if(e.target===scrim)close()}},
+    h('div',{class:'modal wide',role:'dialog','aria-modal':'true','aria-label':'Case details'},
+      head,h('h3',{class:'sec',text:'History'}),log,txt,
+      h('p',{class:'hint',text:'Logging a reply records your first response and stops the reply timer. It does not send an email.'}),err,
+      h('div',{class:'row'},h('button',{class:'btn ghost',text:'Close',onclick:close}),bNote,bReply)));
+  document.body.append(scrim);document.addEventListener('keydown',esc);
+  paintHead();loadNotes();
+}
+const ruleFields=()=>[
+  {k:'name',label:'Rule name',req:true,placeholder:'e.g. Billing questions'},
+  {k:'channel',label:'When the channel is',type:'select',options:[{v:'',t:'Any channel'},...CHANNELS.map(([v,t])=>({v,t}))]},
+  {k:'keyword',label:'And the text contains any of these words',placeholder:'refund, invoice, urgent (comma separated)'},
+  {k:'set_priority',label:'Then set priority to',type:'select',options:[{v:'',t:'Leave as is'},...CASE_PRIO.map(p=>({v:p,t:cap(p)}))]},
+  {k:'assign_to',label:'And assign to (email)',type:'email'}
+];
+function openCaseSettings(){
+  const order=['urgent','high','normal','low'];
+  const num=v=>h('input',{type:'number',min:'1',step:'1',value:v==null?'':String(v)});
+  const rows=order.map(p=>{const pol=policies.find(x=>x.priority===p)||{};return{p,a:num(pol.response_mins),b:num(pol.resolve_mins),c:num(pol.escalate_after_mins),d:h('input',{type:'email',value:pol.escalate_to||'',placeholder:'optional','aria-label':'Escalate '+p+' cases to'})}});
+  const grid=h('div',{class:'sla-grid'},...['Priority','Reply within (min)','Resolve within (min)','Escalate again after (min)','Escalate to (email)'].map(t=>h('b',{text:t,style:'font-size:.72rem'})),
+    ...rows.flatMap(r=>[h('span',{class:'pill '+r.p,style:'margin:0;text-align:center',text:cap(r.p)}),r.a,r.b,r.c,r.d]));
+  const err=h('div',{class:'err',role:'alert'});
+  const list=h('div',{class:'list'});
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)};
+  const esc=e=>{if(e.key==='Escape')close()};
+  const saveSla=async()=>{
+    const out=[];
+    for(const r of rows){
+      const a=+r.a.value,b=+r.b.value,c=+r.c.value,to=r.d.value.trim();
+      if(![a,b,c].every(n=>Number.isInteger(n)&&n>0)){err.textContent='Use whole minutes above 0 for every '+r.p+' value.';return}
+      if(to&&!EMAIL_RE.test(to)){err.textContent='Enter a valid escalation email for '+r.p+'.';return}
+      out.push({priority:r.p,response_mins:a,resolve_mins:b,escalate_after_mins:c,escalate_to:to||null});
+    }
+    err.textContent='';await run(sb.from('crm_sla_policies').upsert(out,{onConflict:'priority'}),'SLA times saved. New cases use them right away.');
+  };
+  const condText=r=>[r.channel?'the channel is '+chLabel(r.channel):'any channel',r.keyword?'the text has any of: '+r.keyword:'any text'].join(', and ');
+  const doText=r=>[r.set_priority?'set priority '+r.set_priority:null,r.assign_to?'assign to '+r.assign_to:null].filter(Boolean).join(', ')||'no action';
+  const sorted=()=>[...rules].sort((a,b)=>a.position-b.position);
+  async function moveUp(r){
+    const l=sorted(),i=l.findIndex(x=>x.id===r.id);if(i<1)return;const p=l[i-1];
+    const e1=await sb.from('crm_routing_rules').update({position:p.position===r.position?p.position+1:r.position}).eq('id',p.id);if(e1.error)return fail(e1.error);
+    await run(sb.from('crm_routing_rules').update({position:p.position===r.position?r.position-1:p.position}).eq('id',r.id));paint();
+  }
+  function paint(){
+    const l=sorted();
+    list.replaceChildren(...(l.length?l.map((r,i)=>h('div',{class:'card item',style:r.active?'':'opacity:.6'},h('div',{class:'body'},
+      h('div',{class:'t'},(i+1)+'. '+r.name,r.active?null:h('span',{class:'pill',text:'Paused'})),
+      h('div',{class:'s',text:'If '+condText(r)+'.'}),h('div',{class:'s',text:'Then '+doText(r)+'.'}),
+      h('div',{class:'acts'},
+        i>0?h('button',{class:'btn ghost sm',text:'Move up',onclick:()=>moveUp(r)}):null,
+        h('button',{class:'btn ghost sm',text:r.active?'Pause':'Resume',onclick:async()=>{await run(sb.from('crm_routing_rules').update({active:!r.active}).eq('id',r.id));paint()}}),
+        h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>openForm({title:'Edit rule',fields:ruleFields(),values:{...r,channel:r.channel||'',set_priority:r.set_priority||''},onSave:async v=>{await run(sb.from('crm_routing_rules').update(v).eq('id',r.id),'Rule saved.');paint()}})}),
+        h('button',{class:'btn ghost sm danger',text:'Delete',onclick:async()=>{if(confirm('Delete the rule "'+r.name+'"?')){await run(sb.from('crm_routing_rules').delete().eq('id',r.id),'Rule deleted.');paint()}}})))))
+      :[h('div',{class:'muted',text:'No rules yet. New cases will keep the priority you choose and stay unassigned.'})]));
+  }
+  const addRule=()=>openForm({title:'New routing rule',fields:ruleFields(),values:{channel:'',set_priority:''},saveText:'Add rule',onSave:async v=>{const pos=rules.reduce((m,r)=>Math.max(m,r.position),0)+10;await run(sb.from('crm_routing_rules').insert({...v,position:pos}),'Rule added.');paint()}});
+  const scrim=h('div',{class:'scrim',onclick:e=>{if(e.target===scrim)close()}},
+    h('div',{class:'modal wide',role:'dialog','aria-modal':'true','aria-label':'Rules and SLA'},
+      h('h2',{text:'Rules & SLA'}),
+      h('h3',{class:'sec',text:'Response and resolution times'}),
+      h('p',{class:'hint',text:'Each priority has a reply deadline and a resolve deadline. When either is missed, the case is escalated: priority goes up one step and it moves to the contact below. If it is still unresolved after the "escalate again" time, it escalates once more. The clock pauses while a case is waiting on the customer. New times apply to new cases.'}),
+      h('div',{class:'sla-wrap'},grid),
+      h('div',{class:'row',style:'margin-top:10px'},h('button',{class:'btn blue',text:'Save times',onclick:saveSla})),
+      h('h3',{class:'sec',text:'Routing rules'}),
+      h('p',{class:'hint',text:'When a case is created, the first matching rule (top to bottom) sets its priority and owner. A rule only changes priority if you left it on Normal, and only assigns if nobody was chosen.'}),
+      list,
+      h('div',{class:'row',style:'justify-content:flex-start'},h('button',{class:'btn ghost',text:'Add rule',onclick:addRule})),
+      err,h('div',{class:'row'},h('button',{class:'btn ghost',text:'Done',onclick:close}))));
+  document.body.append(scrim);document.addEventListener('keydown',esc);paint();
 }
 
 /* ---- views ---- */
 function nextMove(){
   const od=tasks.filter(isOverdue).sort((a,b)=>a.due_date<b.due_date?-1:1)[0];
   if(od)return{k:'Overdue task',w:od.title,b:'Mark done',go:()=>toggleTask(od)};
+  const bc=cases.filter(c=>isLive(c)&&sla(c).breach).sort((a,b)=>PRANK[b.priority]-PRANK[a.priority])[0];
+  if(bc)return{k:'SLA breached',w:caseNo(bc)+' · '+bc.subject+' ('+sla(bc).t.toLowerCase()+')',b:'Open case',go:()=>openCase(bc.id)};
   const nw=inquiries.filter(i=>i.status==='new').sort((a,b)=>waitMs(b)-waitMs(a))[0];
   if(nw)return{k:'Longest wait',w:'Reply to '+nw.name+' (waiting '+dur(waitMs(nw))+')',b:"I've replied",go:()=>setStatus(nw,'contacted')};
   const co=inquiries.filter(i=>isActive(i)&&idleDays(i)>=5).sort((a,b)=>idleDays(b)-idleDays(a))[0];
@@ -269,9 +485,10 @@ function overview(){
   const nNew=inquiries.filter(i=>i.status==='new').length;
   const open=tasks.filter(t=>!t.done),over=open.filter(isOverdue).length;
   const stat=(v,l,hot)=>h('div',{class:'card stat'+(hot&&v>0?' hot':'')},h('div',{class:'v',text:String(v)}),h('div',{class:'l',text:l}));
+  const liveCases=cases.filter(isLive).length,breached=cases.filter(c=>isLive(c)&&sla(c).breach).length;
   const recent=inquiries.slice(0,5),upcoming=open.slice(0,6);
   return h('div',{},nextCard(),
-    h('div',{class:'stats'},stat(nNew,'New inquiries'),stat(avgReply(),'Avg first reply'),stat(open.length,'Open tasks'),stat(over,'Overdue tasks',true),stat(clients.length,'Clients')),
+    h('div',{class:'stats'},stat(nNew,'New inquiries'),stat(avgReply(),'Avg first reply'),stat(open.length,'Open tasks'),stat(over,'Overdue tasks',true),stat(liveCases,'Open cases'),stat(breached,'SLA breached',true),stat(clients.length,'Clients')),
     h('div',{class:'grid2'},
       h('div',{},h('div',{class:'bar'},h('h3',{style:'margin:0',text:'Latest inquiries'}),h('span',{class:'sp'}),h('button',{class:'btn ghost sm',text:'Add inquiry',onclick:addInquiry})),
         recent.length?h('div',{class:'list'},recent.map(inquiryRow)):empty('No inquiries yet','Add one when someone gets in touch.')),
@@ -307,14 +524,15 @@ function tasksView(){
 }
 
 function appView(){
-  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['clients','Clients'],['tasks','Tasks',tasks.filter(t=>!t.done).length]];
-  const body=view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():overview();
+  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['cases','Cases',cases.filter(isLive).length],['clients','Clients'],['tasks','Tasks',tasks.filter(t=>!t.done).length]];
+  const body=view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():overview();
   return h('div',{},
     h('header',{class:'top'},h('div',{class:'top-in'},
       h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'CRM'})),
       h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0)}},t,n?h('span',{class:'n',text:String(n)}):null))),
       h('span',{class:'sp'}),
       h('span',{class:'muted',style:'font-size:.82rem',text:me.email}),
+      h('button',{class:'btn ghost sm',text:'Apps',onclick:home}),
       h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
     h('main',{},body));
 }
@@ -330,18 +548,20 @@ function render(){
   window.scrollTo(0,y);
 }
 let ready=false;
-async function logout(){try{await sb.auth.signOut()}catch(e){}home()}
+async function logout(){try{await sb.auth.signOut()}catch(e){}out()}
 
 async function init(){
   $('#app').replaceChildren(h('div',{class:'center'},h('p',{class:'muted',text:'Loading…'})));
   const {data:{session}}=await sb.auth.getSession();
   if(!session)return home();
-  sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')home()});
+  sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')out()});
   me={id:session.user.id,email:session.user.email};
   const m=await sb.from('crm_members').select('email').limit(1);
   if(m.error||!m.data||!m.data.length){ready=false;return render()}
   try{await loadAll();ready=true}catch(e){console.error(e);ready=false;return $('#app').replaceChildren(h('div',{class:'center'},h('div',{class:'panel'},h('h1',{text:'Could not load the CRM'}),h('p',{class:'sub',text:'The CRM tables may not be set up yet. Run crm_setup.sql in Supabase, then reload.'}),h('button',{class:'btn primary wide',text:'Reload',onclick:()=>location.reload()}))))}
   render();
+  sweep();
+  setInterval(()=>{sweep();const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()},60000);
 }
 init().catch(e=>{console.error(e);home()});
 })();
