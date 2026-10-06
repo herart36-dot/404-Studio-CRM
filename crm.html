@@ -315,7 +315,20 @@ main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
 
 .tbl{width:100%;border-collapse:collapse;font-size:.88rem}.tbl th{text-align:left;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;white-space:nowrap}.tbl td{padding:10px;border-top:1px solid var(--line);white-space:nowrap}.tbl .n{text-align:right;font-variant-numeric:tabular-nums}.tblwrap{overflow-x:auto;max-width:100%}
 .pill.st-active{background:#d1fae5;color:#065f46}.pill.st-lunch{background:#fef3c7;color:#92400e}.pill.st-meeting{background:#ede9fe;color:#5b21b6}.pill.st-out{background:#e2e8f0;color:#475569}
-.mybar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.mybar .chip[aria-pressed=true]{background:var(--dark);border-color:var(--dark)}
+.mybar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.mybar{border-left:6px solid #cbd5e1}
+.mybar.s-active{border-left-color:#059669}.mybar.s-lunch{border-left-color:#d97706}.mybar.s-meeting{border-left-color:#7c3aed}.mybar.s-out{border-left-color:#64748b}
+.mybar .cur.s-active{color:#047857}.mybar .cur.s-lunch{color:#b45309}.mybar .cur.s-meeting{color:#6d28d9}.mybar .cur.s-out{color:#475569}
+.mybar .chip{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;transition:background .15s,color .15s,border-color .15s,box-shadow .15s}
+.mybar .chip::before{content:'';width:9px;height:9px;border-radius:50%;background:currentColor;flex:none}
+.mybar .chip.st-active{color:#047857;background:#ecfdf5;border-color:#a7f3d0}
+.mybar .chip.st-lunch{color:#b45309;background:#fffbeb;border-color:#fde68a}
+.mybar .chip.st-meeting{color:#6d28d9;background:#f5f3ff;border-color:#ddd6fe}
+.mybar .chip.st-out{color:#475569;background:#f1f5f9;border-color:#cbd5e1}
+.mybar .chip:hover{box-shadow:0 2px 8px rgba(20,18,46,.12)}
+.mybar .chip.st-active[aria-pressed=true]{background:#059669;border-color:#059669;color:#fff}
+.mybar .chip.st-lunch[aria-pressed=true]{background:#d97706;border-color:#d97706;color:#fff}
+.mybar .chip.st-meeting[aria-pressed=true]{background:#7c3aed;border-color:#7c3aed;color:#fff}
+.mybar .chip.st-out[aria-pressed=true]{background:#64748b;border-color:#64748b;color:#fff}
 </style>
 </head>
 <body>
@@ -1004,13 +1017,13 @@ function statusBar(){
   if(presErr)return null;
   const mine=pres.find(r=>low(r.email)===low(me.email)&&!r.ended_at);
   const t=secondsBy(low(me.email),rangeStart('today').getTime(),Date.now());
-  return h('div',{class:'card mybar'},
+  return h('div',{class:'card mybar'+(mine?' s-'+mine.status:'')},
     h('div',{},
       h('div',{class:'muted',style:'font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em',text:'My status'}),
-      h('div',{style:'font-weight:800'},mine?ST[mine.status].l:'Not checked in',mine?h('span',{class:'muted',style:'font-weight:600;font-size:.82rem;margin-left:8px',text:'since '+fmtClock(mine.started_at)}):null)
+      h('div',{class:'cur'+(mine?' s-'+mine.status:''),style:'font-weight:800'},mine?ST[mine.status].l:'Not checked in',mine?h('span',{class:'muted',style:'font-weight:600;font-size:.82rem;margin-left:8px',text:'since '+fmtClock(mine.started_at)}):null)
     ),
     h('span',{class:'sp'}),
-    h('div',{class:'chips'},Object.keys(ST).map(k=>h('button',{class:'chip',type:'button','aria-pressed':String(!!mine&&mine.status===k),text:ST[k].t,onclick:()=>setMyStatus(k)}))),
+    h('div',{class:'chips'},Object.keys(ST).map(k=>h('button',{class:'chip st-'+k,type:'button','aria-pressed':String(!!mine&&mine.status===k),text:ST[k].t,onclick:()=>setMyStatus(k)}))),
     h('div',{class:'muted',style:'font-size:.78rem;flex-basis:100%',text:'Today: Active '+fmtDur(t.active)+' · Meeting '+fmtDur(t.meeting)+' · Lunch '+fmtDur(t.lunch)+' · Out '+fmtDur(t.out)+'. Your admin can see your status and these totals.'})
   );
 }
