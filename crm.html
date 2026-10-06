@@ -161,6 +161,8 @@ const STATUSES=['new','contacted','quoted','won','lost'];
 const PRIORITIES=['low','normal','high'];
 
 let me=null,clients=[],inquiries=[],tasks=[],members=JSON.parse(localStorage.getItem('orchid_crm_members')||'[]');
+const taskAssignments=()=>JSON.parse(localStorage.getItem('orchid_crm_task_assignments')||'{}');
+const saveTaskAssignment=(id,email)=>{const a=taskAssignments();if(email)a[id]=email;else delete a[id];localStorage.setItem('orchid_crm_task_assignments',JSON.stringify(a))};
 let cases=[],policies=[],rules=[],casesErr=false,caseFilter='all';
 let view='overview',q='',inqFilter='all',taskFilter='open';
 let chatMsgs=[],chatErr=false,chatSel=null,chatOpen=false,chatMode='out',chatQ='',chatSub=null;const chatDrafts={};
@@ -189,7 +191,9 @@ async function loadAll(){
     sb.from('crm_routing_rules').select('*').order('position',{ascending:true})
   ]);
   const e=c.error||i.error||t.error;if(e)throw e;
-  clients=c.data;inquiries=i.data;tasks=t.data;
+  clients=c.data;inquiries=i.data;
+  const assigned=taskAssignments();
+  tasks=(t.data||[]).map(x=>({...x,assigned_to:assigned[x.id]||''}));
   casesErr=!!(cs.error||sp.error||rr.error);cases=cs.data||[];policies=sp.data||[];rules=rr.data||[];
 }
 async function run(p,okMsg){const r=await p;if(r.error)return fail(r.error);try{await loadAll()}catch(e){return fail(e,'Saved, but could not refresh. Please reload.')}if(okMsg)toast(okMsg);render()}
@@ -276,8 +280,8 @@ const taskFields=()=>[
   {k:'priority',label:'Priority',type:'select',options:PRIORITIES.map(p=>({v:p,t:cap(p)})),def:'normal'},
   {k:'client_id',label:'Client',type:'select',options:clientOptions()}
 ];
-const addTask=(client_id)=>openForm({title:'New task',fields:taskFields(),values:{client_id:client_id||'',assigned_to:''},saveText:'Add task',onSave:v=>{delete v.assigned_to;return run(sb.from('crm_tasks').insert(v),'Task added.')}});
-const editTask=t=>openForm({title:'Edit task',fields:taskFields(),values:{...t,assigned_to:'',client_id:t.client_id||'',due_date:t.due_date||''},onSave:v=>{delete v.assigned_to;return run(sb.from('crm_tasks').update(v).eq('id',t.id),'Task saved.')}});
+const addTask=(client_id)=>openForm({title:'New task',fields:taskFields(),values:{client_id:client_id||'',assigned_to:''},saveText:'Add task',onSave:async v=>{const assigned=v.assigned_to||'';delete v.assigned_to;const r=await sb.from('crm_tasks').insert(v).select().single();if(r.error)return fail(r.error);saveTaskAssignment(r.data.id,assigned);await loadAll();toast('Task added.');render()}});
+const editTask=t=>openForm({title:'Edit task',fields:taskFields(),values:{...t,assigned_to:t.assigned_to||'',client_id:t.client_id||'',due_date:t.due_date||''},onSave:async v=>{const assigned=v.assigned_to||'';delete v.assigned_to;const r=await sb.from('crm_tasks').update(v).eq('id',t.id);if(r.error)return fail(r.error);saveTaskAssignment(t.id,assigned);await loadAll();toast('Task saved.');render()}});
 const toggleTask=t=>run(sb.from('crm_tasks').update({done:!t.done}).eq('id',t.id));
 const delTask=t=>{if(confirm('Delete this task?'))run(sb.from('crm_tasks').delete().eq('id',t.id),'Task deleted.')};
 const memberName=email=>{const m=members.find(x=>(x.email||'').toLowerCase()===(email||'').toLowerCase());return m?(m.name||m.email):email||''};
@@ -733,9 +737,30 @@ function clientsView(){
     list.length?h('div',{class:'list'},list.map(row)):empty(clients.length?'No matches':'No clients yet',clients.length?'Try a different search.':'Add a client, or turn an inquiry into one.',clients.length?null:h('button',{class:'btn blue',text:'Add client',onclick:addClient})));
 }
 function membersView(){
+  const list=members.length
+    ? h('div',{class:'list'},members.map((m,i)=>
+        h('div',{class:'card item'},
+          h('div',{class:'body'},
+            h('div',{class:'t',text:m.name||m.email}),
+            h('div',{class:'s',text:m.email}),
+            h('div',{class:'acts'},
+              h('button',{class:'btn ghost sm danger',text:'Remove',onclick:()=>removeMember(i)})
+            )
+          )
+        )
+      ))
+    : empty('No members yet','Add a member here so the task assignment option is ready for them.');
   return h('div',{},
-    h('div',{class:'bar'},h('div',{},h('h3',{style:'margin:0',text:'CRM Members'}),h('div',{class:'muted',style:'font-size:.82rem;margin-top:3px',text:'Prepared member list. Supabase access and task assignment will be connected later.'})),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'Add member',onclick:addMember})),
-    members.length?h('div',{class:'list'},members.map((m,i)=>h('div',{class:'card item'},h('div',{class:'body'},h('div',{class:'t',text:m.name||m.email}),h('div',{class:'s',text:m.email}),h('div',{class:'acts'},h('button',{class:'btn ghost sm danger',text:'Remove',onclick:()=>removeMember(i)})))))):empty('No members yet','Add a member here so the task assignment option is ready for them.')));
+    h('div',{class:'bar'},
+      h('div',{},
+        h('h3',{style:'margin:0',text:'CRM Members'}),
+        h('div',{class:'muted',style:'font-size:.82rem;margin-top:3px',text:'Prepared member list. Supabase access and task assignment will be connected later.'})
+      ),
+      h('span',{class:'sp'}),
+      h('button',{class:'btn blue',text:'Add member',onclick:addMember})
+    ),
+    list
+  );
 }
 const addMember=()=>openForm({title:'Add CRM member',fields:[{k:'name',label:'Name',req:true},{k:'email',label:'Email',type:'email',req:true}],saveText:'Add member',onSave:v=>{if(members.some(m=>m.email.toLowerCase()===v.email.toLowerCase())){toast('That email is already a member.');return}members.push(v);localStorage.setItem('orchid_crm_members',JSON.stringify(members));toast('Member added.');render()}});
 const removeMember=i=>{const m=members[i];if(!m)return;if(!confirm('Remove '+(m.name||m.email)+' from this local member list?'))return;members.splice(i,1);localStorage.setItem('orchid_crm_members',JSON.stringify(members));toast('Member removed.');render()};
