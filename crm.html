@@ -6,7 +6,7 @@
 <title>Orchid CRM</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f3f5fa;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:rgba(15,23,42,.08);--brand:#2563eb;--brand-d:#1d4ed8;--grad:linear-gradient(135deg,#2563eb,#06b6d4);--glass:rgba(255,255,255,.88);--sh:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.05);--dark:#0f172a;--bd:#d8dfea;--r:10px;--r-lg:14px;--danger:#be123c;--ok:#047857;--warn:#b45309;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}html,body{margin:0;min-height:100%}
@@ -350,6 +350,58 @@ main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
 .av.a0{background:#2563eb}.av.a1{background:#0d9488}.av.a2{background:#4f46e5}.av.a3{background:#7c3aed}.av.a4{background:#059669}.av.a5{background:#ea580c}.av.a6{background:#be185d}
 .pill.ch{background:#e0e7ff;color:#3730a3}
 @media(max-width:760px){.sel-sm{min-height:36px}}
+
+/* ===== RESTYLE: monday-style workspace (sidebar nav, white canvas, soft glow) ===== */
+:root{--bg:#fff;--card:#fff;--glass:#fff;--ink:#323338;--muted:#676879;--line:#e6e9ef;--bd:#c3c6d4;--brand:#0073ea;--brand-d:#0060b9;--dark:#0073ea;--grad:linear-gradient(135deg,#0073ea,#a25ddc);--r:8px;--r-lg:12px;--sh:none;--danger:#d83a52;--ok:#00854d;--warn:#b86e00}
+body{font-family:'Figtree','Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:var(--ink);background:radial-gradient(760px 380px at 88% 100%,rgba(255,176,128,.16),transparent 70%),radial-gradient(760px 380px at 45% 104%,rgba(162,134,255,.15),transparent 70%),#fff;background-attachment:fixed}
+:focus-visible{outline:3px solid rgba(0,115,234,.4)}
+input:focus,textarea:focus,select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(0,115,234,.18)}
+.panel,.card{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:none}
+.btn{border-radius:8px;font-weight:500}
+.primary,.blue{background:var(--brand);box-shadow:none}.primary:hover:not(:disabled),.blue:hover:not(:disabled){background:var(--brand-d)}
+.ghost{border-color:var(--bd);box-shadow:none}.ghost:hover:not(:disabled){background:#f5f6f8;border-color:#a6aabd}
+.toast{background:#323338;border-radius:8px}
+.chip{border-radius:8px;font-weight:500}.chip:hover{background:#f5f6f8}
+.chip[aria-pressed=true]{background:var(--brand);border-color:var(--brand)}
+.pill{background:#e6e9ef;color:#323338;font-weight:500}
+.stat{background-image:none}.stat::before{width:4px}
+.stat .v{font-weight:600}
+.next{background:#fff8ec;background-image:none;border-left-color:#fdab3d}
+.c-blue{--c:#0073ea;--cs:transparent}.c-teal{--c:#00c875}.c-emerald{--c:#00c875}.c-amber{--c:#fdab3d}.c-rose{--c:#df2f4a}.c-violet{--c:#a25ddc}.c-indigo{--c:#5559df}
+.cc:hover{background:#f5f6f8}.cc[aria-current=true]{background:#cce5ff}
+.msg.out .bub{background:var(--brand)}
+.msg.in .bub{border-color:var(--line)}
+.seg{background:#e6e9ef}
+.tbl th{font-weight:500}
+.mybar{border-left-width:4px}
+/* top bar */
+.top{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;border-bottom:1px solid var(--line);box-shadow:none}
+.top-in{max-width:none;margin:0;padding:10px 20px;display:flex;flex-wrap:nowrap;align-items:center;gap:10px;width:100%}
+.wm .lg{color:#676879}
+.top-in>.btn.sm{border-radius:8px;min-height:34px}
+/* sidebar + content */
+.shell{display:flex;align-items:flex-start;min-height:calc(100vh - 57px)}
+.side{width:248px;flex:none;position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto;padding:16px 12px;background:#fff;border-right:1px solid var(--line)}
+.side .tabs{display:flex;flex-direction:column;gap:2px;overflow:visible;padding:0}
+.side .tab{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:9px 12px;border-radius:8px;border:0;font-weight:500;font-size:.94rem;color:#323338;min-height:0;line-height:1.3}
+.side .tab:hover{background:#e6e9ef;color:#323338}
+.side .tab[aria-selected=true]{background:#cce5ff;color:#323338;box-shadow:none;border:0}
+.side .tab .ico{display:inline-flex;flex:none;color:#676879}.side .tab[aria-selected=true] .ico{color:var(--brand)}
+.side .tab .ico svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.side .tab .n{margin-left:auto}
+.shell>main{flex:1;min-width:0;max-width:1060px;margin:0 auto;width:100%;padding:24px 28px 80px}
+@media(max-width:900px){
+  .shell{display:block;min-height:0}
+  .side{width:100%;height:auto;position:sticky;top:53px;z-index:15;padding:6px 10px;border-right:0;border-bottom:1px solid var(--line);overflow:visible}
+  .side .tabs{flex-direction:row;overflow-x:auto;gap:4px;scrollbar-width:none;padding:2px 0}.side .tabs::-webkit-scrollbar{display:none}
+  .side .tab{width:auto;flex:0 0 auto;padding:7px 12px;font-size:.82rem;gap:7px;white-space:nowrap}
+  .side .tab .ico svg{width:16px;height:16px}
+  .side .tab .n{margin-left:2px}
+  .shell>main{padding:14px 12px calc(80px + env(safe-area-inset-bottom,0px))}
+  .top-in{padding:8px 12px;gap:8px}
+  .top-in>.sp{display:block!important;flex:1}
+  .top-in>.muted{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -1249,15 +1301,18 @@ function teamView(){
 function appView(){
   const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['approvals',isAdmin?'Approvals':'My requests',isAdmin?pendingCount():0],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['tasks','Tasks',tasks.filter(t=>!t.done).length],...(isAdmin?[['team','Team']]:[]),['members','Members',members.length]];
   const body=view==='chat'?chatView():view==='approvals'?approvalsView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():view==='team'&&isAdmin?teamView():overview();
+  const ICONS={overview:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',inquiries:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',approvals:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',cases:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',clients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',team:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',members:'<path d="M12 3 4 6v6c0 4.5 3.4 7.8 8 9 4.6-1.2 8-4.5 8-9V6z"/>'};
+  const ico=k=>{const s=h('span',{class:'ico','aria-hidden':'true'});s.innerHTML='<svg viewBox="0 0 24 24">'+(ICONS[k]||'')+'</svg>';return s};
   return h('div',{},
     h('header',{class:'top'},h('div',{class:'top-in'},
       h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'CRM'})),
-      h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',id:'tab_'+k,role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0);if(k==='chat')pollChat();if(k==='approvals')syncApprovals()}},t,n?h('span',{class:'n',text:String(n)}):null))),
       h('span',{class:'sp'}),
       h('span',{class:'muted',style:'font-size:.82rem',text:me.email}),h('span',{class:'pill role-'+myRole,style:'margin-left:0',text:ROLES[myRole].l}),
       h('button',{class:'btn ghost sm',text:'Apps',onclick:home}),
       h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
-    h('main',{},view==='chat'?null:statusBar(),body));
+    h('div',{class:'shell'},
+      h('aside',{class:'side'},h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',id:'tab_'+k,role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0);if(k==='chat')pollChat();if(k==='approvals')syncApprovals()}},ico(k),t,n?h('span',{class:'n',text:String(n)}):null)))),
+      h('main',{},view==='chat'?null:statusBar(),body)));
 }
 function noAccess(){
   return h('div',{class:'center'},h('div',{class:'panel'},h('div',{class:'wm',style:'font-size:2rem'},h('b',{text:'O'}),'rchid'),h('h1',{text:'No access'}),
