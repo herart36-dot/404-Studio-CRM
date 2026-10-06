@@ -219,6 +219,100 @@ main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
   .chat-head .who{max-width:calc(100% - 85px)}
 }
 
+
+/* ===== MOBILE POLISH ===== */
+@media (max-width: 600px){
+  :root{--sh:0 6px 24px rgba(60,70,140,.08)}
+  html,body{min-width:0;width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%}
+  body{font-size:14px;padding:0}
+  .top{position:sticky;top:0;z-index:100;background:rgba(238,241,251,.94);box-shadow:0 1px 0 rgba(20,18,46,.06)}
+  .top-in{display:grid;grid-template-columns:1fr auto auto;grid-template-areas:'brand apps logout' 'tabs tabs tabs';width:100%;padding:10px 12px 7px;gap:8px 6px}
+  .top-in>.wm{grid-area:brand;font-size:1.15rem;align-self:center}
+  .top-in>.btn:nth-last-child(2){grid-area:apps}
+  .top-in>.btn:last-child{grid-area:logout}
+  .top-in>.sp,.top-in>.muted{display:none!important}
+  .top-in>.btn{min-height:34px;padding:6px 10px;border-radius:10px;font-size:.74rem;box-shadow:none}
+  .top-in>.tabs{grid-area:tabs;width:calc(100% + 0px);min-width:0;display:flex;gap:5px;overflow-x:auto;overscroll-behavior-x:contain;padding:2px 0 4px;scrollbar-width:none}
+  .top-in>.tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;padding:7px 12px;border-radius:999px;font-size:.76rem;line-height:1;min-height:32px}
+  main{width:100%;max-width:none;margin:0;padding:14px 11px calc(80px + env(safe-area-inset-bottom,0px))}
+  .bar{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:12px;align-items:center}
+  .bar>h3,.bar>div:first-child:not(.sp){min-width:0}
+  .bar input[type=text]{grid-column:1/-1;width:100%;max-width:none;min-width:0;margin:0;font-size:16px}
+  .bar .sp{display:none}
+  .bar>.btn{width:auto;min-width:0}
+  .bar .chips{grid-column:1/-1;width:100%;min-width:0}
+  .chips{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;scrollbar-width:none;padding:1px 1px 4px}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;white-space:nowrap;padding:7px 11px;font-size:.74rem}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 14px}
+  .stat{padding:13px 12px;border-radius:18px;min-width:0}
+  .stat .v{font-size:1.45rem;overflow:hidden;text-overflow:ellipsis}
+  .stat .l{font-size:.72rem}
+  .card{border-radius:18px}
+  .next{display:block;padding:15px;margin-bottom:13px;border-left-width:4px}
+  .next .k{font-size:.72rem}
+  .next .w{font-size:.98rem;margin-top:3px}
+  .next .btn{width:100%;margin-top:11px}
+  .grid2{display:block}
+  .grid2>div+div{margin-top:12px}
+  .item{display:block;padding:14px;border-radius:17px}
+  .item .body{min-width:0}
+  .item .t{font-size:.94rem;line-height:1.35}
+  .item .s{font-size:.78rem;line-height:1.45}
+  .item .m{font-size:.84rem}
+  .acts{display:flex;gap:6px;flex-wrap:wrap}
+  .acts .btn{flex:1 1 auto;min-width:0;min-height:36px;padding:7px 9px;font-size:.75rem}
+  .btn{min-height:40px;padding:9px 13px;border-radius:12px}
+  .btn.sm{min-height:34px;padding:7px 10px;border-radius:10px}
+  input[type=text],input[type=email],input[type=tel],input[type=date],textarea,select{font-size:16px;min-height:44px}
+  .modal{width:min(100%,430px);max-height:calc(100dvh - 24px);border-radius:22px;padding:19px 15px}
+  .modal h2{font-size:1.12rem}
+  .modal .row{display:flex;position:sticky;bottom:-19px;margin:16px -1px -2px;padding:12px 0 2px;background:#fff}
+  .modal .row .btn{flex:1}
+  .scrim{padding:12px}
+  .empty{padding:28px 14px}
+  .toast{max-width:calc(100% - 24px);text-align:center}
+
+  /* Mobile chat becomes a clean full-width screen */
+  .chat{display:block;width:100%;height:calc(100dvh - 132px);min-height:0;max-height:none;border-radius:18px;overflow:hidden}
+  .chat-list{height:100%;border-right:0}
+  .chat.open .chat-list{display:none}
+  .chat.open .chat-pane{display:flex;height:100%}
+  .chat-list .srch{padding:10px}
+  .chat-list .srch input{font-size:16px}
+  .cc{padding:11px 12px}
+  .cc .pv{font-size:.77rem}
+  .chat-head{padding:10px 9px;min-height:58px;gap:7px;flex-wrap:nowrap}
+  .chat-head .who{flex:1;min-width:0;max-width:none}
+  .chat-head .who b{font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chat-head .who span{display:none}
+  .chat-head a.btn,.chat-head>.btn:not(.back){font-size:.7rem;padding:7px 8px;min-height:32px}
+  .chat-head .back{display:inline-block}
+  .chat-msgs{padding:10px 11px}
+  .bub{max-width:88%;font-size:.86rem;padding:8px 11px}
+  .composer{padding:8px;border-top:1px solid var(--line)}
+  .composer .r0{gap:5px}
+  .composer .hint{display:none}
+  .composer .r1{align-items:flex-end}
+  .composer textarea{min-height:44px;border-radius:15px}
+  .composer .btn{min-width:68px;padding:8px 10px}
+  .seg button{padding:5px 9px;font-size:.7rem}
+
+  /* SLA tables/cards never force the page wider */
+  .sla-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+@media (max-width:380px){
+  .top-in{grid-template-columns:1fr auto auto;padding-left:9px;padding-right:9px}
+  .top-in>.btn{font-size:.68rem;padding:6px 8px}
+  .tab{padding:7px 10px;font-size:.72rem}
+  main{padding-left:8px;padding-right:8px}
+  .stats{gap:6px}
+  .stat{padding:11px 10px}
+  .stat .v{font-size:1.3rem}
+  .acts .btn{font-size:.7rem;padding-left:7px;padding-right:7px}
+}
+
 </style>
 </head>
 <body>
