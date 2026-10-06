@@ -353,11 +353,12 @@ const saveTaskAssignment=(id,email)=>{const a=taskAssignments();if(email)a[id]=e
 let cases=[],policies=[],rules=[],casesErr=false,caseFilter='all';
 let view='overview',q='',inqFilter='all',taskFilter='open';
 let chatMsgs=[],chatErr=false,chatSel=null,chatOpen=false,chatQ='',chatSub=null;const chatDrafts={};
+let approvals=[],apprErr=false,apprSub=null,apprFirst=true;const apprSeen=new Map();
 caseFilter='active';
 
 /* ---- tiny DOM helper (text is always set as text, never HTML) ---- */
 const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]===true)el.setAttribute(k,'');else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&x!==false&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
-function toast(t){const el=h('div',{class:'toast',text:t,role:'status'});document.body.append(el);setTimeout(()=>el.remove(),3000)}
+function toast(t,ms){const el=h('div',{class:'toast',text:t,role:'status'});document.body.append(el);setTimeout(()=>el.remove(),ms||3000)}
 const fail=(e,m)=>{console.error(e);toast(m||'Something went wrong. Please try again.')};
 const cap=s=>s?s[0].toUpperCase()+s.slice(1):s;
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
@@ -430,24 +431,130 @@ const inqFields=()=>[
   {k:'message',label:'What they asked for',type:'textarea'}
 ];
 const addInquiry=()=>openForm({title:'New inquiry',fields:inqFields(),saveText:'Add inquiry',onSave:v=>run(sb.from('crm_inquiries').insert(v),'Inquiry added.')});
-const editInquiry=i=>openForm({title:'Edit inquiry',fields:inqFields(),values:i,onSave:v=>run(sb.from('crm_inquiries').update({...v,...touchPatch(i,v.status||i.status)}).eq('id',i.id),'Inquiry saved.')});
+const editInquiry=i=>openForm({title:'Edit inquiry',fields:inqFields(),values:i,onSave:v=>{
+  if(isAdmin)return run(sb.from('crm_inquiries').update({...v,...touchPatch(i,v.status||i.status)}).eq('id',i.id),'Inquiry saved.');
+  const ch=inqFields().filter(f=>(v[f.k]||null)!==(i[f.k]||null)).map(f=>f.label.toLowerCase());
+  if(!ch.length){toast('No changes to send.');return}
+  return ask('inq_edit',i,'Edit inquiry "'+i.name+'" ('+ch.join(', ')+')',{values:v});
+}});
 const nowIso=()=>new Date().toISOString();
 const dur=ms=>{const m=Math.round(ms/6e4);return m<60?Math.max(m,1)+'m':m<2880?Math.round(m/60)+'h':Math.round(m/1440)+'d'};
 const waitMs=i=>Date.now()-new Date(i.created_at);
 const idleDays=i=>(Date.now()-new Date(i.last_touch||i.created_at))/864e5;
 const touchPatch=(i,s)=>({status:s,last_touch:nowIso(),...(s!=='new'&&!i.contacted_at?{contacted_at:nowIso()}:{})});
-const setStatus=(i,s)=>run(sb.from('crm_inquiries').update(touchPatch(i,s)).eq('id',i.id));
-const logTouch=i=>run(sb.from('crm_inquiries').update({last_touch:nowIso()}).eq('id',i.id),'Touch logged. The clock restarts.');
+const setStatus=(i,s)=>{
+  if(isAdmin)return run(sb.from('crm_inquiries').update(touchPatch(i,s)).eq('id',i.id));
+  if(s===i.status)return;
+  return ask('inq_status',i,'Change status of "'+i.name+'" from '+cap(i.status)+' to '+cap(s),{status:s});
+};
+const logTouch=i=>isAdmin?run(sb.from('crm_inquiries').update({last_touch:nowIso()}).eq('id',i.id),'Touch logged. The clock restarts.'):ask('inq_touch',i,'Log a touch on "'+i.name+'"');
 const isActive=i=>i.status==='contacted'||i.status==='quoted';
-const delInquiry=i=>{if(confirm('Delete the inquiry from '+i.name+'?'))run(sb.from('crm_inquiries').delete().eq('id',i.id),'Inquiry deleted.')};
-async function convert(i){
+const delInquiry=i=>{
+  if(isAdmin){if(confirm('Delete the inquiry from '+i.name+'?'))run(sb.from('crm_inquiries').delete().eq('id',i.id),'Inquiry deleted.');return}
+  if(confirm('Ask the admin to delete the inquiry from '+i.name+'?'))return ask('inq_delete',i,'Delete the inquiry from "'+i.name+'"');
+};
+async function convertNow(i){
   const ex=i.email&&clients.find(c=>(c.email||'').toLowerCase()===i.email.toLowerCase());
   let cid=ex&&ex.id;
   if(!cid){
     const r=await sb.from('crm_clients').insert({name:i.name,email:i.email,phone:i.phone,notes:i.message}).select('id').single();
-    if(r.error)return fail(r.error);cid=r.data.id;
+    if(r.error)return{error:r.error};cid=r.data.id;
   }
-  await run(sb.from('crm_inquiries').update({client_id:cid,...touchPatch(i,i.status==='lost'?'lost':'won')}).eq('id',i.id),ex?'Linked to existing client.':'Client created.');
+  const u=await sb.from('crm_inquiries').update({client_id:cid,...touchPatch(i,i.status==='lost'?'lost':'won')}).eq('id',i.id);
+  return{error:u.error,msg:ex?'Linked to existing client.':'Client created.'};
+}
+async function convert(i){
+  if(!isAdmin){
+    const ex=i.email&&clients.find(c=>(c.email||'').toLowerCase()===i.email.toLowerCase());
+    return ask('inq_client',i,'Make "'+i.name+'" a client'+(ex?' (links to existing client '+ex.name+')':''));
+  }
+  const r=await convertNow(i);if(r.error)return fail(r.error);
+  try{await loadAll()}catch(e){return fail(e,'Saved, but could not refresh. Please reload.')}
+  toast(r.msg);render();
+}
+
+/* ---- approvals: staff ask, the admin approves or declines. Admin actions apply immediately. ---- */
+const inqById=id=>inquiries.find(x=>x.id===id);
+const pendingFor=id=>approvals.filter(a=>a.status==='pending'&&a.target_id===id);
+const stable=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(x=>[x,v[x]])):v);
+async function ask(action,i,summary,payload={}){
+  const dup=approvals.some(a=>a.status==='pending'&&a.action===action&&a.target_id===i.id&&lc(a.requested_by)===lc(me.email)&&stable(a.payload)===stable(payload));
+  if(dup){toast('That is already waiting for admin approval.');render();return}
+  const r=await sb.from('crm_approvals').insert({requested_by:lc(me.email),action,target_id:i.id,summary:summary.slice(0,600),payload}).select().single();
+  if(r.error){fail(r.error,'Could not send the request. Please try again.');render();return}
+  approvals=[r.data,...approvals.filter(a=>a.id!==r.data.id)];apprSeen.set(r.data.id,'pending');
+  toast('Sent to the admin for approval. Nothing changes until they approve.',5000);render();
+}
+/* what the admin runs when they approve; each returns a Supabase result ({error} on failure) */
+const gone={error:{message:'That inquiry no longer exists.'}};
+const ACT={
+  inq_status:a=>{const i=inqById(a.target_id);return i?sb.from('crm_inquiries').update(touchPatch(i,a.payload.status)).eq('id',i.id):gone},
+  inq_touch:a=>{const i=inqById(a.target_id);return i?sb.from('crm_inquiries').update({last_touch:nowIso()}).eq('id',i.id):gone},
+  inq_edit:a=>{const i=inqById(a.target_id),v=a.payload.values||{};return i?sb.from('crm_inquiries').update({...v,...touchPatch(i,v.status||i.status)}).eq('id',i.id):gone},
+  inq_delete:a=>sb.from('crm_inquiries').delete().eq('id',a.target_id),
+  inq_client:a=>{const i=inqById(a.target_id);return i?convertNow(i):gone},
+  inq_case:a=>sb.from('crm_cases').insert({...(a.payload.values||{}),...(a.payload.extra||{})})
+};
+async function decide(a,ok,note){
+  if(!isAdmin)return;
+  if(ok){
+    const fn=ACT[a.action];if(!fn)return fail(new Error('unknown action '+a.action));
+    const r=await fn(a);if(r&&r.error)return fail(r.error,'Could not apply it: '+(r.error.message||'please try again.'));
+  }
+  const u=await sb.from('crm_approvals').update({status:ok?'approved':'rejected',decided_by:lc(me.email),decided_at:nowIso(),note:note||null}).eq('id',a.id).eq('status','pending');
+  if(u.error)return fail(u.error);
+  try{await loadAll()}catch(e){console.error(e)}
+  await loadApprovals();toast(ok?'Approved and applied.':'Declined.');render();
+}
+async function cancelRequest(a){
+  const r=await sb.from('crm_approvals').delete().eq('id',a.id);if(r.error)return fail(r.error);
+  await loadApprovals();toast('Request cancelled.');render();
+}
+async function loadApprovals(){
+  const r=await sb.from('crm_approvals').select('*').order('created_at',{ascending:false}).limit(300);
+  if(r.error){apprErr=true;approvals=[];return}
+  apprErr=false;const rows=r.data;
+  if(!apprFirst)for(const a of rows){
+    const was=apprSeen.get(a.id);
+    if(isAdmin&&!was&&a.status==='pending'&&!isMe(a.requested_by))toast(who(a.requested_by)+' needs your approval: '+a.summary,7000);
+    if(!isAdmin&&was==='pending'&&a.status!=='pending')toast('The admin '+(a.status==='approved'?'approved':'declined')+': '+a.summary,7000);
+  }
+  apprSeen.clear();rows.forEach(a=>apprSeen.set(a.id,a.status));apprFirst=false;approvals=rows;
+}
+const pendingCount=()=>apprErr?0:approvals.filter(a=>a.status==='pending').length;
+function updateApprBadge(){
+  const n=isAdmin?pendingCount():0;
+  document.title=(n?'('+n+') ':'')+'Orchid CRM';
+  const b=$('#tab_approvals');if(!b)return;let s=b.querySelector('.n');
+  if(!n){s&&s.remove();return}
+  if(!s){s=h('span',{class:'n'});b.append(s)}s.textContent=String(n);
+}
+async function syncApprovals(){try{await loadApprovals()}catch(e){console.error(e);return}if(view==='approvals')render();else{updateApprBadge();}}
+function subApprovals(){
+  if(apprSub||apprErr)return;
+  try{apprSub=sb.channel('crm-approvals').on('postgres_changes',{event:'*',schema:'public',table:'crm_approvals'},()=>syncApprovals()).subscribe()}catch(e){console.error(e)}
+}
+function apprRow(a){
+  const pend=a.status==='pending';
+  const sub=(isAdmin?'From '+who(a.requested_by)+' · ':'')+ago(a.created_at)+(pend?'':' · '+(a.status==='approved'?'approved':'declined')+' by '+who(a.decided_by));
+  return h('div',{class:'card item'},h('div',{class:'body'},
+    h('div',{class:'t'},document.createTextNode(a.summary),h('span',{class:'pill '+(pend?'contacted':a.status==='approved'?'won':'lost'),text:pend?'Waiting':a.status==='approved'?'Approved':'Declined'})),
+    h('div',{class:'s',text:sub}),
+    a.note?h('div',{class:'m',text:'Reason: '+a.note}):null,
+    pend&&isAdmin?h('div',{class:'acts'},
+      h('button',{class:'btn blue sm',text:'Approve',onclick:e=>{e.target.disabled=true;decide(a,true).finally(()=>{e.target.disabled=false})}}),
+      h('button',{class:'btn ghost sm danger',text:'Decline',onclick:()=>openForm({title:'Decline request',fields:[{k:'note',label:'Reason (optional)',type:'textarea'}],saveText:'Decline',onSave:v=>decide(a,false,v.note)})})):null,
+    pend&&!isAdmin?h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Cancel request',onclick:()=>cancelRequest(a)})):null));
+}
+function approvalsView(){
+  if(apprErr)return empty('Approvals are not set up yet','The approvals table could not be loaded. Ask your admin to check crm_approvals in Supabase, then reload.');
+  const pend=approvals.filter(a=>a.status==='pending'),done=approvals.filter(a=>a.status!=='pending').slice(0,40);
+  return h('div',{},
+    h('div',{class:'bar'},h('div',{},h('h3',{style:'margin:0',text:isAdmin?'Approvals':'My requests'}),
+      h('div',{class:'muted',style:'font-size:.82rem;margin-top:3px',text:isAdmin?'Changes staff ask to make to inquiries wait here. Nothing happens until you approve.':'Changes to inquiries need the admin to approve them first. You will be notified when they decide.'}))),
+    pend.length?h('div',{class:'list'},pend.map(apprRow)):empty(isAdmin?'Nothing waiting':'No pending requests',isAdmin?'You will be notified here the moment staff ask for something.':'Use the buttons on an inquiry and your request will show up here.'),
+    done.length?h('h3',{style:'margin:22px 4px 8px;font-size:.95rem',text:'Recent decisions'}):null,
+    done.length?h('div',{class:'list'},done.map(apprRow)):null);
 }
 
 /* ---- clients ---- */
@@ -502,7 +609,7 @@ function inquiryRow(i){
   const sel=h('select',{'aria-label':'Status for '+i.name,style:'width:auto;padding:6px 10px;border-radius:999px;font-size:.8rem;font-weight:700',onchange:e=>setStatus(i,e.target.value)},STATUSES.map(s=>h('option',{value:s,text:cap(s)})));
   sel.value=i.status;
   return h('div',{class:'card item'},h('div',{class:'body'},
-    h('div',{class:'t'},i.name,h('span',{class:'pill '+i.status,text:cap(i.status)}),signal(i)),
+    h('div',{class:'t'},i.name,h('span',{class:'pill '+i.status,text:cap(i.status)}),signal(i),pendingFor(i.id).length?h('span',{class:'pill contacted',text:'Awaiting approval'}):null),
     h('div',{class:'s',text:[i.email,i.phone,i.source,ago(i.created_at)].filter(Boolean).join(' · ')}),
     i.message?h('div',{class:'m',text:i.message}):null,
     i.client_id?h('div',{class:'s',style:'margin-top:4px',text:'Client: '+clientName(i.client_id)}):null,
@@ -547,7 +654,11 @@ const caseFields=()=>[
   {k:'client_id',label:'Client',type:'select',options:clientOptions()},
   {k:'description',label:'Details',type:'textarea'}
 ];
-const addCase=(pre={})=>openForm({title:'New case',fields:caseFields(),values:{channel:'email',priority:'normal',client_id:'',...pre.values},saveText:'Create case',onSave:v=>run(sb.from('crm_cases').insert({...v,...pre.extra}),'Case created. Routing rules and SLA clocks applied.')});
+const addCase=(pre={})=>openForm({title:'New case',fields:caseFields(),values:{channel:'email',priority:'normal',client_id:'',...pre.values},saveText:'Create case',onSave:v=>{
+  const inq=pre.extra&&pre.extra.inquiry_id&&inqById(pre.extra.inquiry_id);
+  if(!isAdmin&&inq)return ask('inq_case',inq,'Open a case "'+(v.subject||'')+'" for inquiry "'+inq.name+'"',{values:v,extra:pre.extra});
+  return run(sb.from('crm_cases').insert({...v,...pre.extra}),'Case created. Routing rules and SLA clocks applied.');
+}});
 const editCase=c=>openForm({title:'Edit '+caseNo(c),fields:caseFields(),values:{...c,client_id:c.client_id||''},onSave:v=>run(sb.from('crm_cases').update(v).eq('id',c.id),'Case saved.')});
 const caseFromInquiry=i=>addCase({values:{subject:'Inquiry from '+i.name,channel:'web',requester_name:i.name,requester_email:i.email||'',requester_phone:i.phone||'',description:i.message||'',client_id:i.client_id||''},extra:{inquiry_id:i.id,source_ref:'inquiry:'+i.id}});
 const caseBtn=i=>{const ex=cases.find(c=>c.inquiry_id===i.id);return h('button',{class:'btn ghost sm',text:ex?'View case':'Open case',onclick:()=>ex?openCase(ex.id):caseFromInquiry(i)})};
@@ -1071,12 +1182,12 @@ function teamView(){
 }
 
 function appView(){
-  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['tasks','Tasks',tasks.filter(t=>!t.done).length],...(isAdmin?[['team','Team']]:[]),['members','Members',members.length]];
-  const body=view==='chat'?chatView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():view==='team'&&isAdmin?teamView():overview();
+  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['approvals',isAdmin?'Approvals':'My requests',isAdmin?pendingCount():0],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['tasks','Tasks',tasks.filter(t=>!t.done).length],...(isAdmin?[['team','Team']]:[]),['members','Members',members.length]];
+  const body=view==='chat'?chatView():view==='approvals'?approvalsView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():view==='team'&&isAdmin?teamView():overview();
   return h('div',{},
     h('header',{class:'top'},h('div',{class:'top-in'},
       h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'CRM'})),
-      h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',id:'tab_'+k,role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0);if(k==='chat')pollChat()}},t,n?h('span',{class:'n',text:String(n)}):null))),
+      h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',id:'tab_'+k,role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0);if(k==='chat')pollChat();if(k==='approvals')syncApprovals()}},t,n?h('span',{class:'n',text:String(n)}):null))),
       h('span',{class:'sp'}),
       h('span',{class:'muted',style:'font-size:.82rem',text:me.email}),
       h('button',{class:'btn ghost sm',text:'Apps',onclick:home}),
@@ -1092,6 +1203,7 @@ function noAccess(){
 function render(){
   const y=window.scrollY;
   $('#app').replaceChildren(ready?appView():noAccess());
+  if(ready)updateApprBadge();
   window.scrollTo(0,y);
 }
 let ready=false;
@@ -1107,10 +1219,11 @@ async function init(){
   try{await loadAll();ready=true}catch(e){console.error(e);ready=false;return $('#app').replaceChildren(h('div',{class:'center'},h('div',{class:'panel'},h('h1',{text:'Could not load the CRM'}),h('p',{class:'sub',text:'The CRM tables may not be set up yet. Run crm_setup.sql in Supabase, then reload.'}),h('button',{class:'btn primary wide',text:'Reload',onclick:()=>location.reload()}))))}
   try{await loadPresence()}catch(e){console.error(e);presErr=true}
   try{await loadChat()}catch(e){console.error(e);chatErr=true}
+  try{await loadApprovals()}catch(e){console.error(e);apprErr=true}
   render();
   sweep();
-  subChat();
-  setInterval(pollChat,20000);
+  subChat();subApprovals();
+  setInterval(pollChat,20000);setInterval(syncApprovals,20000);
   setInterval(async()=>{try{await loadPresence();const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()}catch(e){console.error(e)}},30000);
   setInterval(()=>{sweep();const a=document.activeElement;if(view!=='chat'&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()},60000);
 }
