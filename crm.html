@@ -6,7 +6,7 @@
 <title>Orchid CRM</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Hanken+Grotesk:wght@400..700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f3f5fa;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:rgba(15,23,42,.08);--brand:#2563eb;--brand-d:#1d4ed8;--grad:linear-gradient(135deg,#2563eb,#06b6d4);--glass:rgba(255,255,255,.88);--sh:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.05);--dark:#0f172a;--bd:#d8dfea;--r:10px;--r-lg:14px;--danger:#be123c;--ok:#047857;--warn:#b45309;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}html,body{margin:0;min-height:100%}
@@ -401,6 +401,93 @@ input:focus,textarea:focus,select:focus{border-color:var(--brand);box-shadow:0 0
   .top-in{padding:8px 12px;gap:8px}
   .top-in>.sp{display:block!important;flex:1}
   .top-in>.muted{display:none!important}
+}
+
+/* ===== ORCHID REDESIGN: plum frame, paper canvas, stems, ledgers (CSS-only; all logic and access rules untouched) ===== */
+:root{--plum:#1d1428;--plum2:#2b1d3b;--orchid:#a4308b;--orchid-d:#86206f;--soft:#f6e6f2;--paper:#f6f3f9;--ink:#241b30;--muted:#6c6279;--line:#e6e0ed;--bd:#d6cde2;--brand:#a4308b;--brand-d:#86206f;--dark:#a4308b;--danger:#d6334a;--warn:#b57400;--grad:linear-gradient(135deg,#a4308b,#6a4fd1);--fd:'Bricolage Grotesque','Hanken Grotesk',system-ui,sans-serif}
+body{--role:#f08ad6;font-family:'Hanken Grotesk',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:var(--ink);background:var(--plum)}
+body[data-role=executive]{--role:#f2b53d}body[data-role=staff]{--role:#6fb1ff}
+h1,h2,h3,.wm,.stat .v,.next .w{font-family:var(--fd)}
+:focus-visible{outline:3px solid rgba(164,48,139,.5)}
+input:focus,textarea:focus,select:focus{border-color:var(--orchid);box-shadow:0 0 0 3px rgba(164,48,139,.18)}
+input[type=text],input[type=email],input[type=tel],input[type=date],textarea,select{border-color:var(--bd);border-radius:10px}
+.center>.muted{color:#cbbfe0}
+.panel{border-radius:20px;border-color:transparent}
+.btn{border-radius:10px;font-weight:600}
+.ghost:hover:not(:disabled){background:var(--paper);border-color:#b9acd0}
+.chip{border-radius:999px;font-weight:600}.chip:hover{background:var(--paper)}
+.chip[aria-pressed=true]{background:var(--plum);border-color:var(--plum)}.chip[aria-pressed=true]:hover{background:var(--plum2)}
+.toast{background:var(--plum);border-radius:12px}
+
+/* frame: plum header + sidebar around a paper sheet, role colour on the top edge */
+.top{background:var(--plum);border-bottom:0;box-shadow:inset 0 3px 0 var(--role)}
+.wm{color:#fff}.wm b{color:var(--role)}.wm .lg{color:#b9acd0}
+.top-in>.muted{color:#b9acd0}
+.top-in>.btn.ghost{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2)}
+.top-in>.btn.ghost:hover:not(:disabled){background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.35)}
+.top .pill[class*=role-]{background:transparent;color:var(--role);border:1px solid var(--role)}
+.shell{background:var(--plum)}
+.side{background:var(--plum);border-right:0;padding:14px 12px 24px;width:236px}
+.side .tab{color:#cfc4e0;border-radius:10px;font-weight:500;position:relative}
+.side .tab:hover{background:rgba(255,255,255,.07);color:#fff}
+.side .tab[aria-selected=true]{background:rgba(255,255,255,.11);color:#fff;box-shadow:inset 3px 0 0 var(--role)}
+.side .tab .ico{color:#a99bc0}.side .tab[aria-selected=true] .ico{color:var(--role)}
+.side .tab .n{background:#f08ad6;color:var(--plum);font-weight:700}
+.side #tab_approvals .n{background:#f2b53d;color:var(--plum)}
+.shell>main{background:var(--paper);border-radius:22px 0 0 0;min-height:calc(100vh - 57px);max-width:none;margin:0;padding:30px max(32px,calc((100% - 1040px)/2)) 90px}
+
+/* the one bold moment: the next-action banner */
+.next{background:var(--plum) radial-gradient(520px 200px at 100% 0,rgba(240,138,214,.35),transparent 70%);color:#fff;border:0;border-radius:18px;padding:22px 26px;margin-bottom:18px}
+.next .k{color:#cbbfe0;font-size:.86rem}.next .w{font-size:1.45rem;font-weight:600;letter-spacing:-.02em}
+.next .btn{background:#fff;color:var(--plum);border-color:transparent}.next .btn:hover:not(:disabled){background:var(--soft)}
+
+/* pulse strip: one band instead of seven cards */
+.stats{gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:24px}
+.stats .stat{border:0;border-radius:0;background:#fff;padding:16px 18px}
+.stat::before{display:none}
+.stat .v{font-size:2rem;font-weight:600;letter-spacing:-.03em}
+.stat .l{display:flex;align-items:center;gap:7px;color:var(--muted);font-weight:500}
+.stat .l::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--c);flex:none}
+.c-blue{--c:#4a5bd8}.c-teal{--c:#12857a}.c-indigo{--c:#6a4fd1}.c-violet{--c:#a4308b}.c-emerald{--c:#1f8a63}.c-amber{--c:#e0a020}.c-rose{--c:#d6334a}.c-slate{--c:#8d849b}
+
+/* ledgers: rows share one sheet; the coloured stem carries the status */
+.card{border-radius:16px;border-color:var(--line)}
+.list{gap:0;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.list>.card.item{border:0;border-top:1px solid var(--line);border-left:4px solid var(--c,transparent);border-radius:0;background:#fff;padding:15px 20px}
+.list>.card.item:first-child{border-top:0}
+.list>.card.item:hover{background:#fbf9fd}
+.item .t{font-size:.98rem;font-weight:650}
+.acts{margin-top:12px}
+.empty{border:1.5px dashed #d3c9df;border-radius:16px;background:rgba(255,255,255,.55)}
+.bar h3,.sec{font-size:1.15rem;font-weight:600}
+.pill{border-radius:999px;padding:2px 10px;background:#ece7f2;color:#3b3147;font-weight:600}
+.pill::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:6px;vertical-align:1px}
+.tbl th{font-weight:600}.tbl tbody tr:hover td{background:#fbf9fd}
+.scrim{background:rgba(29,20,40,.58)}
+.modal{border-radius:20px;box-shadow:0 30px 80px rgba(29,20,40,.4)}
+
+/* chat */
+.chat{border-radius:18px}
+.cc:hover{background:#fbf9fd}.cc[aria-current=true]{background:var(--soft)}
+.av{background:var(--orchid)}.av.grp{background:linear-gradient(135deg,#a4308b,#6a4fd1)}
+.av.a0{background:#4a5bd8}.av.a1{background:#12857a}.av.a2{background:#6a4fd1}.av.a3{background:#a4308b}.av.a4{background:#1f8a63}.av.a5{background:#d9722b}.av.a6{background:#c2306e}
+.dot{background:var(--orchid)}.msg.out .bub{background:var(--plum)}
+.mybar{border-radius:16px}
+
+/* phones and tablets: sidebar becomes a bottom dock */
+@media(max-width:900px){
+  .shell{background:var(--paper)}
+  .side{position:fixed;top:auto;left:0;right:0;bottom:0;width:100%;height:auto;z-index:30;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));border-radius:18px 18px 0 0;box-shadow:0 -8px 30px rgba(29,20,40,.25)}
+  .side .tab{flex-direction:column;gap:3px;min-width:64px;padding:7px 8px;font-size:.68rem;text-align:center;justify-content:center}
+  .side .tab[aria-selected=true]{box-shadow:inset 0 3px 0 var(--role)}
+  .side .tab .n{position:absolute;top:1px;right:6px;margin:0;min-width:16px;font-size:.62rem;padding:0 5px}
+  .side .tab .ico svg{width:20px;height:20px}
+  .shell>main{border-radius:0;min-height:0;padding:16px 12px calc(104px + env(safe-area-inset-bottom,0px))}
+  .stats{margin-bottom:16px}.stats .stat{padding:13px 12px}.stat .v{font-size:1.6rem}
+  .next{padding:18px;margin-bottom:14px}.next .w{font-size:1.15rem}
+  .toast{bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+  .chat{height:calc(100dvh - 190px)}
+  .list>.card.item{padding:14px}
 }
 </style>
 </head>
@@ -1321,7 +1408,7 @@ function noAccess(){
 }
 
 function render(){
-  const y=window.scrollY;
+  const y=window.scrollY;document.body.dataset.role=ready?myRole:'';
   $('#app').replaceChildren(ready?appView():noAccess());
   if(ready)updateApprBadge();
   window.scrollTo(0,y);
