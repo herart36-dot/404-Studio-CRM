@@ -143,6 +143,82 @@ main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
   .bub{max-width:88%}
 }
 @media(prefers-reduced-motion:no-preference){.scrim{animation:fade .15s}@keyframes fade{from{opacity:0}}}
+@media(max-width:760px){
+  html,body{width:100%;overflow-x:hidden}
+  body{font-size:15px}
+  .top{position:sticky;top:0}
+  .top-in{width:100%;max-width:none;padding:10px 12px;gap:8px;align-items:center}
+  .top-in>.wm{flex:none}
+  .top-in>.sp{display:none}
+  .top-in>.muted{display:none}
+  .top-in>.btn{flex:none;padding:7px 11px;font-size:.78rem}
+  .top-in>.tabs{order:10;width:100%;flex:0 0 100%;margin:0 -2px;padding:2px 0 3px;scrollbar-width:none}
+  .top-in>.tabs::-webkit-scrollbar{display:none}
+  .tab{padding:8px 12px;font-size:.8rem}
+  main{width:100%;padding:14px 12px 70px}
+  .bar{gap:7px;margin-bottom:12px}
+  .bar input[type=text]{width:100%;max-width:none;flex:1 1 100%;font-size:16px}
+  .bar .sp{display:none}
+  .bar>.btn{flex:0 0 auto}
+  .chips{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{white-space:nowrap;padding:7px 12px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:14px}
+  .stat{padding:13px 12px;border-radius:18px}
+  .stat .v{font-size:1.55rem}
+  .stat .l{font-size:.75rem;line-height:1.25}
+  .card{border-radius:18px}
+  .item{padding:13px 14px;gap:9px;display:block}
+  .item .acts{margin-top:10px}
+  .acts{gap:6px}
+  .acts .btn{min-height:36px}
+  .btn{min-height:40px;padding:9px 14px}
+  .btn.sm{min-height:34px;padding:7px 11px}
+  input[type=text],input[type=email],input[type=tel],input[type=date],textarea,select{font-size:16px;min-height:42px}
+  textarea{min-height:100px}
+  .panel{padding:28px 20px;border-radius:20px}
+  .modal{padding:20px 16px;border-radius:20px;max-height:90dvh}
+  .modal .row{position:sticky;bottom:-20px;background:#fff;padding-top:12px;padding-bottom:2px;margin-left:-2px;margin-right:-2px}
+  .modal .row .btn{flex:1}
+  .next{padding:14px 15px;margin-bottom:12px;gap:10px}
+  .next .w{font-size:1rem}
+  .grid2{grid-template-columns:1fr;gap:12px}
+  .list{gap:8px}
+  .due{font-size:.78rem}
+  .pill{font-size:.68rem;padding:2px 8px}
+  .toast{bottom:calc(12px + env(safe-area-inset-bottom,0px));font-size:.82rem}
+  .chat{height:calc(100dvh - 170px);min-height:420px;border-radius:18px}
+  .chat-list .srch{padding:10px}
+  .cc{padding:10px 11px}
+  .chat-head{padding:10px}
+  .chat-head .who{min-width:0;max-width:calc(100% - 110px)}
+  .chat-head .who b{font-size:.9rem}
+  .chat-head a.btn,.chat-head>.btn:not(.back){padding:7px 9px;font-size:.75rem}
+  .composer{padding:8px}
+  .composer .r0{gap:6px}
+  .composer .hint{font-size:.7rem}
+  .composer .r1{gap:6px}
+  .composer textarea{font-size:16px;min-height:44px}
+  .composer .btn{min-width:72px}
+  .bub{max-width:90%;font-size:.88rem}
+  .sla-wrap{margin-left:-4px;margin-right:-4px}
+}
+@media(max-width:420px){
+  .wm{font-size:1.15rem}
+  .wm b{font-size:1.55em}
+  .wm .lg{font-size:.55em}
+  .top-in>.btn{padding:6px 9px;font-size:.72rem}
+  .tab{padding:7px 10px;font-size:.76rem}
+  .stats{gap:7px}
+  .stat .v{font-size:1.4rem}
+  .bar>.btn{width:100%}
+  .bar .chips+.sp+.btn{width:100%}
+  .next{display:block}
+  .next .btn{margin-top:10px;width:100%}
+  .acts .btn{flex:1 1 auto}
+  .chat-head .who{max-width:calc(100% - 85px)}
+}
+
 </style>
 </head>
 <body>
