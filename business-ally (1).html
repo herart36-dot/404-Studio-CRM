@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Business Ally</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#323338;--muted:#676879;--line:#e6e9ef;--bd:#c3c6d4;--brand:#0073ea;--brand-d:#0060b9;--danger:#d83a52;--ok:#00854d;--warn:#b86e00}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}[hidden]{display:none!important}
+body{font-family:Figtree,system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;background:radial-gradient(760px 380px at 88% 100%,rgba(255,176,128,.16),transparent 70%),radial-gradient(760px 380px at 45% 104%,rgba(162,134,255,.15),transparent 70%),#fff;background-attachment:fixed}
+button,input,textarea,select{font:inherit;color:inherit}:focus-visible{outline:3px solid rgba(0,115,234,.4);outline-offset:2px}
+h1,h2,h3{margin:0;letter-spacing:-.01em}.muted{color:var(--muted)}.sp{flex:1}
+.wm{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:1.15rem;letter-spacing:-.02em}.wm svg{width:30px;height:30px}.wm em{font-style:normal;color:var(--brand)}
+.btn{border:1px solid transparent;cursor:pointer;border-radius:8px;padding:8px 16px;min-height:38px;font-weight:500;font-size:.9rem;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.sm{min-height:32px;padding:5px 12px;font-size:.82rem}.blue{background:var(--brand);color:#fff}.blue:hover{background:var(--brand-d)}
+.ghost{background:#fff;border-color:var(--bd)}.ghost:hover{background:#f5f6f8}.ok{background:#00c875;color:#fff}.danger{color:var(--danger)}
+input,textarea,select{width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:8px;background:#fff}
+input:focus,textarea:focus,select:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 3px rgba(0,115,234,.18)}textarea{min-height:90px;resize:vertical}
+label.f{display:block;font-size:.8rem;font-weight:600;margin-top:12px}label.f>*{margin-top:5px;font-weight:400}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:10px 20px;height:57px}
+.shell{display:flex;align-items:flex-start}
+.side{width:236px;flex:none;position:sticky;top:57px;height:calc(100vh - 57px);overflow:auto;padding:16px 12px;border-right:1px solid var(--line);background:#fff}
+.tabs{display:flex;flex-direction:column;gap:2px}
+.tab{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:9px 12px;border-radius:8px;border:0;background:none;cursor:pointer;font-weight:500}
+.tab:hover{background:#e6e9ef}.tab[aria-selected=true]{background:#cce5ff}.tab svg{width:19px;height:19px;fill:none;stroke:#676879;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}.tab[aria-selected=true] svg{stroke:var(--brand)}
+.n{margin-left:auto;background:var(--brand);color:#fff;border-radius:99px;font-size:.7rem;padding:1px 7px;font-weight:600}
+main{flex:1;min-width:0;max-width:1040px;margin:0 auto;padding:24px 28px 80px}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.bar h3{font-size:1.15rem}
+.chips{display:flex;gap:6px}.chip{border:1px solid var(--bd);background:#fff;border-radius:8px;padding:5px 12px;font-size:.8rem;font-weight:500;cursor:pointer}.chip[aria-pressed=true]{background:var(--brand);border-color:var(--brand);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}.stat{position:relative;overflow:hidden}.stat::before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:var(--c,#0073ea)}
+.stat .v{font-size:1.8rem;font-weight:600;line-height:1.2}.stat .l{color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.list{display:flex;flex-direction:column;gap:10px}
+.item{display:flex;gap:12px;align-items:center;padding:12px 16px}.item .body{flex:1;min-width:0}.t{font-weight:600;overflow-wrap:anywhere}.s{color:var(--muted);font-size:.84rem}.acts{display:flex;gap:6px;flex-wrap:wrap}
+.pill{display:inline-block;font-size:.72rem;font-weight:500;padding:2px 8px;border-radius:6px;background:#e6e9ef;margin-left:6px}.pill.high{background:#fee2e2;color:#991b1b}.pill.paid{background:#d1fae5;color:#065f46}.pill.due{background:#fef3c7;color:#92400e}
+.over{color:var(--danger)}.done .t{text-decoration:line-through;color:var(--muted)}.chk{width:20px;height:20px;accent-color:var(--brand);flex:none}
+.next{border-left:4px solid #fdab3d;background:#fff8ec;margin-bottom:16px}.next .w{font-size:1.1rem;font-weight:600}
+.empty{text-align:center;color:var(--muted);padding:30px 16px}.empty b{display:block;color:var(--ink)}
+.timer{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px}.timer>*{flex:1 1 160px}.timer .big{font-size:2rem;font-weight:600;font-variant-numeric:tabular-nums;flex:0 0 auto}
+.scrim{position:fixed;inset:0;background:rgba(50,51,56,.5);display:grid;place-items:center;padding:18px;z-index:50}
+.modal{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:460px;max-height:92vh;overflow:auto}.modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#323338;color:#fff;padding:10px 16px;border-radius:8px;z-index:99;font-size:.88rem}
+.login{min-height:100vh;display:grid;place-items:center;padding:24px}.login .card{max-width:400px;width:100%;padding:36px 30px;text-align:center}.login .wm{font-size:1.5rem}.login .wm svg{width:44px;height:44px}.login p{color:var(--muted)}
+pre.body{white-space:pre-wrap;font:inherit;margin:6px 0 0;color:var(--muted);font-size:.88rem}
+@media(max-width:900px){.shell{display:block}.side{width:100%;height:auto;top:57px;z-index:15;padding:6px 10px;border-right:0;border-bottom:1px solid var(--line);background:#fff}
+.tabs{flex-direction:row;overflow-x:auto;scrollbar-width:none}.tab{width:auto;white-space:nowrap;padding:7px 12px;font-size:.84rem;gap:7px}.tab svg{width:16px;height:16px}main{padding:16px 12px 80px}.grid2{grid-template-columns:1fr}.top{padding:8px 12px}.top .muted{display:none}.item{flex-wrap:wrap}input,textarea,select{font-size:16px}}
+</style></head><body><div id="app"></div>
+<script>
+(function(){
+const K='business_ally_v1',$=s=>document.querySelector(s);
+const S=Object.assign({user:'',clients:[],tasks:[],logs:[],invoices:[],events:[],timer:null,templates:[
+{id:'t1',title:'Meeting confirmation',body:'Hi! Confirming our meeting on [date] at [time]. Please let me know if anything changes. Thank you!'},
+{id:'t2',title:'Follow-up, no reply yet',body:'Hi! Just following up on my earlier message. Happy to adjust if you need more time. Could you let me know how you would like to proceed?'},
+{id:'t3',title:'Task completed update',body:'Hi! A quick update: [task] is done. Details and files are attached. Is there anything else you would like me to take on this week?'}]},JSON.parse(localStorage.getItem(K)||'{}'));
+let view='today',tf='open';
+const save=()=>localStorage.setItem(K,JSON.stringify(S)),uid=()=>Math.random().toString(36).slice(2,9);
+const h=(t,a={},...c)=>{const e=document.createElement(t);for(const k in a){if(k==='text')e.textContent=a[k];else if(k.startsWith('on'))e.addEventListener(k.slice(2),a[k]);else if(a[k]===true)e.setAttribute(k,'');else if(a[k]!==false&&a[k]!=null)e.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&x!==false&&e.append(x.nodeType?x:document.createTextNode(x)));return e};
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const toast=t=>{const e=h('div',{class:'toast',text:t});document.body.append(e);setTimeout(()=>e.remove(),2500)};
+const dstr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=()=>dstr(new Date()),weekAgo=()=>{const d=new Date();d.setDate(d.getDate()-6);return dstr(d)};
+const fd=d=>d?new Date(d+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
+const money=n=>'₱'+(+n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const hrs=m=>(m/60).toFixed(1)+' h',cl=id=>S.clients.find(c=>c.id===id),cn=id=>(cl(id)||{}).name||'';
+const clk=ms=>{const s=Math.floor(ms/1e3);return[s/3600|0,s/60%60|0,s%60].map(x=>String(x).padStart(2,'0')).join(':')};
+const B=(t,fn,c='ghost')=>h('button',{class:'btn sm '+c,text:t,onclick:fn});
+const LOGO='<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0073ea"/><stop offset="1" stop-color="#7c4dff"/></linearGradient></defs><rect width="40" height="40" rx="11" fill="url(#lg)"/><path fill="#fff" fill-rule="evenodd" d="M12 9h9.5a5.6 5.6 0 0 1 3 10.3A6.2 6.2 0 0 1 22 31H12zM17 13.5v5h4.2a2.5 2.5 0 0 0 0-5zM17 23v4.5h5a2.25 2.25 0 0 0 0-4.5z"/><circle cx="31" cy="10" r="4" fill="#00c875" stroke="#fff" stroke-width="2"/></svg>';
+const wm=()=>{const e=h('span',{class:'wm'});e.innerHTML=LOGO+'<span>Business <em>Ally</em></span>';return e};
+const I={today:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',clients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',time:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/>',invoices:'<path d="M6 2h12v20l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>',schedule:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',templates:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'};
+const ico=k=>{const e=h('span');e.innerHTML='<svg viewBox="0 0 24 24">'+I[k]+'</svg>';return e.firstChild};
+function modal(title,fields,vals,onSave){const inp={};
+ const sc=h('div',{class:'scrim',onclick:e=>e.target===sc&&sc.remove()},h('div',{class:'modal'},h('h2',{text:title}),
+ fields.map(f=>{const el=f.t==='area'?h('textarea'):f.t==='sel'?h('select',{},f.o.map(o=>h('option',{value:o[0],text:o[1]}))):h('input',{type:f.t||'text'});el.value=vals[f.k]??'';inp[f.k]=el;return h('label',{class:'f',text:f.l},el)}),
+ h('div',{class:'row'},B('Cancel',()=>sc.remove()),h('button',{class:'btn blue',text:'Save',onclick:()=>{const v={};fields.forEach(f=>v[f.k]=inp[f.k].value.trim());if(fields[0].req&&!v[fields[0].k])return inp[fields[0].k].focus();if(onSave(v)===false)return;sc.remove();save();render()}}))));
+ document.body.append(sc);inp[fields[0].k].focus()}
+const bar=(t,...a)=>h('div',{class:'bar'},h('h3',{text:t}),h('span',{class:'sp'}),a);
+const empty=(b,t)=>h('div',{class:'card empty'},h('b',{text:b}),t);
+const copy=t=>navigator.clipboard?navigator.clipboard.writeText(t).then(()=>toast('Copied')):toast('Copy not available');
+const co=(o=true)=>[...(o?[['','No client']]:[]),...S.clients.map(c=>[c.id,c.name])];
+const unb=id=>S.logs.filter(l=>l.client===id&&!l.billed);
+const unbAmt=id=>unb(id).reduce((a,l)=>a+l.mins,0)/60*(+(cl(id)||{}).rate||0);
+const stat=(v,l,c)=>h('div',{class:'card stat',style:'--c:'+c},h('div',{class:'v',text:String(v)}),h('div',{class:'l',text:l}));
+
+/* timer */
+function startTimer(c,d){S.timer={client:c,desc:d,start:Date.now()};save();render()}
+function stopTimer(){const t=S.timer;if(!t)return;S.logs.unshift({id:uid(),client:t.client,desc:t.desc||'Work session',mins:Math.max(1,Math.round((Date.now()-t.start)/6e4)),date:today(),billed:false});S.timer=null;save();render();toast('Time saved')}
+setInterval(()=>document.querySelectorAll('.tm').forEach(e=>{if(S.timer)e.textContent=clk(Date.now()-S.timer.start)}),1000);
+
+/* views */
+const taskF=[{k:'title',l:'Task',req:1},{k:'client',l:'Client',t:'sel',o:null},{k:'due',l:'Due date',t:'date'},{k:'pri',l:'Priority',t:'sel',o:[['normal','Normal'],['high','High'],['low','Low']]}];
+const tf_=()=>taskF.map(f=>f.k==='client'?{...f,o:co()}:f);
+const sorted=()=>S.tasks.filter(t=>!t.done).sort((a,b)=>(a.due||'9')>(b.due||'9')?1:-1);
+function taskRow(t){return h('div',{class:'card item'+(t.done?' done':'')},h('input',{type:'checkbox',class:'chk',checked:t.done,'aria-label':'Done',onchange:()=>{t.done=!t.done;save();render()}}),
+ h('div',{class:'body'},h('div',{class:'t'},t.title,t.pri==='high'?h('span',{class:'pill high',text:'High'}):null),h('div',{class:'s'+(!t.done&&t.due&&t.due<today()?' over':''),text:[cn(t.client),t.due?'Due '+fd(t.due):''].filter(Boolean).join(' · ')})),
+ h('div',{class:'acts'},B('Edit',()=>modal('Edit task',tf_(),t,v=>Object.assign(t,v))),B('Delete',()=>{S.tasks=S.tasks.filter(x=>x!==t);save();render()},'ghost danger')))}
+function todayV(){const op=sorted(),nx=op[0],ev=S.events.filter(e=>e.date===today()).sort((a,b)=>(a.time||'')>(b.time||'')?1:-1);
+ const hr=new Date().getHours(),g=hr<12?'morning':hr<18?'afternoon':'evening';
+ return[h('div',{class:'bar'},h('h3',{text:'Good '+g+', '+S.user})),
+ nx?h('div',{class:'card next'},h('div',{class:'muted s',text:'Do this next'}),h('div',{class:'w',text:nx.title}),h('div',{class:'s',text:[cn(nx.client),nx.due?'Due '+fd(nx.due):''].filter(Boolean).join(' · ')})):null,
+ h('div',{class:'stats'},stat(op.length,'Open tasks','#0073ea'),stat(op.filter(t=>t.due&&t.due<=today()).length,'Due or overdue','#df2f4a'),stat(hrs(S.logs.filter(l=>l.date>=weekAgo()).reduce((a,l)=>a+l.mins,0)),'Hours, last 7 days','#00c875'),stat(money(S.invoices.filter(i=>!i.paid).reduce((a,i)=>a+i.amount,0)),'Unpaid invoices','#fdab3d')),
+ h('div',{class:'grid2'},h('div',{},h('h3',{text:'Upcoming tasks',style:'margin-bottom:10px;font-size:1rem'}),h('div',{class:'list'},op.length?op.slice(0,5).map(taskRow):empty('Nothing open','Add a task to get started.'))),
+ h('div',{},h('h3',{text:'Today\'s schedule',style:'margin-bottom:10px;font-size:1rem'}),h('div',{class:'list'},ev.length?ev.map(e=>h('div',{class:'card item'},h('div',{class:'body'},h('div',{class:'t',text:(e.time?e.time+'  ':'')+e.title}),h('div',{class:'s',text:cn(e.client)})))):empty('Free day','No appointments today.'))))]}
+function clientsV(){const f=[{k:'name',l:'Name',req:1},{k:'email',l:'Email',t:'email'},{k:'phone',l:'Phone'},{k:'rate',l:'Hourly rate (₱)',t:'number'},{k:'notes',l:'Notes',t:'area'}];
+ return[bar('Clients',B('Add client',()=>modal('Add client',f,{},v=>S.clients.push({id:uid(),...v})),'blue')),
+ S.clients.length?h('div',{class:'list'},S.clients.map(c=>h('div',{class:'card item'},h('div',{class:'body'},h('div',{class:'t',text:c.name}),h('div',{class:'s',text:[c.email,c.phone,c.rate?money(c.rate)+'/h':''].filter(Boolean).join(' · ')}),h('div',{class:'s',text:hrs(S.logs.filter(l=>l.client===c.id).reduce((a,l)=>a+l.mins,0))+' logged · '+money(unbAmt(c.id))+' not yet invoiced'}),c.notes?h('pre',{class:'body',text:c.notes}):null),
+ h('div',{class:'acts'},B('Edit',()=>modal('Edit client',f,c,v=>Object.assign(c,v))),B('Delete',()=>{if(confirm('Delete '+c.name+'?')){S.clients=S.clients.filter(x=>x!==c);save();render()}},'ghost danger'))))):empty('No clients yet','Add the people and businesses you support.')]}
+function tasksV(){const l=S.tasks.filter(t=>tf==='all'||(tf==='done')===t.done).sort((a,b)=>(a.due||'9')>(b.due||'9')?1:-1);
+ return[bar('Tasks',h('div',{class:'chips'},['open','done','all'].map(k=>h('button',{class:'chip','aria-pressed':String(tf===k),text:k[0].toUpperCase()+k.slice(1),onclick:()=>{tf=k;render()}}))),B('Add task',()=>modal('Add task',tf_(),{pri:'normal'},v=>S.tasks.push({id:uid(),done:false,...v})),'blue')),
+ l.length?h('div',{class:'list'},l.map(taskRow)):empty('No tasks here','Tasks you add will show up in this list.')]}
+function timeV(){const t=S.timer,d=h('input',{placeholder:'What are you working on?',value:t?t.desc:''}),c=h('select',{},co().map(o=>h('option',{value:o[0],text:o[1]})));if(t)c.value=t.client;
+ const f=[{k:'desc',l:'What was done',req:1},{k:'client',l:'Client',t:'sel',o:co()},{k:'mins',l:'Minutes',t:'number'},{k:'date',l:'Date',t:'date'}];
+ return[bar('Time tracker',B('Add time manually',()=>modal('Add time',f,{date:today()},v=>{if(!(+v.mins>0)){toast('Enter minutes');return false}S.logs.unshift({id:uid(),client:v.client,desc:v.desc,mins:+v.mins,date:v.date||today(),billed:false})}))),
+ h('div',{class:'card timer'},t?h('div',{class:'big tm',text:clk(Date.now()-t.start)}):null,t?h('div',{},h('div',{class:'t',text:t.desc||'Work session'}),h('div',{class:'s',text:cn(t.client)})):[h('label',{class:'f',text:'Description'},d),h('label',{class:'f',text:'Client'},c)],
+ t?h('button',{class:'btn blue',text:'Stop and save',onclick:stopTimer}):h('button',{class:'btn ok',text:'Start timer',onclick:()=>startTimer(c.value,d.value.trim())})),
+ S.logs.length?h('div',{class:'list'},S.logs.slice(0,40).map(l=>h('div',{class:'card item'},h('div',{class:'body'},h('div',{class:'t'},l.desc,l.billed?h('span',{class:'pill paid',text:'Invoiced'}):null),h('div',{class:'s',text:[cn(l.client),fd(l.date),hrs(l.mins)].filter(Boolean).join(' · ')})),B('Delete',()=>{S.logs=S.logs.filter(x=>x!==l);save();render()},'ghost danger')))):empty('No time logged','Start the timer or add time manually.')]}
+function printInv(i){const c=cl(i.client)||{},w=window.open('','_blank');if(!w)return toast('Allow pop-ups to print');
+ w.document.write('<title>'+i.no+'</title><body style="font-family:sans-serif;max-width:640px;margin:40px auto"><h1>Invoice '+i.no+'</h1><p>'+esc(S.user)+'<br>Date: '+i.date+'<br>Bill to: '+esc(c.name)+'</p><table width="100%" cellpadding="6" style="border-collapse:collapse">'+i.items.map(x=>'<tr style="border-top:1px solid #ccc"><td>'+esc(x.desc)+'</td><td>'+hrs(x.mins)+'</td></tr>').join('')+'</table><h2>Total: '+money(i.amount)+'</h2>');w.document.close();w.print()}
+function invV(){return[bar('Invoices',B('New invoice',()=>S.clients.length?modal('New invoice from unbilled time',[{k:'client',l:'Client',t:'sel',o:co(false)}],{},v=>{const c=cl(v.client),ls=unb(v.client);if(!ls.length){toast('No unbilled time for '+c.name);return false}
+  S.invoices.unshift({id:uid(),no:'INV-'+String(S.invoices.length+1).padStart(3,'0'),client:v.client,date:today(),items:ls.map(l=>({desc:l.desc,mins:l.mins})),amount:unbAmt(v.client),paid:false});ls.forEach(l=>l.billed=true)}):toast('Add a client first'),'blue')),
+ S.invoices.length?h('div',{class:'list'},S.invoices.map(i=>h('div',{class:'card item'},h('div',{class:'body'},h('div',{class:'t'},i.no+' · '+cn(i.client),h('span',{class:'pill '+(i.paid?'paid':'due'),text:i.paid?'Paid':'Unpaid'})),h('div',{class:'s',text:fd(i.date)+' · '+money(i.amount)+' · '+hrs(i.items.reduce((a,x)=>a+x.mins,0))})),
+ h('div',{class:'acts'},B(i.paid?'Mark unpaid':'Mark paid',()=>{i.paid=!i.paid;save();render()}),B('Print',()=>printInv(i)),B('Delete',()=>{S.invoices=S.invoices.filter(x=>x!==i);save();render()},'ghost danger'))))):empty('No invoices yet','Log time for a client, then create an invoice from it.')]}
+function schedV(){const f=[{k:'title',l:'Appointment',req:1},{k:'date',l:'Date',t:'date'},{k:'time',l:'Time',t:'time'},{k:'client',l:'Client',t:'sel',o:co()}],ev=S.events.filter(e=>e.date>=today()).sort((a,b)=>(a.date+(a.time||''))>(b.date+(b.time||''))?1:-1);
+ return[bar('Schedule',B('Add appointment',()=>modal('Add appointment',f,{date:today()},v=>{if(!v.date){toast('Pick a date');return false}S.events.push({id:uid(),...v})}),'blue')),
+ ev.length?h('div',{class:'list'},ev.map(e=>h('div',{class:'card item'},h('div',{class:'body'},h('div',{class:'t',text:e.title}),h('div',{class:'s',text:[fd(e.date),e.time,cn(e.client)].filter(Boolean).join(' · ')})),h('div',{class:'acts'},B('Edit',()=>modal('Edit appointment',f,e,v=>Object.assign(e,v))),B('Delete',()=>{S.events=S.events.filter(x=>x!==e);save();render()},'ghost danger'))))):empty('Nothing scheduled','Add calls and meetings to keep your week in view.')]}
+function tplV(){const f=[{k:'title',l:'Title',req:1},{k:'body',l:'Message',t:'area'}];
+ return[bar('Reply templates',B('Add template',()=>modal('Add template',f,{},v=>S.templates.push({id:uid(),...v})),'blue')),
+ h('div',{class:'list'},S.templates.map(t=>h('div',{class:'card item'},h('div',{class:'body'},h('div',{class:'t',text:t.title}),h('pre',{class:'body',text:t.body})),h('div',{class:'acts'},B('Copy',()=>copy(t.body),'blue'),B('Edit',()=>modal('Edit template',f,t,v=>Object.assign(t,v))),B('Delete',()=>{S.templates=S.templates.filter(x=>x!==t);save();render()},'ghost danger')))))]}
+const NAV=[['today','Today'],['clients','Clients'],['tasks','Tasks'],['time','Time tracker'],['invoices','Invoices'],['schedule','Schedule'],['templates','Reply templates']];
+const V={today:todayV,clients:clientsV,tasks:tasksV,time:timeV,invoices:invV,schedule:schedV,templates:tplV};
+const badge=k=>k==='tasks'?sorted().length:k==='invoices'?S.invoices.filter(i=>!i.paid).length:0;
+function shell(){return h('div',{},h('header',{class:'top'},wm(),h('span',{class:'sp'}),
+ S.timer?h('button',{class:'btn ghost sm',onclick:stopTimer,title:'Stop timer'},h('span',{class:'tm',text:clk(Date.now()-S.timer.start),style:'font-variant-numeric:tabular-nums'}),' Stop'):null,
+ h('span',{class:'muted',style:'font-size:.85rem',text:S.user}),B('Log out',()=>{S.user='';save();render()})),
+ h('div',{class:'shell'},h('aside',{class:'side'},h('nav',{class:'tabs'},NAV.map(([k,t])=>h('button',{class:'tab','aria-selected':String(view===k),onclick:()=>{view=k;render();scrollTo(0,0)}},ico(k),t,badge(k)?h('span',{class:'n',text:String(badge(k))}):null)))),h('main',{},V[view]())))}
+function login(){const n=h('input',{placeholder:'Your name',autofocus:true}),go=()=>{if(!n.value.trim())return n.focus();S.user=n.value.trim();save();render()};n.addEventListener('keydown',e=>e.key==='Enter'&&go());
+ const lg=h('div',{class:'wm'});lg.innerHTML=LOGO+'<span>Business <em>Ally</em></span>';
+ return h('div',{class:'login'},h('div',{class:'card'},lg,h('h1',{text:'Your virtual assistant workspace',style:'font-size:1.3rem;margin:18px 0 6px'}),h('p',{text:'Clients, tasks, time, invoices and replies in one calm place.'}),h('label',{class:'f',style:'text-align:left',text:'What should we call you?'},n),h('button',{class:'btn blue',style:'width:100%;margin-top:16px',text:'Open workspace',onclick:go})))}
+function render(){const y=scrollY;$('#app').replaceChildren(S.user?shell():login());scrollTo(0,y)}
+render();
+})();
+</script></body></html>
