@@ -160,7 +160,7 @@ const out=()=>location.replace('index.html?logout=1');
 const STATUSES=['new','contacted','quoted','won','lost'];
 const PRIORITIES=['low','normal','high'];
 
-let me=null,clients=[],inquiries=[],tasks=[];
+let me=null,clients=[],inquiries=[],tasks=[],members=[];
 let cases=[],policies=[],rules=[],casesErr=false,caseFilter='all';
 let view='overview',q='',inqFilter='all',taskFilter='open';
 let chatMsgs=[],chatErr=false,chatSel=null,chatOpen=false,chatMode='out',chatQ='',chatSub=null;const chatDrafts={};
@@ -180,16 +180,17 @@ const nullify=o=>{for(const k in o)if(typeof o[k]==='string'){o[k]=o[k].trim();i
 
 /* ---- data ---- */
 async function loadAll(){
-  const [c,i,t,cs,sp,rr]=await Promise.all([
+  const [c,i,t,m,cs,sp,rr]=await Promise.all([
     sb.from('crm_clients').select('*').order('name'),
     sb.from('crm_inquiries').select('*').order('created_at',{ascending:false}),
     sb.from('crm_tasks').select('*').order('due_date',{ascending:true,nullsFirst:false}),
+    sb.from('crm_members').select('*').order('email'),
     sb.from('crm_cases').select('*').order('created_at',{ascending:false}),
     sb.from('crm_sla_policies').select('*'),
     sb.from('crm_routing_rules').select('*').order('position',{ascending:true})
   ]);
-  const e=c.error||i.error||t.error;if(e)throw e;
-  clients=c.data;inquiries=i.data;tasks=t.data;
+  const e=c.error||i.error||t.error||m.error;if(e)throw e;
+  clients=c.data;inquiries=i.data;tasks=t.data;members=m.data||[];
   casesErr=!!(cs.error||sp.error||rr.error);cases=cs.data||[];policies=sp.data||[];rules=rr.data||[];
 }
 async function run(p,okMsg){const r=await p;if(r.error)return fail(r.error);try{await loadAll()}catch(e){return fail(e,'Saved, but could not refresh. Please reload.')}if(okMsg)toast(okMsg);render()}
@@ -268,16 +269,19 @@ const editClient=c=>openForm({title:'Edit client',fields:clientFields(),values:c
 const delClient=c=>{if(confirm('Delete '+c.name+'? Their inquiries and tasks stay, but are unlinked.'+chatNote(m=>m.client_id===c.id)))run(sb.from('crm_clients').delete().eq('id',c.id),'Client deleted.')};
 
 /* ---- tasks ---- */
-const taskFields=(pre)=>[
+const memberOptions=()=>[{v:'',t:'Unassigned'},...members.map(m=>({v:m.email,t:m.name?m.name+' · '+m.email:m.email}))];
+const taskFields=()=>[
   {k:'title',label:'Task',req:true},
+  {k:'assigned_to',label:'Assign to member',type:'select',options:memberOptions(),def:''},
   {k:'due_date',label:'Due date',type:'date'},
   {k:'priority',label:'Priority',type:'select',options:PRIORITIES.map(p=>({v:p,t:cap(p)})),def:'normal'},
   {k:'client_id',label:'Client',type:'select',options:clientOptions()}
 ];
-const addTask=(client_id)=>openForm({title:'New task',fields:taskFields(),values:{client_id:client_id||''},saveText:'Add task',onSave:v=>run(sb.from('crm_tasks').insert(v),'Task added.')});
-const editTask=t=>openForm({title:'Edit task',fields:taskFields(),values:{...t,client_id:t.client_id||'',due_date:t.due_date||''},onSave:v=>run(sb.from('crm_tasks').update(v).eq('id',t.id),'Task saved.')});
+const addTask=(client_id)=>openForm({title:'New task',fields:taskFields(),values:{client_id:client_id||'',assigned_to:''},saveText:'Add task',onSave:v=>run(sb.from('crm_tasks').insert(v),'Task added.')});
+const editTask=t=>openForm({title:'Edit task',fields:taskFields(),values:{...t,assigned_to:t.assigned_to||'',client_id:t.client_id||'',due_date:t.due_date||''},onSave:v=>run(sb.from('crm_tasks').update(v).eq('id',t.id),'Task saved.')});
 const toggleTask=t=>run(sb.from('crm_tasks').update({done:!t.done}).eq('id',t.id));
 const delTask=t=>{if(confirm('Delete this task?'))run(sb.from('crm_tasks').delete().eq('id',t.id),'Task deleted.')};
+const memberName=email=>{const m=members.find(x=>(x.email||'').toLowerCase()===(email||'').toLowerCase());return m?(m.name||m.email):email||''};
 
 /* ---- shared pieces ---- */
 const isOverdue=t=>!t.done&&t.due_date&&t.due_date<today();
@@ -291,7 +295,7 @@ function taskRow(t){
     h('input',{type:'checkbox',class:'chk',checked:t.done,'aria-label':'Mark done: '+t.title,onchange:()=>toggleTask(t)}),
     h('div',{class:'body'},
       h('div',{class:'t'},t.title,t.priority!=='normal'?h('span',{class:'pill '+t.priority,text:cap(t.priority)}):null),
-      h('div',{class:'s'},dueEl(t),t.client_id?h('span',{text:(t.due_date?' · ':'')+clientName(t.client_id)}):null),
+      h('div',{class:'s'},dueEl(t),t.assigned_to?h('span',{text:(t.due_date?' · ':'')+'Assigned to '+memberName(t.assigned_to)}):h('span',{text:(t.due_date?' · ':'')+'Unassigned'}),t.client_id?h('span',{text:' · '+clientName(t.client_id)}):null),
       h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editTask(t)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delTask(t)}))));
 }
 function signal(i){
@@ -730,9 +734,9 @@ function clientsView(){
     list.length?h('div',{class:'list'},list.map(row)):empty(clients.length?'No matches':'No clients yet',clients.length?'Try a different search.':'Add a client, or turn an inquiry into one.',clients.length?null:h('button',{class:'btn blue',text:'Add client',onclick:addClient})));
 }
 function tasksView(){
-  const list=tasks.filter(t=>(taskFilter==='all'||(taskFilter==='open'?!t.done:t.done))&&match(t,['title']));
+  const list=tasks.filter(t=>{const statusOk=taskFilter==='all'||taskFilter==='mine'||(taskFilter==='open'?!t.done:t.done);const mineOk=taskFilter!=='mine'||(t.assigned_to||'').toLowerCase()===me.email.toLowerCase();return statusOk&&mineOk&&match(t,['title','assigned_to'])});
   return h('div',{},
-    h('div',{class:'bar'},searchBar('Search tasks'),chips([['open','Open'],['done','Done'],['all','All']],taskFilter,v=>taskFilter=v),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'Add task',onclick:()=>addTask()})),
+    h('div',{class:'bar'},searchBar('Search tasks'),chips([['open','Open'],['done','Done'],['mine','My tasks'],['all','All']],taskFilter,v=>taskFilter=v),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'Add task',onclick:()=>addTask()})),
     list.length?h('div',{class:'list'},list.map(taskRow)):empty(tasks.length?'Nothing here':'No tasks yet',tasks.length?'Try a different filter.':'Add a task to remember a follow-up.',tasks.length?null:h('button',{class:'btn blue',text:'Add task',onclick:()=>addTask()})));
 }
 
