@@ -80,14 +80,132 @@ p.sub{color:var(--muted);margin:0 0 20px;font-size:.98rem}
 .skip{color:#cbd5e1}.skip:hover{color:#fff}.pill{background:#fff;color:#14122e}
 .swap{color:#fff}.s h2{text-shadow:0 2px 24px rgba(10,8,30,.45)}
 .panel{background:rgba(255,255,255,.93)}
+
+.topbtns{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));right:16px;z-index:30;display:flex;gap:8px}
+.tb{border:0;cursor:pointer;border-radius:999px;padding:9px 18px;font:inherit;font-weight:700;font-size:.88rem;transition:transform .15s}.tb:hover{transform:translateY(-2px)}
+.tb.solid{background:#fff;color:#14122e;box-shadow:0 8px 20px rgba(20,18,46,.25)}.tb.ghost{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.5);backdrop-filter:blur(8px)}
+.iq-scrim{position:fixed;inset:0;background:rgba(20,18,46,.55);display:grid;place-items:center;padding:18px;z-index:60}
+.iq{background:#fff;border-radius:26px;padding:26px;width:100%;max-width:460px;max-height:92vh;overflow:auto;box-shadow:0 30px 80px rgba(20,18,46,.35);color:var(--ink)}
+.iq h2{font-size:1.4rem;margin:0 0 4px}.iq p.sub{color:var(--muted);margin:0 0 6px;font-size:.92rem}.iq label{display:block;font-size:.82rem;font-weight:700;margin-top:12px}
+.iq input,.iq select,.iq textarea{width:100%;margin-top:5px;padding:11px 14px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit;font-weight:400;color:var(--ink)}
+.iq textarea{min-height:90px;resize:vertical}.iq .r2{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}.iq .e{color:#be123c;font-size:.88rem;min-height:1.3em;margin-top:8px}
+.iq .b{border:0;cursor:pointer;border-radius:999px;padding:10px 20px;font:inherit;font-weight:700;text-decoration:none;display:inline-block}.iq .b.go{background:#1b1a2e;color:#fff}.iq .b.gh{background:#fff;border:1px solid #e2e8f0;color:var(--ink)}
+.iq .hp{position:absolute;left:-9999px;height:0;overflow:hidden}.iq .dn{text-align:center}
+
+/* introduction page (shown first) */
+.land{width:100%;max-width:1000px;padding:56px 0 90px;color:#fff;align-self:start}
+.land .hero{text-align:center;padding:30px 0 10px}.land .hero .wm{font-size:clamp(2.8rem,9vw,4.6rem);justify-content:center}.land .hero .wm .lg{display:none}
+.land h1{font-size:clamp(2rem,6vw,3.3rem);line-height:1.1;letter-spacing:-.035em;margin:12px 0}.land .hero p{color:#e2e8f0;max-width:620px;margin:0 auto;font-size:1.08rem}
+.land .jump{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.land .jump a{color:#fff;text-decoration:none;font-weight:700;font-size:.85rem;padding:8px 16px;border-radius:99px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(8px)}
+.svc{background:rgba(255,255,255,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:28px;padding:26px;margin-top:20px;color:var(--ink);box-shadow:0 18px 60px rgba(20,18,46,.28);scroll-margin-top:20px}
+.svc .hd{display:flex;align-items:center;gap:16px;flex-wrap:wrap}.svc .wm{font-size:2rem}.svc .kk{font-size:.75rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.svc .tg{font-size:1.15rem;font-weight:800;letter-spacing:-.02em;margin:12px 0 4px}.svc .ld{color:var(--muted);margin:0;max-width:640px}
+.svc .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}.svc .bx{background:#f6f7fd;border-radius:20px;padding:16px 20px}.svc h3{margin:0 0 6px;font-size:1.02rem}
+.svc ul{margin:6px 0 0;padding-left:1.1em}.svc li{margin:5px 0;font-size:.95rem}.svc.crm li::marker{color:#06b6d4}.svc.pals li::marker{color:#d946ef}.svc.solo li::marker{color:#84cc16}
+.svc .chip{display:inline-block;font-size:.76rem;font-weight:700;padding:4px 12px;border-radius:99px;background:#eceffd;margin:0 6px 6px 0}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}.steps div{background:#f6f7fd;border-radius:20px;padding:16px}.steps b{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#1b1a2e;color:#fff;margin-bottom:8px}.steps p{margin:0;font-size:.92rem;color:var(--muted)}
+.svc.go{text-align:center}.svc.go h2{margin:0 0 6px;font-size:1.7rem;letter-spacing:-.03em}.svc.go p{color:var(--muted);margin:0 auto;max-width:480px}
+.svc .acts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.ab{border:0;cursor:pointer;border-radius:999px;padding:13px 30px;font:inherit;font-weight:700;font-size:1rem;transition:transform .15s}.ab:hover{transform:translateY(-2px)}
+.ab.go{background:linear-gradient(135deg,#7c3aed,#d946ef);color:#fff;box-shadow:0 8px 20px rgba(124,58,237,.35)}.ab.gh{background:#fff;border:1.5px solid #cbd5e1;color:var(--ink)}
+@media(max-width:760px){.svc .cols,.steps{grid-template-columns:1fr}.svc{padding:20px}}
 </style>
 </head>
 <body>
 <div class="bg" id="bg"><div class="tile" style="background-image:url('https://images.unsplash.com/photo-1758876022356-9e7597f556d8?auto=format&fit=crop&w=900&q=70')"></div><div class="tile" style="background-image:url('https://images.unsplash.com/photo-1758873272562-aa5459cbf34b?auto=format&fit=crop&w=900&q=70')"></div><div class="tile" style="background-image:url('https://images.unsplash.com/photo-1770777843445-2a1621b1201d?auto=format&fit=crop&w=900&q=70')"></div><div class="tile" style="background-image:url('https://images.unsplash.com/photo-1713946598501-d6b32e7c2464?auto=format&fit=crop&w=900&q=70')"></div><div class="tile" style="background-image:url('https://images.unsplash.com/photo-1537511446984-935f663eb1f4?auto=format&fit=crop&w=900&q=70')"></div><div class="tile" style="background-image:url('https://images.unsplash.com/photo-1758876202507-f789e0ab34e1?auto=format&fit=crop&w=900&q=70')"></div></div>
 <div class="center">
 
+
+<!-- INTRODUCTION (first thing people see) -->
+<div class="land" id="land">
+  <div class="hero">
+    <div class="wm"><b>O</b>rchid</div>
+    <h1>Work that feels <span class="grad">calm</span>.<br>Connection that feels <span class="grad">real</span>.</h1>
+    <p>Three focused apps behind one login: a CRM for teams, a private community for sharing and getting along, and a simple business manager for small and local shops.</p>
+    <div class="jump"><a href="#svc-crm">CRM</a><a href="#svc-pals">Pals</a><a href="#svc-solo">Solopreneur</a><a href="#svc-go">Get started</a></div>
+  </div>
+
+  <section class="svc crm" id="svc-crm">
+    <div class="hd"><span class="ic crm big" data-ic="crm"></span><div><div class="kk" style="color:#2563eb">Orchid CRM</div><div class="wm"><b>O</b>rchid<span class="lg">CRM</span></div></div></div>
+    <div class="tg" style="color:#2563eb">One calm home for every inquiry, client and task.</div>
+    <p class="ld">For small teams who handle requests from several places and need to know who is waiting and who is going quiet.</p>
+    <div class="cols">
+      <div class="bx"><h3>What it does</h3><ul>
+        <li><b>Inquiries:</b> new, contacted, quoted, won, lost, with a live "waiting" timer.</li>
+        <li><b>Going-cold alerts</b> when a lead has been quiet for 5+ days.</li>
+        <li><b>Clients</b> with contact details, notes and history.</li>
+        <li><b>Tasks</b> with due dates, priorities and overdue highlights.</li>
+        <li><b>Cases:</b> turn emails, chats and calls into numbered tickets.</li>
+        <li><b>Routing and SLA:</b> rules assign owners; missed deadlines escalate.</li>
+        <li><b>Team chat log</b> for every client, with unread badges.</li></ul></div>
+      <div class="bx"><h3>Why teams like it</h3><ul>
+        <li>A "Do this next" card names the single best action right now.</li>
+        <li>Average first-reply time shows how fast you really respond.</li>
+        <li>Approved members only; your data stays with your team.</li>
+        <li>Works well on phones, with nothing to learn.</li></ul>
+        <h3 style="margin-top:14px">Best for</h3><span class="chip">Agencies</span><span class="chip">Clinics</span><span class="chip">Service teams</span><span class="chip">Support desks</span><span class="chip">Small sales teams</span></div>
+    </div>
+  </section>
+
+  <section class="svc pals" id="svc-pals">
+    <div class="hd"><span class="ic pals big" data-ic="pals"></span><div><div class="kk" style="color:#7c3aed">Orchid Pals</div><div class="wm"><b>O</b>rchid<span class="lg">Pals</span></div></div></div>
+    <div class="tg" style="color:#7c3aed">Share a moment. Say it in your own words. Get along.</div>
+    <p class="ld">A private, members-only community. Members post stories with photos or voice notes, react, add each other as Pals and chat one to one. Your own social space, without the noise or the strangers.</p>
+    <div class="cols">
+      <div class="bx"><h3>What members can do</h3><ul>
+        <li><b>Post stories</b> and attach a photo.</li>
+        <li><b>Voice notes:</b> record and share a voice story.</li>
+        <li><b>React</b> to what others share.</li>
+        <li><b>Pals:</b> search people, send requests, build a circle.</li>
+        <li><b>Private chat</b> with your Pals.</li>
+        <li><b>Notifications</b> for new stories, messages and requests.</li></ul></div>
+      <div class="bx"><h3>Built for organizations</h3><ul>
+        <li><b>Invite only:</b> only admin-approved emails can join.</li>
+        <li>A calm place for your members to connect, away from public feeds.</li>
+        <li>One login with the rest of Orchid.</li></ul>
+        <h3 style="margin-top:14px">Best for</h3><span class="chip">Clubs</span><span class="chip">Schools and alumni</span><span class="chip">Churches</span><span class="chip">Neighborhoods</span><span class="chip">Company culture</span></div>
+    </div>
+  </section>
+
+  <section class="svc solo" id="svc-solo">
+    <div class="hd"><span class="ic solo big" data-ic="solo"></span><div><div class="kk" style="color:#059669">Orchid Solopreneur</div><div class="wm"><b>O</b>rchid<span class="lg">Solopreneur</span></div></div></div>
+    <div class="tg" style="color:#059669">Know who to reply to, what to do today, and who owes you money.</div>
+    <p class="ld">For one-person and local businesses: salons, repair shops, tutors, caterers, cleaners, photographers and freelancers. Just the essentials.</p>
+    <div class="cols">
+      <div class="bx"><h3>What it does</h3><ul>
+        <li><b>Today:</b> a "Do this next" card with money owed first.</li>
+        <li><b>Leads:</b> a pipeline with estimated value and one-tap call, text or email.</li>
+        <li><b>Customers:</b> history, total paid, last visit and a "Book job" button.</li>
+        <li><b>Jobs and payments:</b> date, price, done, paid or unpaid.</li>
+        <li><b>Time to check in:</b> reminds you of customers you have not seen in 60 days.</li>
+        <li><b>Tasks</b> with due dates.</li></ul></div>
+      <div class="bx"><h3>Why it fits small business</h3><ul>
+        <li>See earned this month and waiting to be paid at a glance.</li>
+        <li>Repeat customers are local income, and it nudges you to bring them back.</li>
+        <li>Each business sees only its own data.</li></ul>
+        <h3 style="margin-top:14px">Best for</h3><span class="chip">Salons</span><span class="chip">Repair</span><span class="chip">Tutors</span><span class="chip">Food</span><span class="chip">Cleaning</span><span class="chip">Freelancers</span></div>
+    </div>
+  </section>
+
+  <section class="svc">
+    <h2 style="margin:0;font-size:1.5rem;letter-spacing:-.03em">How it works</h2>
+    <div class="steps">
+      <div><b>1</b><h3>Log in once</h3><p>One email and password for every Orchid app.</p></div>
+      <div><b>2</b><h3>Choose your app</h3><p>Pick CRM, Pals or Solopreneur on the welcome screen.</p></div>
+      <div><b>3</b><h3>Get on with your day</h3><p>Everything is private to you and your team.</p></div>
+    </div>
+  </section>
+
+  <section class="svc go" id="svc-go">
+    <h2>Ready to start?</h2>
+    <p>Log in to open your apps, or send us an inquiry and we will get back to you.</p>
+    <div class="acts"><button class="ab go" id="loginBtn" type="button">Log in</button><button class="ab gh" id="inqBtn" type="button">Inquiry</button></div>
+  </section>
+</div>
+
 <!-- STORY -->
-<div class="story" id="story">
+<div class="story" id="story" hidden>
   <section class="s on">
     <div class="kick r">Hello</div>
     <div class="wm xl r" style="--d:1"><b>O</b>rchid</div>
@@ -117,7 +235,14 @@ p.sub{color:var(--muted);margin:0 0 20px;font-size:.98rem}
     <div class="swap r" style="--d:5"><span class="alb a"></span>Album Exchange<span class="alb b"></span></div>
     <p class="t r" style="--d:5;font-size:.88rem;margin-top:0">Swap the albums you love with your pals.</p>
   </section>
-  <div class="ctl"><div class="bar"><i></i></div><button class="skip" id="skip" type="button">Skip</button><div class="dots" id="dots"><b class="on"></b><b></b><b></b><b></b></div><button class="pill" id="next" type="button">Next</button></div>
+  <section class="s">
+    <div class="kick r">And the third</div>
+    <span class="ic solo big r" data-ic="solo" style="--d:1"></span>
+    <div class="wm r" style="--d:2"><b>O</b>rchid<span class="lg">Solopreneur</span></div>
+    <p class="t r" style="--d:3">For small and local business: see who to reply to, what to do today, and who owes you money.</p>
+    <div class="floaty r" style="--d:4"><div class="th"><em style="background:linear-gradient(135deg,#059669,#84cc16)">₱</em>Collect ₱1,500 · aircon cleaning</div><div class="th"><em style="background:linear-gradient(135deg,#059669,#84cc16)">4</em>New leads to answer</div><div class="th"><em style="background:linear-gradient(135deg,#059669,#84cc16)">60</em>Days: time to check in</div></div>
+  </section>
+  <div class="ctl"><div class="bar"><i></i></div><button class="skip" id="skip" type="button">Skip</button><div class="dots" id="dots"><b class="on"></b><b></b><b></b><b></b><b></b></div><button class="pill" id="next" type="button">Next</button></div>
 </div>
 
 <!-- SIGN IN (one login for all of Orchid) -->
@@ -163,7 +288,7 @@ document.querySelectorAll('[data-ic]').forEach(e=>e.innerHTML=ICONS[e.dataset.ic
 
 // ---- intro story ----
 const slides=[...document.querySelectorAll('.s')],dots=[...document.querySelectorAll('#dots b')],last=slides.length-1,bar=document.querySelector('.bar');
-const tiles=[...document.querySelectorAll('.tile')],HL=[[0,1,2,3,4,5],[1,5],[0,2],[3,4]];
+const tiles=[...document.querySelectorAll('.tile')],HL=[[0,1,2,3,4,5],[1,5],[0,2],[3,4],[2,4,5]];
 let idx=0,timer;
 function show(n){
   idx=n;tiles.forEach((t,k)=>t.classList.toggle('dim',!HL[n].includes(k)));slides.forEach((s,k)=>s.classList.toggle('on',k===n));dots.forEach((d,k)=>d.classList.toggle('on',k===n));
@@ -171,8 +296,9 @@ function show(n){
   clearTimeout(timer);if(n<last)timer=setTimeout(()=>show(n+1),6500);
   $('next').textContent=n===last?'Get started':'Next';
 }
-function showLogin(){clearTimeout(timer);tiles.forEach(t=>t.classList.remove('dim'));$('story').hidden=true;$('pick').hidden=true;$('form').hidden=false;mode='in';renderForm();$('email').focus()}
-function replay(){$('pick').hidden=true;$('form').hidden=true;$('story').hidden=false;show(0)}
+function showLogin(){$('land').hidden=true;clearTimeout(timer);tiles.forEach(t=>t.classList.remove('dim'));$('story').hidden=true;$('pick').hidden=true;$('form').hidden=false;mode='in';renderForm();$('email').focus()}
+function showLand(){clearTimeout(timer);$('story').hidden=true;$('form').hidden=true;$('pick').hidden=true;$('land').hidden=false;window.scrollTo(0,0)}
+function replay(){$('land').hidden=true;$('pick').hidden=true;$('form').hidden=true;$('story').hidden=false;show(0)}
 
 // ---- one Orchid login ----
 // Admin: add the email in Supabase (same approved list as before). The person creates their own password here.
@@ -200,7 +326,7 @@ function renderForm(){
   $('pass').autocomplete=up?'new-password':'current-password';say('');
 }
 function showPick(email){
-  clearTimeout(timer);tiles.forEach(t=>t.classList.remove('dim'));who=email;const sc=document.querySelector('[data-p=solo]');if(sc)sc.hidden=routeFor(email)==='legal';
+  clearTimeout(timer);tiles.forEach(t=>t.classList.remove('dim'));who=email;$('land').hidden=true;const sc=document.querySelector('[data-p=solo]');if(sc)sc.hidden=routeFor(email)==='legal';
   $('who').textContent='Signed in as '+email;$('story').hidden=true;$('form').hidden=true;$('pick').hidden=false;$('fix').hidden=true;say('',0,'pmsg');
 }
 // Link Pals silently using the same email + password (creates the Pals account on first use).
@@ -293,13 +419,47 @@ $('next').onclick=()=>idx<last?show(idx+1):showLogin();$('skip').onclick=showLog
 $('story').addEventListener('click',e=>{if(!e.target.closest('button')&&idx<last)show(idx+1)});
 document.addEventListener('keydown',e=>{if($('story').hidden)return;if(e.key==='ArrowRight'&&idx<last)show(idx+1);if(e.key==='ArrowLeft'&&idx>0)show(idx-1)});
 document.querySelectorAll('.card').forEach(b=>b.onclick=()=>{if(b.dataset.p==='pals')return openPals();if(b.dataset.p==='solo')return location.assign('solopreneur.html');location.assign(APPS[routeFor(who)].page)});
-$('back').onclick=replay;$('logout').onclick=logoutAll;
+$('back').onclick=showLand;$('logout').onclick=logoutAll;
 $('go').onclick=submit;$('swap').onclick=()=>{mode=mode==='in'?'up':'in';renderForm()};
 $('fixgo').onclick=fixPals;
 $('showpw').onchange=e=>{const t=e.target.checked?'text':'password';$('pass').type=t;$('pass2').type=t};
 ['email','pass','pass2'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')submit()}));
 $('fixpass').addEventListener('keydown',e=>{if(e.key==='Enter')fixPals()});
-show(0);
+
+// ---- Inquiry form: saves into the CRM inquiries; falls back to email until welcome_inquiry_setup.sql is run ----
+const INQUIRY_EMAIL='herart36@gmail.com'; // change to your business email (shown only if the database save is not available)
+function openInquiry(){
+  const f=(t,a={},...c)=>{const e=document.createElement(t);for(const k in a)k==='text'?e.textContent=a[k]:e.setAttribute(k,a[k]);c.forEach(x=>e.append(x));return e};
+  const name=f('input',{type:'text',maxlength:'120',autocomplete:'name'}),email=f('input',{type:'email',maxlength:'200',autocomplete:'email'}),phone=f('input',{type:'tel',maxlength:'40',autocomplete:'tel'}),
+    app=f('select'),msg=f('textarea',{maxlength:'2000'}),hp=f('input',{type:'text',tabindex:'-1',autocomplete:'off','aria-hidden':'true'}),err=f('div',{class:'e',role:'alert'});
+  ['Orchid CRM','Orchid Pals','Orchid Solopreneur','Not sure yet'].forEach(o=>app.append(f('option',{text:o})));
+  const lab=(t,el)=>f('label',{},t,el);
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape')close()};
+  const send=f('button',{class:'b go',type:'button',text:'Send inquiry'});
+  send.onclick=async()=>{
+    err.textContent='';if(hp.value)return close();
+    if(!name.value.trim())return err.textContent='Please enter your name.';
+    if(!email.value.trim()&&!phone.value.trim())return err.textContent='Add an email or phone so we can reply.';
+    if(email.value.trim()&&!/^\S+@\S+\.\S+$/.test(email.value.trim()))return err.textContent='Enter a valid email address.';
+    send.disabled=true;send.textContent='Sending…';
+    try{
+      const c=clients.crm;if(!c)throw new Error('loading');
+      const r=await c.from('crm_inquiries').insert({name:name.value.trim(),email:email.value.trim()||null,phone:phone.value.trim()||null,source:'Website',status:'new',message:'Interested in: '+app.value+(msg.value.trim()?'\n\n'+msg.value.trim():'')});
+      if(r.error)throw r.error;
+      box.replaceChildren(f('div',{class:'dn'},f('h2',{text:'Thank you!'}),f('p',{class:'sub',text:'We got your inquiry and will reply soon.'}),f('div',{class:'r2',style:'justify-content:center'},f('button',{class:'b go',type:'button',text:'Close',onclick:close}))));
+    }catch(e){
+      const body='Name: '+name.value.trim()+'\nEmail: '+email.value.trim()+'\nPhone: '+phone.value.trim()+'\nInterested in: '+app.value+'\n\n'+msg.value.trim();
+      const href='mailto:'+INQUIRY_EMAIL+'?subject='+encodeURIComponent('Orchid inquiry from '+name.value.trim())+'&body='+encodeURIComponent(body);
+      box.replaceChildren(f('div',{class:'dn'},f('h2',{text:'One more step'}),f('p',{class:'sub',text:'Tap the button to open your email app with your inquiry ready, then press Send.'}),f('div',{class:'r2',style:'justify-content:center'},f('a',{class:'b go',href,text:'Open my email'}),f('button',{class:'b gh',type:'button',text:'Close',onclick:close}))));
+    }
+  };
+  const box=f('div',{class:'iq',role:'dialog','aria-modal':'true','aria-label':'Send an inquiry'},f('h2',{text:'Send an inquiry'}),f('p',{class:'sub',text:'Tell us what you need. We will get back to you.'}),
+    lab('Your name',name),lab('Email',email),lab('Phone',phone),lab('Interested in',app),lab('Message (optional)',msg),f('div',{class:'hp'},lab('Leave empty',hp)),err,
+    f('div',{class:'r2'},f('button',{class:'b gh',type:'button',text:'Cancel',onclick:close}),send));
+  const scrim=f('div',{class:'iq-scrim'},box);scrim.addEventListener('click',e=>{if(e.target===scrim)close()});
+  document.body.append(scrim);document.addEventListener('keydown',esc);name.focus();
+}
+$('inqBtn').onclick=openInquiry;$('loginBtn').onclick=showLogin;
 boot().catch(e=>{showLogin();say(e.message||'Something went wrong.')});
 </script>
 </body>
