@@ -108,7 +108,7 @@ main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
 .cc .tm{margin-left:auto;font-size:.72rem;color:var(--muted);font-weight:600;flex:none}
 .cc .pv{color:var(--muted);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .av{width:38px;height:38px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.85rem;flex:none}
-.av.inq{background:linear-gradient(135deg,#f97316,#f59e0b)}
+.av.grp{background:linear-gradient(135deg,#6366f1,#2563eb);font-size:.78rem}
 .dot{min-width:20px;height:20px;border-radius:999px;background:#f97316;color:#fff;font-size:.72rem;font-weight:800;display:grid;place-items:center;padding:0 6px;flex:none}
 .chat-pane{display:flex;flex-direction:column;min-height:0;min-width:0}
 .chat-head{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -352,7 +352,7 @@ const taskAssignments=()=>JSON.parse(localStorage.getItem('orchid_crm_task_assig
 const saveTaskAssignment=(id,email)=>{const a=taskAssignments();if(email)a[id]=email;else delete a[id];localStorage.setItem('orchid_crm_task_assignments',JSON.stringify(a))};
 let cases=[],policies=[],rules=[],casesErr=false,caseFilter='all';
 let view='overview',q='',inqFilter='all',taskFilter='open';
-let chatMsgs=[],chatErr=false,chatSel=null,chatOpen=false,chatMode='out',chatQ='',chatSub=null;const chatDrafts={};
+let chatMsgs=[],chatErr=false,chatSel=null,chatOpen=false,chatQ='',chatSub=null;const chatDrafts={};
 caseFilter='active';
 
 /* ---- tiny DOM helper (text is always set as text, never HTML) ---- */
@@ -439,8 +439,7 @@ const touchPatch=(i,s)=>({status:s,last_touch:nowIso(),...(s!=='new'&&!i.contact
 const setStatus=(i,s)=>run(sb.from('crm_inquiries').update(touchPatch(i,s)).eq('id',i.id));
 const logTouch=i=>run(sb.from('crm_inquiries').update({last_touch:nowIso()}).eq('id',i.id),'Touch logged. The clock restarts.');
 const isActive=i=>i.status==='contacted'||i.status==='quoted';
-const chatNote=f=>chatMsgs.some(f)?' Their chat history is deleted too.':'';
-const delInquiry=i=>{if(confirm('Delete the inquiry from '+i.name+'?'+chatNote(m=>m.inquiry_id===i.id)))run(sb.from('crm_inquiries').delete().eq('id',i.id),'Inquiry deleted.')};
+const delInquiry=i=>{if(confirm('Delete the inquiry from '+i.name+'?'))run(sb.from('crm_inquiries').delete().eq('id',i.id),'Inquiry deleted.')};
 async function convert(i){
   const ex=i.email&&clients.find(c=>(c.email||'').toLowerCase()===i.email.toLowerCase());
   let cid=ex&&ex.id;
@@ -461,7 +460,7 @@ const clientFields=()=>[
 ];
 const addClient=()=>openForm({title:'New client',fields:clientFields(),saveText:'Add client',onSave:v=>run(sb.from('crm_clients').insert(v),'Client added.')});
 const editClient=c=>openForm({title:'Edit client',fields:clientFields(),values:c,onSave:v=>run(sb.from('crm_clients').update(v).eq('id',c.id),'Client saved.')});
-const delClient=c=>{if(confirm('Delete '+c.name+'? Their inquiries and tasks stay, but are unlinked.'+chatNote(m=>m.client_id===c.id)))run(sb.from('crm_clients').delete().eq('id',c.id),'Client deleted.')};
+const delClient=c=>{if(confirm('Delete '+c.name+'? Their inquiries and tasks stay, but are unlinked.'))run(sb.from('crm_clients').delete().eq('id',c.id),'Client deleted.')};
 
 /* ---- tasks ---- */
 const memberOptions=()=>[{v:'',t:'Unassigned'},...members.map(m=>({v:m.email,t:m.name+' · '+m.email}))];
@@ -511,7 +510,6 @@ function inquiryRow(i){
       isActive(i)?h('button',{class:'btn ghost sm',text:'Log a touch',onclick:()=>logTouch(i)}):null,
       i.client_id?null:h('button',{class:'btn blue sm',text:'Make client',onclick:()=>convert(i)}),
       caseBtn(i),
-      chatBtn(i.client_id?'c:'+i.client_id:'i:'+i.id),
       h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editInquiry(i)}),
       h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delInquiry(i)}))));
 }
@@ -710,7 +708,9 @@ function openCaseSettings(){
 }
 
 
-/* ---- chat: a shared conversation log with each person in the CRM ---- */
+/* ---- chat: team chat for everyone with CRM access (admin + active staff). Leads are not chattable. ----
+   Backed by public.crm_team_messages. Row-level security keeps direct messages private to the two people
+   in them; recipient_email = null is the shared team channel. */
 const mobile=()=>matchMedia('(max-width:760px)').matches;
 const seenKey=()=>'orchid_chat_seen_'+(me?me.id:'');
 const seenGet=()=>{try{return JSON.parse(localStorage.getItem(seenKey())||'{}')}catch(e){return{}}};
@@ -719,31 +719,33 @@ const hm=t=>new Date(t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-d
 const dayKey=t=>new Date(t).toDateString();
 const dayLabel=t=>{const d=new Date(t),n=new Date();if(dayKey(t)===n.toDateString())return'Today';if(dayKey(t)===new Date(Date.now()-864e5).toDateString())return'Yesterday';return d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:d.getFullYear()===n.getFullYear()?undefined:'numeric'})};
 const listTime=t=>dayKey(t)===new Date().toDateString()?hm(t):new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric'});
-const whoIs=a=>!a?'':a.toLowerCase()===me.email.toLowerCase()?'You':a.split('@')[0];
+const lc=e=>String(e||'').toLowerCase();
+const isMe=e=>!!me&&lc(e)===lc(me.email);
+const who=e=>isMe(e)?'You':memberName(e);
+const TEAM='all';
 
 async function loadChat(){
-  const r=await sb.from('crm_chat_messages').select('*').order('created_at',{ascending:false}).limit(1500);
+  const r=await sb.from('crm_team_messages').select('*').order('created_at',{ascending:false}).limit(1500);
   if(r.error){chatErr=true;chatMsgs=[];return}
   chatErr=false;chatMsgs=r.data.reverse();
 }
+/* which conversation a message belongs to: the team channel, or the other person in a direct message */
+const chatKey=m=>!m.recipient_email?TEAM:'t:'+(isMe(m.sender_email)?lc(m.recipient_email):lc(m.sender_email));
 function chatContacts(){
-  const iq=new Map(inquiries.map(i=>[i.id,i])),g=new Map();
-  for(const m of chatMsgs){
-    const i=m.inquiry_id&&iq.get(m.inquiry_id);
-    const k=m.client_id?'c:'+m.client_id:i&&i.client_id?'c:'+i.client_id:'i:'+m.inquiry_id;
-    if(!g.has(k))g.set(k,[]);g.get(k).push(m);
-  }
+  const g=new Map();
+  for(const m of chatMsgs){const k=chatKey(m);if(!g.has(k))g.set(k,[]);g.get(k).push(m)}
   const seen=seenGet();
-  const mk=(key,type,rec,sub)=>{const ms=g.get(key)||[],s=seen[key]?new Date(seen[key]):0;
-    return{key,type,rec,name:rec.name,sub,ms,last:ms[ms.length-1],unread:ms.filter(m=>m.direction==='in'&&new Date(m.created_at)>s).length}};
-  return[...clients.map(c=>mk('c:'+c.id,'client',c,c.company||c.email||c.phone||'')),
-    ...inquiries.filter(i=>!i.client_id).map(i=>mk('i:'+i.id,'inquiry',i,'Inquiry · '+cap(i.status)))]
+  const mk=(key,type,rec,name,sub)=>{const ms=g.get(key)||[],s=seen[key]?new Date(seen[key]):0;
+    return{key,type,rec,name,sub,ms,last:ms[ms.length-1],unread:ms.filter(m=>!isMe(m.sender_email)&&new Date(m.created_at)>s).length}};
+  const team=mk(TEAM,'team',{},'Team chat',members.length+' '+(members.length===1?'person':'people')+' with CRM access');
+  const people=members.filter(x=>!isMe(x.email)).map(x=>mk('t:'+lc(x.email),'member',x,x.name||x.email,(x.role==='admin'?'Admin · ':'')+x.email))
     .sort((a,b)=>(b.last?new Date(b.last.created_at):0)-(a.last?new Date(a.last.created_at):0)||a.name.localeCompare(b.name));
+  return[team,...people];
 }
 const chatUnread=()=>chatErr?0:chatContacts().reduce((a,c)=>a+c.unread,0);
 function markSeen(k){
   const c=chatContacts().find(x=>x.key===k);if(!c)return;
-  const li=[...c.ms].reverse().find(m=>m.direction==='in');if(!li)return;
+  const li=[...c.ms].reverse().find(m=>!isMe(m.sender_email));if(!li)return;
   try{const s=seenGet();s[k]=li.created_at;localStorage.setItem(seenKey(),JSON.stringify(s))}catch(e){}
 }
 function updateChatBadge(){
@@ -751,7 +753,7 @@ function updateChatBadge(){
   if(!n){s&&s.remove();return}
   if(!s){s=h('span',{class:'n'});b.append(s)}s.textContent=String(n);
 }
-const chatBtn=k=>chatErr?null:h('button',{class:'btn ghost sm',text:'Chat',onclick:()=>openChat(k)});
+const msgBtn=e=>h('button',{class:'btn ghost sm',text:'Message',onclick:()=>openChat('t:'+lc(e))});
 function openChat(k){view='chat';q='';chatSel=k;chatOpen=true;markSeen(k);render();window.scrollTo(0,0)}
 
 function addMsg(m){
@@ -767,24 +769,24 @@ function onChatChange(){
 async function pollChat(){
   if(chatErr||!me)return;
   const last=chatMsgs.length?chatMsgs[chatMsgs.length-1].created_at:null;
-  let r=sb.from('crm_chat_messages').select('*').order('created_at',{ascending:true}).limit(200);
+  let r=sb.from('crm_team_messages').select('*').order('created_at',{ascending:true}).limit(200);
   if(last)r=r.gt('created_at',last);
   const x=await r;if(x.error)return;
   let ch=false;for(const m of x.data)if(!chatMsgs.some(y=>y.id===m.id)){chatMsgs.push(m);ch=true}
-  if(ch)onChatChange();
+  if(ch){chatMsgs.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));onChatChange()}
 }
 function subChat(){
   if(chatSub||chatErr)return;
-  try{chatSub=sb.channel('crm-chat').on('postgres_changes',{event:'*',schema:'public',table:'crm_chat_messages'},p=>{
+  try{chatSub=sb.channel('crm-team-chat').on('postgres_changes',{event:'*',schema:'public',table:'crm_team_messages'},p=>{
     if(p.eventType==='INSERT')addMsg(p.new);
     else if(p.eventType==='DELETE'){chatMsgs=chatMsgs.filter(m=>m.id!==p.old.id);onChatChange()}
   }).subscribe()}catch(e){console.error(e)}
 }
 
 function contactRow(c){
-  const pv=c.last?(c.last.direction==='out'?'You: ':'')+c.last.body.replace(/\s+/g,' '):(c.sub||'No messages yet');
+  const pv=c.last?(isMe(c.last.sender_email)?'You: ':c.type==='team'?who(c.last.sender_email)+': ':'')+c.last.body.replace(/\s+/g,' '):(c.sub||'No messages yet');
   return h('button',{class:'cc','aria-current':String(chatSel===c.key),onclick:()=>{chatSel=c.key;chatOpen=true;markSeen(c.key);paintList();paintPane()}},
-    h('div',{class:'av'+(c.type==='inquiry'?' inq':''),text:initials(c.name),'aria-hidden':'true'}),
+    h('div',{class:'av'+(c.type==='team'?' grp':''),text:c.type==='team'?'All':initials(c.name),'aria-hidden':'true'}),
     h('div',{class:'bd'},h('div',{class:'nm'},h('span',{text:c.name}),c.last?h('span',{class:'tm',text:listTime(c.last.created_at)}):null),
       h('div',{class:'pv',text:pv})),
     c.unread?h('span',{class:'dot',text:String(c.unread),'aria-label':c.unread+' unread'}):null);
@@ -802,68 +804,60 @@ function paintMsgs(forceBottom){
   let prev=null;const rows=[];
   for(const m of c.ms){
     if(dayKey(m.created_at)!==prev){prev=dayKey(m.created_at);rows.push(h('div',{class:'day',text:dayLabel(m.created_at)}))}
-    const mine=m.author&&m.author.toLowerCase()===me.email.toLowerCase();
-    rows.push(h('div',{class:'msg '+m.direction},h('div',{class:'bub',text:m.body}),
-      h('div',{class:'meta'},hm(m.created_at)+(m.direction==='out'?' · '+whoIs(m.author):' · logged by '+whoIs(m.author)),
+    const mine=isMe(m.sender_email);
+    rows.push(h('div',{class:'msg '+(mine?'out':'in')},h('div',{class:'bub',text:m.body}),
+      h('div',{class:'meta'},(!mine&&c.type==='team'?who(m.sender_email)+' · ':'')+hm(m.created_at),
         mine?h('button',{type:'button',text:'Delete',onclick:()=>delMsg(m)}):null)));
   }
-  el.replaceChildren(...(rows.length?rows:[h('div',{class:'chat-empty',text:'No messages yet. Start the conversation below.'})]));
+  el.replaceChildren(...(rows.length?rows:[h('div',{class:'chat-empty',text:c.type==='team'?'No messages yet. Say hello to the team.':'No messages yet. Say hello to '+c.name+'.'})]));
   if(atBottom)el.scrollTop=el.scrollHeight;
 }
 async function delMsg(m){
   if(!confirm('Delete this message?'))return;
-  const r=await sb.from('crm_chat_messages').delete().eq('id',m.id);
+  const r=await sb.from('crm_team_messages').delete().eq('id',m.id);
   if(r.error)return fail(r.error);
   chatMsgs=chatMsgs.filter(x=>x.id!==m.id);onChatChange();
 }
 async function sendChat(c,ta,btn){
   const body=ta.value.trim();if(!body)return;
-  const row={direction:chatMode,body,author:me.email};
-  if(c.type==='client')row.client_id=c.rec.id;else row.inquiry_id=c.rec.id;
+  const row={sender_email:lc(me.email),body};
+  if(c.type==='member')row.recipient_email=lc(c.rec.email);
   btn.disabled=true;
-  const r=await sb.from('crm_chat_messages').insert(row).select().single();
+  const r=await sb.from('crm_team_messages').insert(row).select().single();
   btn.disabled=false;
   if(r.error)return fail(r.error,'Could not send. Please try again.');
   ta.value='';ta.style.height='';delete chatDrafts[c.key];addMsg(r.data);
   const el=$('#chat-msgs');if(el)el.scrollTop=el.scrollHeight;ta.focus();
 }
 function composer(c){
-  const ta=h('textarea',{rows:'1',maxlength:'4000','aria-label':'Message'});
+  const ta=h('textarea',{rows:'1',maxlength:'4000','aria-label':'Message',placeholder:c.type==='team'?'Message the team…':'Message '+c.name+'…'});
   ta.value=chatDrafts[c.key]||'';
-  const send=h('button',{class:'btn blue',onclick:()=>sendChat(c,ta,send)});
-  const modes=[['out','I sent this'],['in','They replied']];
-  const sync=()=>{ta.placeholder=chatMode==='out'?'Write a message…':'What did they say?';send.textContent=chatMode==='out'?'Send':'Log reply'};
-  const btns=modes.map(([v,t])=>h('button',{type:'button','aria-pressed':String(chatMode===v),text:t,onclick:()=>{chatMode=v;btns.forEach((b,i)=>b.setAttribute('aria-pressed',String(modes[i][0]===v)));sync();ta.focus()}}));
-  sync();
+  const send=h('button',{class:'btn blue',text:'Send',onclick:()=>sendChat(c,ta,send)});
   ta.addEventListener('input',()=>{chatDrafts[c.key]=ta.value;ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,140)+'px'});
   ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&matchMedia('(hover:hover)').matches){e.preventDefault();sendChat(c,ta,send)}});
   return h('div',{class:'composer'},
-    h('div',{class:'r0'},h('div',{class:'seg',role:'group','aria-label':'Who wrote this message'},btns),
-      h('span',{class:'hint',text:'Shared with your team. Nothing is emailed or texted to them.'})),
+    h('div',{class:'r0'},h('span',{class:'hint',text:c.type==='team'?'Visible to everyone with CRM access.':'Private. Only you and '+c.name+' can see this.'})),
     h('div',{class:'r1'},ta,send));
 }
 function paintPane(){
   const pane=$('#chat-pane'),wrap=$('#chat');if(!pane)return;
   if(wrap)wrap.classList.toggle('open',chatOpen&&!!chatSel);
   const c=chatContacts().find(x=>x.key===chatSel);
-  if(!c){chatSel=null;pane.replaceChildren(h('div',{class:'chat-empty',text:'Pick someone on the left to see your conversation.'}));return}
-  const r=c.rec;
+  if(!c){chatSel=null;pane.replaceChildren(h('div',{class:'chat-empty',text:'Pick a teammate on the left to start a conversation.'}));return}
   pane.replaceChildren(
     h('div',{class:'chat-head'},
       h('button',{class:'btn ghost sm back',text:'Back',onclick:()=>{chatOpen=false;paintPane()}}),
-      h('div',{class:'av'+(c.type==='inquiry'?' inq':''),text:initials(c.name),'aria-hidden':'true'}),
-      h('div',{class:'who'},h('b',{text:c.name}),h('span',{text:[c.type==='client'?r.company:'Inquiry · '+cap(r.status),r.email,r.phone].filter(Boolean).join(' · ')})),
-      r.email?h('a',{class:'btn ghost sm',href:'mailto:'+r.email,text:'Email'}):null,
-      r.phone?h('a',{class:'btn ghost sm',href:'tel:'+r.phone,text:'Call'}):null,
-      c.type==='client'?h('button',{class:'btn ghost sm',text:'Add task',onclick:()=>addTask(r.id)}):null),
+      h('div',{class:'av'+(c.type==='team'?' grp':''),text:c.type==='team'?'All':initials(c.name),'aria-hidden':'true'}),
+      h('div',{class:'who'},h('b',{text:c.name}),h('span',{text:c.sub})),
+      c.type==='member'?h('a',{class:'btn ghost sm',href:'mailto:'+c.rec.email,text:'Email'}):null),
     h('div',{class:'chat-msgs',id:'chat-msgs',role:'log','aria-live':'polite','aria-label':'Conversation with '+c.name}),
     composer(c));
   paintMsgs(true);
 }
 function chatView(){
-  if(chatErr)return empty('Chat is not set up yet','The chat table could not be loaded. Ask your admin to run crm_chat_setup.sql in Supabase, then reload.');
-  if(!clients.length&&!inquiries.some(i=>!i.client_id))return empty('No one to chat with yet','Chat works with the people in your CRM. Add a client or an inquiry first.',h('button',{class:'btn blue',text:'Add client',onclick:addClient}));
-  const srch=h('input',{type:'text',placeholder:'Search people','aria-label':'Search people',value:chatQ,oninput:e=>{chatQ=e.target.value;paintList()}});
+  if(chatErr)return empty('Team chat is not set up yet','The chat table could not be loaded. Ask your admin to check crm_team_messages in Supabase, then reload.');
+  if(!chatSel&&!mobile()){chatSel=TEAM;markSeen(TEAM)}
+  const srch=h('input',{type:'text',placeholder:'Search teammates','aria-label':'Search teammates',value:chatQ,oninput:e=>{chatQ=e.target.value;paintList()}});
   const wrap=h('div',{class:'card chat'+(chatOpen&&chatSel?' open':''),id:'chat'},
     h('div',{class:'chat-list'},h('div',{class:'srch'},srch),h('div',{class:'chat-contacts',id:'chat-contacts'})),
     h('div',{class:'chat-pane',id:'chat-pane'}));
@@ -922,7 +916,7 @@ function clientsView(){
       h('div',{class:'s',text:[c.email,c.phone].filter(Boolean).join(' · ')||'No contact details'}),
       h('div',{class:'s',text:ni+' inquir'+(ni===1?'y':'ies')+' · '+nt+' open task'+(nt===1?'':'s')}),
       c.notes?h('div',{class:'m',text:c.notes}):null,
-      h('div',{class:'acts'},chatBtn('c:'+c.id),h('button',{class:'btn ghost sm',text:'Add task',onclick:()=>addTask(c.id)}),h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editClient(c)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delClient(c)}))));
+      h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Add task',onclick:()=>addTask(c.id)}),h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editClient(c)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delClient(c)}))));
   };
   return h('div',{},
     h('div',{class:'bar'},searchBar('Search clients'),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'Add client',onclick:addClient})),
@@ -932,15 +926,17 @@ function membersView(){
   const adminRow=h('div',{class:'card item'},h('div',{class:'body'},
     h('div',{class:'t'},document.createTextNode('Admin'),h('span',{class:'pill new',text:'Admin'})),
     h('div',{class:'s',text:ADMIN_EMAIL}),
-    h('div',{class:'muted',style:'font-size:.78rem;margin-top:4px',text:'Full access. Only the admin can add, pause or remove staff.'})
+    h('div',{class:'muted',style:'font-size:.78rem;margin-top:4px',text:'Full access. Only the admin can add, pause or remove staff.'}),
+    isMe(ADMIN_EMAIL)?null:h('div',{class:'acts'},msgBtn(ADMIN_EMAIL))
   ));
   const staffRows=staff.map(m=>h('div',{class:'card item',style:m.active?'':'opacity:.65'},h('div',{class:'body'},
     h('div',{class:'t'},document.createTextNode(m.name||m.email),h('span',{class:'pill '+(m.active?'won':'closed'),text:m.active?'Active':'Paused'})),
     h('div',{class:'s',text:m.email}),
     h('div',{class:'muted',style:'font-size:.78rem;margin-top:4px',text:'Staff'+(m.created_at?' · added '+fmtDate(String(m.created_at).slice(0,10)):'')}),
-    isAdmin?h('div',{class:'acts'},
-      h('button',{class:'btn ghost sm',text:m.active?'Pause access':'Restore access',onclick:()=>toggleStaff(m)}),
-      h('button',{class:'btn ghost sm danger',text:'Remove',onclick:()=>removeStaff(m)})
+    (isAdmin||(m.active&&!isMe(m.email)))?h('div',{class:'acts'},
+      m.active&&!isMe(m.email)?msgBtn(m.email):null,
+      isAdmin?h('button',{class:'btn ghost sm',text:m.active?'Pause access':'Restore access',onclick:()=>toggleStaff(m)}):null,
+      isAdmin?h('button',{class:'btn ghost sm danger',text:'Remove',onclick:()=>removeStaff(m)}):null
     ):null
   )));
   const body=staffErr
@@ -1003,7 +999,7 @@ async function loadPresence(){
       sb.from('crm_tasks').select('done_by,done_at').gte('done_at',from).limit(5000),
       sb.from('crm_cases').select('assigned_to,resolved_at').gte('resolved_at',from).limit(5000),
       sb.from('crm_case_notes').select('author,kind,created_at').in('kind',['note','reply']).gte('created_at',from).limit(5000),
-      sb.from('crm_chat_messages').select('author,direction,created_at').eq('direction','out').gte('created_at',from).limit(5000)
+      sb.rpc('crm_team_chat_counts',{p_from:from})
     ]);
     act={tasks:t.data||[],cases:c.data||[],notes:n.data||[],chat:m.data||[]};
   }
@@ -1055,7 +1051,7 @@ function teamView(){
       h('td',{class:'n',text:String(done(act.tasks,'done_by',p.email))}),
       h('td',{class:'n',text:String(done(act.cases,'assigned_to',p.email))}),
       h('td',{class:'n',text:String(done(act.notes,'author',p.email))}),
-      h('td',{class:'n',text:String(done(act.chat,'author',p.email))}));
+      h('td',{class:'n',text:String((act.chat.find(r=>low(r.email)===p.email)||{}).sent||0)}));
   });
   const th=(t,n)=>h('th',{class:n?'n':'',text:t});
   return h('div',{},
