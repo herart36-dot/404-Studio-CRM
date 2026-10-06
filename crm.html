@@ -527,7 +527,7 @@ const ACT={
     const v=a.payload.values||{},row={title:v.title,due_date:v.due_date||null,priority:PRIORITIES.includes(v.priority)?v.priority:'normal',client_id:v.client_id||null};
     if(!row.title)return{error:{message:'The request has no task title.'}};
     const r=await sb.from('crm_tasks').insert(row).select().single();
-    if(!r.error&&a.payload.assigned)saveTaskAssignment(r.data.id,a.payload.assigned);
+    if(!r.error&&a.payload.assigned&&lc(a.payload.assigned)===lc(a.requested_by))saveTaskAssignment(r.data.id,a.payload.assigned);
     return r;
   },
   task_delete:a=>sb.from('crm_tasks').delete().eq('id',a.target_id)
@@ -608,17 +608,19 @@ const delClient=c=>{if(confirm('Delete '+c.name+'? Their inquiries and tasks sta
 
 /* ---- tasks ---- */
 const memberOptions=()=>[{v:'',t:'Unassigned'},...members.map(m=>({v:m.email,t:m.name+' · '+m.email}))];
-const taskFields=()=>[
+/* admins can assign a task to anyone; staff (and executives, for now) can only assign to themselves */
+const assignOptions=()=>isAdmin?memberOptions():[{v:'',t:'Unassigned'},{v:me.email,t:'Me · '+me.email}];
+const taskFields=(t)=>[
   {k:'title',label:'Task',req:true},
-  {k:'assigned_to',label:'Assign to member',type:'select',options:memberOptions(),def:''},
+  ...((isAdmin||!t||!t.assigned_to||isMe(t.assigned_to))?[{k:'assigned_to',label:isAdmin?'Assign to member':'Assign to',type:'select',options:assignOptions(),def:''}]:[]),
   {k:'due_date',label:'Due date',type:'date'},
   {k:'priority',label:'Priority',type:'select',options:PRIORITIES.map(p=>({v:p,t:cap(p)})),def:'normal'},
   {k:'client_id',label:'Client',type:'select',options:clientOptions()}
 ];
-const addTask=(client_id)=>openForm({title:'New task',fields:taskFields(),values:{client_id:client_id||'',assigned_to:''},saveText:'Add task',onSave:async v=>{const assigned=v.assigned_to||'';delete v.assigned_to;
+const addTask=(client_id)=>openForm({title:'New task',fields:taskFields(),values:{client_id:client_id||'',assigned_to:''},saveText:'Add task',onSave:async v=>{let assigned=v.assigned_to||'';delete v.assigned_to;if(!isAdmin&&assigned&&!isMe(assigned))assigned='';
   if(!isAdmin)return ask('task_add',{id:null},'Add the task "'+v.title+'"'+(assigned?' for '+memberName(assigned):'')+(v.due_date?' · due '+fmtDate(v.due_date):''),{values:v,assigned});
   const r=await sb.from('crm_tasks').insert(v).select().single();if(r.error)return fail(r.error);saveTaskAssignment(r.data.id,assigned);await loadAll();toast('Task added.');render()}});
-const editTask=t=>openForm({title:'Edit task',fields:taskFields(),values:{...t,assigned_to:t.assigned_to||'',client_id:t.client_id||'',due_date:t.due_date||''},onSave:async v=>{const assigned=v.assigned_to||'';delete v.assigned_to;const r=await sb.from('crm_tasks').update(v).eq('id',t.id);if(r.error)return fail(r.error);saveTaskAssignment(t.id,assigned);await loadAll();toast('Task saved.');render()}});
+const editTask=t=>openForm({title:'Edit task',fields:taskFields(t),values:{...t,assigned_to:t.assigned_to||'',client_id:t.client_id||'',due_date:t.due_date||''},onSave:async v=>{let assigned='assigned_to' in v?(v.assigned_to||''):(t.assigned_to||'');delete v.assigned_to;if(!isAdmin&&assigned&&!isMe(assigned)&&!(t.assigned_to&&lc(t.assigned_to)===lc(assigned)))assigned='';const r=await sb.from('crm_tasks').update(v).eq('id',t.id);if(r.error)return fail(r.error);saveTaskAssignment(t.id,assigned);await loadAll();toast('Task saved.');render()}});
 const toggleTask=t=>run(sb.from('crm_tasks').update({done:!t.done}).eq('id',t.id));
 const delTask=t=>{
   if(isAdmin){if(confirm('Delete this task?'))run(sb.from('crm_tasks').delete().eq('id',t.id),'Task deleted.');return}
