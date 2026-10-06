@@ -75,6 +75,7 @@ main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
 .due{font-size:.82rem;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}.due.over{color:var(--danger)}.due.today{color:var(--warn)}
 .chk{width:22px;height:22px;margin-top:2px;accent-color:var(--brand);flex:none;cursor:pointer}
 .done .t{text-decoration:line-through;color:var(--muted)}
+.pill.role-admin{background:#ede9fe;color:#5b21b6}.pill.role-executive{background:#fef3c7;color:#92400e}.pill.role-staff{background:#dbeafe;color:#1d4ed8}
 .pill.hot{background:#fee2e2;color:#991b1b}.pill.warm{background:#ffedd5;color:#9a3412}.pill.cool{background:#e0f2fe;color:#075985}
 .next{padding:16px 20px;margin-bottom:16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;border-left:4px solid #f97316}
 .next .k{font-size:.82rem;font-weight:600;color:var(--muted)}.next .w{font-size:1.1rem;font-weight:700;letter-spacing:-.015em}
@@ -366,8 +367,16 @@ const out=()=>location.replace('index.html?logout=1');
 const STATUSES=['new','contacted','quoted','won','lost'];
 const PRIORITIES=['low','normal','high'];
 
-let me=null,clients=[],inquiries=[],tasks=[],members=[],staff=[],isAdmin=false,staffErr=false;
+let me=null,clients=[],inquiries=[],tasks=[],members=[],staff=[],isAdmin=false,myRole='staff',staffErr=false;
 const ADMIN_EMAIL='keandonato@404studio.click';
+/* ---- access levels (stored in crm_staff.role; enforced in Supabase by crm_role()/crm_is_admin()/crm_is_executive()) ---- */
+const ROLES={
+  admin:{l:'Admin',c:'violet',d:'Full access. Can add, change, pause or remove members and approve requests.'},
+  executive:{l:'Executive',c:'amber',d:'Executive access. Works like staff for now; executive-only features come later.'},
+  staff:{l:'Staff',c:'blue',d:'Can use the CRM. Changes to inquiries need admin approval.'}
+};
+const roleOf=r=>ROLES[r]?r:'staff';
+const roleOptions=()=>Object.keys(ROLES).reverse().map(k=>({v:k,t:ROLES[k].l+' · '+ROLES[k].d}));
 const taskAssignments=()=>JSON.parse(localStorage.getItem('orchid_crm_task_assignments')||'{}');
 const saveTaskAssignment=(id,email)=>{const a=taskAssignments();if(email)a[id]=email;else delete a[id];localStorage.setItem('orchid_crm_task_assignments',JSON.stringify(a))};
 let cases=[],policies=[],rules=[],casesErr=false,caseFilter='all';
@@ -404,10 +413,10 @@ async function loadAll(){
   tasks=(t.data||[]).map(x=>({...x,assigned_to:assigned[x.id]||''}));
   casesErr=!!(cs.error||sp.error||rr.error);cases=cs.data||[];policies=sp.data||[];rules=rr.data||[];
   try{
-    const [st,ad]=await Promise.all([sb.from('crm_staff').select('*').order('created_at',{ascending:true}),sb.rpc('crm_is_admin')]);
-    staffErr=!!st.error;staff=st.data||[];isAdmin=ad.data===true;
+    const [st,ad,rl]=await Promise.all([sb.from('crm_staff').select('*').order('created_at',{ascending:true}),sb.rpc('crm_is_admin'),sb.rpc('crm_role')]);
+    staffErr=!!st.error;staff=(st.data||[]).map(x=>({...x,role:roleOf(x.role)}));isAdmin=ad.data===true;myRole=roleOf(rl.data||(isAdmin?'admin':'staff'));
   }catch(e){console.error(e);staffErr=true;staff=[];isAdmin=false}
-  members=[{name:'Admin',email:ADMIN_EMAIL,role:'admin'},...staff.filter(x=>x.active).map(x=>({name:x.name||x.email,email:x.email,role:'staff'}))];
+  members=[{name:'Admin',email:ADMIN_EMAIL,role:'admin'},...staff.filter(x=>x.active).map(x=>({name:x.name||x.email,email:x.email,role:x.role}))];
 }
 async function run(p,okMsg){const r=await p;if(r.error)return fail(r.error);try{await loadAll()}catch(e){return fail(e,'Saved, but could not refresh. Please reload.')}if(okMsg)toast(okMsg);render()}
 
@@ -873,7 +882,7 @@ function chatContacts(){
   const mk=(key,type,rec,name,sub)=>{const ms=g.get(key)||[],s=seen[key]?new Date(seen[key]):0;
     return{key,type,rec,name,sub,ms,last:ms[ms.length-1],unread:ms.filter(m=>!isMe(m.sender_email)&&new Date(m.created_at)>s).length}};
   const team=mk(TEAM,'team',{},'Team chat',members.length+' '+(members.length===1?'person':'people')+' with CRM access');
-  const people=members.filter(x=>!isMe(x.email)).map(x=>mk('t:'+lc(x.email),'member',x,x.name||x.email,(x.role==='admin'?'Admin · ':'')+x.email))
+  const people=members.filter(x=>!isMe(x.email)).map(x=>mk('t:'+lc(x.email),'member',x,x.name||x.email,(x.role!=='staff'?ROLES[roleOf(x.role)].l+' · ':'')+x.email))
     .sort((a,b)=>(b.last?new Date(b.last.created_at):0)-(a.last?new Date(a.last.created_at):0)||a.name.localeCompare(b.name));
   return[team,...people];
 }
@@ -1058,44 +1067,60 @@ function clientsView(){
     list.length?h('div',{class:'list'},list.map(row)):empty(clients.length?'No matches':'No clients yet',clients.length?'Try a different search.':'Add a client, or turn an inquiry into one.',clients.length?null:h('button',{class:'btn blue',text:'Add client',onclick:addClient})));
 }
 function membersView(){
-  const adminRow=h('div',{class:'card item acc c-violet'},h('div',{class:'body'},
-    h('div',{class:'t'},document.createTextNode('Admin'),h('span',{class:'pill new',text:'Admin'})),
+  const ownerRow=h('div',{class:'card item acc c-violet'},h('div',{class:'body'},
+    h('div',{class:'t'},document.createTextNode('Admin'),h('span',{class:'pill role-admin',text:'Admin'}),h('span',{class:'pill closed',text:'Owner'})),
     h('div',{class:'s',text:ADMIN_EMAIL}),
-    h('div',{class:'muted',style:'font-size:.78rem;margin-top:4px',text:'Full access. Only the admin can add, pause or remove staff.'}),
+    h('div',{class:'muted',style:'font-size:.78rem;margin-top:4px',text:'Owner account. Always has full access and cannot be changed or removed.'}),
     isMe(ADMIN_EMAIL)?null:h('div',{class:'acts'},msgBtn(ADMIN_EMAIL))
   ));
-  const staffRows=staff.map(m=>h('div',{class:'card item acc c-'+(m.active?'blue':'slate'),style:m.active?'':'opacity:.65'},h('div',{class:'body'},
-    h('div',{class:'t'},document.createTextNode(m.name||m.email),h('span',{class:'pill '+(m.active?'won':'closed'),text:m.active?'Active':'Paused'})),
-    h('div',{class:'s',text:m.email}),
-    h('div',{class:'muted',style:'font-size:.78rem;margin-top:4px',text:'Staff'+(m.created_at?' · added '+fmtDate(String(m.created_at).slice(0,10)):'')}),
-    (isAdmin||(m.active&&!isMe(m.email)))?h('div',{class:'acts'},
-      m.active&&!isMe(m.email)?msgBtn(m.email):null,
-      isAdmin?h('button',{class:'btn ghost sm',text:m.active?'Pause access':'Restore access',onclick:()=>toggleStaff(m)}):null,
-      isAdmin?h('button',{class:'btn ghost sm danger',text:'Remove',onclick:()=>removeStaff(m)}):null
-    ):null
-  )));
+  const memberRows=staff.map(m=>{
+    const r=roleOf(m.role),self=isMe(m.email);
+    return h('div',{class:'card item acc c-'+(m.active?ROLES[r].c:'slate'),style:m.active?'':'opacity:.65'},h('div',{class:'body'},
+      h('div',{class:'t'},document.createTextNode(m.name||m.email),h('span',{class:'pill role-'+r,text:ROLES[r].l}),h('span',{class:'pill '+(m.active?'won':'closed'),text:m.active?'Active':'Paused'})),
+      h('div',{class:'s',text:m.email}),
+      h('div',{class:'muted',style:'font-size:.78rem;margin-top:4px',text:ROLES[r].d+(m.created_at?' · added '+fmtDate(String(m.created_at).slice(0,10)):'')}),
+      (isAdmin||(m.active&&!self))?h('div',{class:'acts'},
+        m.active&&!self?msgBtn(m.email):null,
+        isAdmin&&!self?h('button',{class:'btn ghost sm',text:'Change access',onclick:()=>changeAccess(m)}):null,
+        isAdmin&&!self?h('button',{class:'btn ghost sm',text:m.active?'Pause access':'Restore access',onclick:()=>toggleStaff(m)}):null,
+        isAdmin&&!self?h('button',{class:'btn ghost sm danger',text:'Remove',onclick:()=>removeStaff(m)}):null
+      ):null
+    ));
+  });
   const body=staffErr
-    ? empty('Staff list could not be loaded','Ask the admin to check the crm_staff setup in Supabase, then reload.')
-    : h('div',{class:'list'},adminRow,...staffRows,staff.length?null:h('div',{class:'muted',style:'padding:10px 4px;font-size:.88rem',text:isAdmin?'No staff yet. Add the first person with the button above.':'No staff have been added yet.'}));
+    ? empty('Members could not be loaded','Ask the admin to check the crm_staff setup in Supabase, then reload.')
+    : h('div',{class:'list'},ownerRow,...memberRows,staff.length?null:h('div',{class:'muted',style:'padding:10px 4px;font-size:.88rem',text:isAdmin?'No members yet. Add the first person with the button above.':'No members have been added yet.'}));
   return h('div',{},
     h('div',{class:'bar'},
       h('div',{},
-        h('h3',{style:'margin:0',text:'Staff access'}),
-        h('div',{class:'muted',style:'font-size:.82rem;margin-top:3px',text:isAdmin?'People listed here can sign in and use the CRM. Pause or remove someone to cut their access right away.':'People listed here can sign in and use the CRM. Only the admin can change this list.'})
+        h('h3',{style:'margin:0',text:'Members & access'}),
+        h('div',{class:'muted',style:'font-size:.82rem;margin-top:3px',text:isAdmin?'Choose Admin, Executive or Staff access for each person. Pause or remove someone to cut their access right away.':'People listed here can sign in and use the CRM. Only an admin can change this list.'})
       ),
       h('span',{class:'sp'}),
-      isAdmin?h('button',{class:'btn blue',text:'Add staff',onclick:addStaff}):null
+      isAdmin?h('button',{class:'btn blue',text:'Add member',onclick:addStaff}):null
     ),
     body
   );
 }
-const addStaff=()=>openForm({title:'Add staff',fields:[{k:'name',label:'Name',req:true},{k:'email',label:'Email',type:'email',req:true,placeholder:'They must sign in with this exact email'}],saveText:'Add staff',onSave:v=>{
-  const email=String(v.email||'').trim().toLowerCase();
+const addStaff=()=>openForm({title:'Add member',fields:[
+  {k:'name',label:'Name',req:true},
+  {k:'email',label:'Email',type:'email',req:true,placeholder:'They must sign in with this exact email'},
+  {k:'role',label:'Access level',type:'select',options:roleOptions(),def:'staff'}
+],saveText:'Add member',onSave:async v=>{
+  if(!isAdmin){toast('Only an admin can add members.');return}
+  const email=String(v.email||'').trim().toLowerCase(),role=roleOf(v.role);
   if(email===ADMIN_EMAIL||staff.some(x=>(x.email||'').toLowerCase()===email)){toast('That email already has access.');return}
-  return run(sb.from('crm_staff').insert({email,name:String(v.name||'').trim(),role:'staff',active:true,added_by:me.email}),'Staff added. They can sign in with '+email+'.');
+  const r=await sb.from('crm_staff').insert({email,name:String(v.name||'').trim(),role,active:true,added_by:me.email});
+  if(r.error){if(r.error.code==='23505')toast('That email already has access.');else fail(r.error,'Could not add the member. Only an admin can do this.');return}
+  return run(Promise.resolve(r),ROLES[role].l+' access added. They can sign in with '+email+'.');
+}});
+const changeAccess=m=>openForm({title:'Change access for '+(m.name||m.email),fields:[{k:'role',label:'Access level',type:'select',options:roleOptions()}],values:{role:roleOf(m.role)},saveText:'Save access',onSave:v=>{
+  const role=roleOf(v.role);
+  if(role===roleOf(m.role)){toast('No change.');return}
+  return run(sb.from('crm_staff').update({role}).eq('id',m.id),(m.name||m.email)+' now has '+ROLES[role].l+' access.');
 }});
 const toggleStaff=m=>run(sb.from('crm_staff').update({active:!m.active}).eq('id',m.id),m.active?'Access paused.':'Access restored.');
-const removeStaff=m=>{if(confirm('Remove '+(m.name||m.email)+'? They will lose access to the CRM.'))run(sb.from('crm_staff').delete().eq('id',m.id),'Staff removed.')};
+const removeStaff=m=>{if(confirm('Remove '+(m.name||m.email)+'? They will lose access to the CRM.'))run(sb.from('crm_staff').delete().eq('id',m.id),'Member removed.')};
 
 function tasksView(){
   const list=tasks.filter(t=>{const statusOk=taskFilter==='all'||taskFilter==='mine'||(taskFilter==='open'?!t.done:t.done);const mineOk=taskFilter!=='mine'||(t.assigned_to||'').toLowerCase()===me.email.toLowerCase();return statusOk&&mineOk&&match(t,['title','assigned_to'])});
@@ -1161,7 +1186,7 @@ function statusBar(){
 function teamView(){
   if(presErr)return empty('Status tracking is not set up','Ask the admin to check the crm_presence_log setup in Supabase, then reload.');
   const now=Date.now(),from=rangeStart(presRange).getTime(),todayFrom=rangeStart('today').getTime();
-  const people=[{email:low(ADMIN_EMAIL),name:'Admin',admin:true},...staff.map(x=>({email:low(x.email),name:x.name||x.email,paused:!x.active}))];
+  const people=[{email:low(ADMIN_EMAIL),name:'Admin',role:'admin'},...staff.map(x=>({email:low(x.email),name:x.name||x.email,paused:!x.active,role:x.role}))];
   const openRow=e=>pres.find(r=>low(r.email)===e&&!r.ended_at);
   const live=people.map(p=>({...p,open:openRow(p.email)}));
   const count=k=>live.filter(p=>p.open&&p.open.status===k).length;
@@ -1172,7 +1197,7 @@ function teamView(){
   const liveCards=live.map(p=>{
     const tt=secondsBy(p.email,todayFrom,now);
     return h('div',{class:'card item acc c-'+(p.open?({active:'emerald',lunch:'amber',meeting:'violet',out:'slate'}[p.open.status]||'slate'):'slate')},h('div',{class:'body'},
-      h('div',{class:'t'},document.createTextNode(p.name),p.open?h('span',{class:'pill st-'+p.open.status,text:ST[p.open.status].l}):h('span',{class:'pill closed',text:p.paused?'Access paused':'Not checked in'}),p.admin?h('span',{class:'pill new',text:'Admin'}):null),
+      h('div',{class:'t'},document.createTextNode(p.name),p.open?h('span',{class:'pill st-'+p.open.status,text:ST[p.open.status].l}):h('span',{class:'pill closed',text:p.paused?'Access paused':'Not checked in'}),p.role&&p.role!=='staff'?h('span',{class:'pill role-'+p.role,text:ROLES[p.role].l}):null),
       h('div',{class:'s',text:p.email}),
       p.open?h('div',{class:'muted',style:'font-size:.8rem;margin-top:4px',text:'Since '+fmtClock(p.open.started_at)+' ('+fmtDur(now-new Date(p.open.started_at).getTime())+')'}):null,
       h('div',{class:'muted',style:'font-size:.8rem;margin-top:2px',text:'Today: Active '+fmtDur(tt.active)+' · Meeting '+fmtDur(tt.meeting)+' · Lunch '+fmtDur(tt.lunch)+' · Out '+fmtDur(tt.out)})
@@ -1213,7 +1238,7 @@ function appView(){
       h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'CRM'})),
       h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',id:'tab_'+k,role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0);if(k==='chat')pollChat();if(k==='approvals')syncApprovals()}},t,n?h('span',{class:'n',text:String(n)}):null))),
       h('span',{class:'sp'}),
-      h('span',{class:'muted',style:'font-size:.82rem',text:me.email}),
+      h('span',{class:'muted',style:'font-size:.82rem',text:me.email}),h('span',{class:'pill role-'+myRole,style:'margin-left:0',text:ROLES[myRole].l}),
       h('button',{class:'btn ghost sm',text:'Apps',onclick:home}),
       h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
     h('main',{},view==='chat'?null:statusBar(),body));
@@ -1239,7 +1264,6 @@ async function init(){
   if(!session)return home();
   sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')out()});
   me={id:session.user.id,email:session.user.email};
-  // Member management is intentionally local for now; Supabase integration will be added later.
   try{await loadAll();ready=true}catch(e){console.error(e);ready=false;return $('#app').replaceChildren(h('div',{class:'center'},h('div',{class:'panel'},h('h1',{text:'Could not load the CRM'}),h('p',{class:'sub',text:'The CRM tables may not be set up yet. Run crm_setup.sql in Supabase, then reload.'}),h('button',{class:'btn primary wide',text:'Reload',onclick:()=>location.reload()}))))}
   try{await loadPresence()}catch(e){console.error(e);presErr=true}
   try{await loadChat()}catch(e){console.error(e);chatErr=true}
