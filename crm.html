@@ -928,6 +928,231 @@ input:focus,textarea:focus,select:focus{
   }
 }
 </style>
+
+<style id="orchid-mobile-v2">
+/* ORCHID CRM — MOBILE-FIRST PASS */
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+img,svg,video{max-width:100%}
+button,input,select,textarea{font:inherit}
+button{touch-action:manipulation}
+
+@media (max-width: 760px){
+  body{font-size:14px;background:#f6f8fc}
+  .top{position:sticky;top:0;z-index:100}
+  .top-in{
+    min-height:54px;
+    padding:9px 11px;
+    gap:7px;
+  }
+  .wm{font-size:1rem!important;white-space:nowrap}
+  .top-in>.muted{display:none!important}
+  .top-in>.sp{display:block!important;flex:1}
+  .top-in .pill{font-size:.7rem!important;padding:5px 8px!important}
+  .top-in .btn{min-height:38px;padding:8px 10px}
+  .top-in .btn:first-of-type{font-size:0}
+  .top-in .btn:first-of-type:after{content:"⌂";font-size:17px}
+
+  /* Horizontal, thumb-friendly navigation instead of a cramped sidebar */
+  .shell{display:block!important}
+  .side{
+    position:sticky;
+    top:54px;
+    z-index:90;
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    padding:7px 8px!important;
+    border-bottom:1px solid #e4e8f0;
+    box-shadow:0 4px 16px rgba(23,32,51,.06);
+    overflow:hidden;
+    background:rgba(255,255,255,.96)!important;
+    backdrop-filter:blur(14px);
+  }
+  .side .tabs{
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    gap:6px!important;
+    padding:0 1px 2px!important;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .side .tabs::-webkit-scrollbar{display:none}
+  .side .tab{
+    flex:0 0 auto!important;
+    min-width:max-content;
+    min-height:42px!important;
+    padding:8px 12px!important;
+    border-radius:12px!important;
+    border:1px solid #e0e5ee!important;
+    background:#fff!important;
+    color:#596377!important;
+    box-shadow:none!important;
+    gap:7px;
+  }
+  .side .tab .ico{width:17px;height:17px}
+  .side .tab .ico svg{width:17px!important;height:17px!important}
+  .side .tab[aria-selected=true]{
+    color:#4f46e5!important;
+    background:#eeedff!important;
+    border-color:#d3d0ff!important;
+    box-shadow:0 3px 10px rgba(99,91,255,.12)!important;
+  }
+  .side .tab .n{margin-left:1px}
+
+  .shell>main{
+    min-width:0!important;
+    width:100%!important;
+    padding:13px 10px calc(78px + env(safe-area-inset-bottom,0px))!important;
+  }
+
+  /* Header/action bars stack cleanly */
+  .bar{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:8px!important;
+    align-items:stretch!important;
+    margin-bottom:12px!important;
+  }
+  .bar .sp{display:none}
+  .bar .btn{flex:1 1 auto;min-width:120px}
+  .search,.searchbox,.bar input[type="search"]{width:100%!important;min-width:0!important}
+  .chips{width:100%;overflow-x:auto;display:flex;flex-wrap:nowrap;padding-bottom:2px}
+  .chips>*{flex:0 0 auto}
+
+  /* Dashboard */
+  .stats{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:9px!important;
+  }
+  .stat{
+    min-width:0!important;
+    min-height:100px;
+    padding:13px!important;
+    border-radius:15px!important;
+  }
+  .stat .v{font-size:1.45rem!important}
+  .stat .k{font-size:.75rem!important}
+
+  .grid,.grid2,.cols,.split{
+    grid-template-columns:1fr!important;
+  }
+  .card,.panel,.list,.row,.item{
+    max-width:100%;
+    min-width:0;
+  }
+  .card{border-radius:15px!important}
+  .card .hd,.panel .hd{
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  /* Tables become horizontally scrollable rather than breaking the page */
+  .table-wrap,.table-responsive,.table{
+    max-width:100%;
+    overflow-x:auto!important;
+    -webkit-overflow-scrolling:touch;
+  }
+  table{min-width:620px}
+  th,td{white-space:nowrap}
+  .acts{display:flex!important;flex-wrap:wrap!important;gap:6px!important}
+  .acts .btn{min-height:40px}
+
+  /* Forms and dialogs */
+  .modal{
+    width:calc(100vw - 20px)!important;
+    max-width:none!important;
+    max-height:calc(100dvh - 20px)!important;
+    margin:10px!important;
+    border-radius:18px!important;
+    overflow:auto!important;
+  }
+  .modal .actions,.modal .foot{
+    position:sticky;
+    bottom:0;
+    background:rgba(255,255,255,.96);
+    backdrop-filter:blur(10px);
+    padding-top:10px;
+  }
+  input,select,textarea{
+    min-height:44px!important;
+    font-size:16px!important; /* prevents iOS zoom */
+  }
+  textarea{min-height:100px!important}
+  .btn{
+    min-height:44px!important;
+    padding:10px 13px!important;
+    border-radius:11px!important;
+  }
+  .btn.sm{min-height:40px!important;padding:8px 11px!important}
+
+  /* Chat: one screen at a time on phones */
+  #chat{
+    position:relative;
+    min-height:calc(100dvh - 180px);
+  }
+  #chat .chat-list{
+    width:100%!important;
+    max-width:none!important;
+  }
+  #chat.open .chat-list{
+    display:none!important;
+  }
+  #chat.open .chat-pane{
+    display:flex!important;
+    width:100%!important;
+    min-width:0!important;
+  }
+  #chat .chat-pane{
+    min-width:0!important;
+    max-width:100%!important;
+  }
+  .chat-contact,.chat-list button{
+    min-height:58px;
+  }
+  .composer{
+    position:sticky;
+    bottom:0;
+    z-index:5;
+  }
+  .composer .r1{
+    display:flex!important;
+    gap:7px!important;
+  }
+  .composer textarea{min-width:0!important;flex:1}
+  .composer .btn{flex:0 0 auto}
+
+  /* Prevent long emails/IDs from forcing page width */
+  .email,.mono,.muted,td,th,p,h1,h2,h3{
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+
+  /* Better empty states */
+  .empty,.center{padding-left:8px!important;padding-right:8px!important}
+}
+
+@media (max-width: 430px){
+  .top-in .pill{display:none!important}
+  .top-in .btn{padding:8px 9px!important}
+  .stats{grid-template-columns:1fr 1fr!important}
+  .stat{min-height:90px!important}
+  .stat .v{font-size:1.3rem!important}
+  .bar .btn{min-width:calc(50% - 4px)}
+  .acts .btn{flex:1 1 calc(50% - 6px)}
+  .modal{width:calc(100vw - 12px)!important;margin:6px!important}
+}
+
+@media (max-width: 360px){
+  .wm{font-size:.92rem!important}
+  .side .tab{padding:8px 10px!important}
+  .side .tab:not([aria-selected=true]){font-size:.78rem}
+  .stat{padding:11px!important}
+}
+</style>
+
 </head>
 <body>
 <div id="app"></div>
@@ -1888,5 +2113,21 @@ document.addEventListener('click',function(e){
 init().catch(e=>{console.error(e);home()});
 })();
 </script>
+
+<script id="orchid-mobile-v2-js">
+(function(){
+  function keepActiveNavVisible(){
+    if(!matchMedia('(max-width:760px)').matches) return;
+    const active=document.querySelector('.side .tab[aria-selected="true"]');
+    if(active) active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  }
+  window.addEventListener('resize',keepActiveNavVisible,{passive:true});
+  document.addEventListener('click',function(e){
+    const tab=e.target.closest && e.target.closest('.side .tab');
+    if(tab) setTimeout(keepActiveNavVisible,80);
+  },{passive:true});
+})();
+</script>
+
 </body>
 </html>
