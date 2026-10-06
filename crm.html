@@ -10,7 +10,7 @@
 <style>
 :root{--bg:#f3f5fa;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:rgba(15,23,42,.08);--brand:#2563eb;--brand-d:#1d4ed8;--grad:linear-gradient(135deg,#2563eb,#06b6d4);--glass:rgba(255,255,255,.88);--sh:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.05);--dark:#0f172a;--bd:#d8dfea;--r:10px;--r-lg:14px;--danger:#be123c;--ok:#047857;--warn:#b45309;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}html,body{margin:0;min-height:100%}
-body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;background:radial-gradient(900px 480px at 0% 0%,#e2ebff 0,transparent 60%),radial-gradient(800px 520px at 100% 0%,#e4f4fa 0,transparent 55%),#f3f5fa;background-attachment:fixed}
+body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;background:radial-gradient(900px 480px at 0% 0%,#e2ebff 0,transparent 60%),radial-gradient(800px 520px at 100% 0%,#e4f4fa 0,transparent 55%),radial-gradient(900px 520px at 50% 115%,#ece9fb 0,transparent 60%),#f3f5fa;background-attachment:fixed}
 h1,h2,h3{letter-spacing:-.011em;font-weight:700}
 button,input,textarea,select{font:inherit;color:inherit}[hidden]{display:none!important}
 :focus-visible{outline:3px solid rgba(37,99,235,.45);outline-offset:2px}
@@ -336,6 +336,18 @@ main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
 .mybar .chip.st-lunch[aria-pressed=true]{background:#d97706;border-color:#d97706;color:#fff}
 .mybar .chip.st-meeting[aria-pressed=true]{background:#7c3aed;border-color:#7c3aed;color:#fff}
 .mybar .chip.st-out[aria-pressed=true]{background:#64748b;border-color:#64748b;color:#fff}
+/* ---- colour system: one semantic palette used for stats, card accents, avatars and actions ---- */
+.stat{--c:#94a3b8;--cs:transparent}
+.c-blue{--c:#2563eb;--cs:rgba(37,99,235,.09)}.c-teal{--c:#0d9488;--cs:rgba(13,148,136,.09)}.c-indigo{--c:#4f46e5;--cs:rgba(79,70,229,.09)}.c-violet{--c:#7c3aed;--cs:rgba(124,58,237,.09)}
+.c-emerald{--c:#059669;--cs:rgba(5,150,105,.09)}.c-amber{--c:#d97706;--cs:rgba(217,119,6,.10)}.c-rose{--c:#e11d48;--cs:rgba(225,29,72,.08)}.c-slate{--c:#94a3b8;--cs:rgba(100,116,139,.07)}
+.acc{border-left:3px solid var(--c)}
+.stat{position:relative;overflow:hidden;background-image:linear-gradient(135deg,var(--cs),transparent 72%)}
+.stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c)}
+.next{background-image:linear-gradient(90deg,rgba(249,115,22,.09),transparent 55%)}
+.ok{background:#059669;color:#fff;box-shadow:0 1px 2px rgba(5,150,105,.35),inset 0 1px 0 rgba(255,255,255,.14)}.ok:hover:not(:disabled){background:#047857}
+#tab_approvals .n{background:#d97706}
+.av.a0{background:#2563eb}.av.a1{background:#0d9488}.av.a2{background:#4f46e5}.av.a3{background:#7c3aed}.av.a4{background:#059669}.av.a5{background:#ea580c}.av.a6{background:#be185d}
+.pill.ch{background:#e0e7ff;color:#3730a3}
 @media(max-width:760px){.sel-sm{min-height:36px}}
 </style>
 </head>
@@ -545,12 +557,12 @@ function subApprovals(){
 function apprRow(a){
   const pend=a.status==='pending';
   const sub=(isAdmin?'From '+who(a.requested_by)+' · ':'')+ago(a.created_at)+(pend?'':' · '+(a.status==='approved'?'approved':'declined')+' by '+who(a.decided_by));
-  return h('div',{class:'card item'},h('div',{class:'body'},
+  return h('div',{class:'card item acc c-'+(pend?'amber':a.status==='approved'?'emerald':'rose')},h('div',{class:'body'},
     h('div',{class:'t'},document.createTextNode(a.summary),h('span',{class:'pill '+(pend?'contacted':a.status==='approved'?'won':'lost'),text:pend?'Waiting':a.status==='approved'?'Approved':'Declined'})),
     h('div',{class:'s',text:sub}),
     a.note?h('div',{class:'m',text:'Reason: '+a.note}):null,
     pend&&isAdmin?h('div',{class:'acts'},
-      h('button',{class:'btn blue sm',text:'Approve',onclick:e=>{e.target.disabled=true;decide(a,true).finally(()=>{e.target.disabled=false})}}),
+      h('button',{class:'btn ok sm',text:'Approve',onclick:e=>{e.target.disabled=true;decide(a,true).finally(()=>{e.target.disabled=false})}}),
       h('button',{class:'btn ghost sm danger',text:'Decline',onclick:()=>openForm({title:'Decline request',fields:[{k:'note',label:'Reason (optional)',type:'textarea'}],saveText:'Decline',onSave:v=>decide(a,false,v.note)})})):null,
     pend&&!isAdmin?h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Cancel request',onclick:()=>cancelRequest(a)})):null));
 }
@@ -600,13 +612,17 @@ const chips=(opts,cur,set)=>h('div',{class:'chips'},opts.map(([v,t])=>h('button'
 function dueEl(t){if(!t.due_date)return null;const o=isOverdue(t),td=!t.done&&t.due_date===today();return h('span',{class:'due'+(o?' over':td?' today':''),text:(o?'Overdue · ':td?'Due today · ':'Due ')+fmtDate(t.due_date)})}
 
 function taskRow(t){
-  return h('div',{class:'card item'+(t.done?' done':'')},
+  return h('div',{class:'card item acc c-'+(t.done?'slate':t.priority==='high'?'rose':t.priority==='low'?'slate':'indigo')+(t.done?' done':'')},
     h('input',{type:'checkbox',class:'chk',checked:t.done,'aria-label':'Mark done: '+t.title,onchange:()=>toggleTask(t)}),
     h('div',{class:'body'},
       h('div',{class:'t'},t.title,t.priority!=='normal'?h('span',{class:'pill '+t.priority,text:cap(t.priority)}):null),
       h('div',{class:'s'},dueEl(t),t.assigned_to?h('span',{text:(t.due_date?' · ':'')+'Assigned to '+memberName(t.assigned_to)}):h('span',{text:(t.due_date?' · ':'')+'Unassigned'}),t.client_id?h('span',{text:' · '+clientName(t.client_id)}):null),
       h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editTask(t)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delTask(t)}))));
 }
+const INQ_C={new:'blue',contacted:'amber',quoted:'violet',won:'emerald',lost:'rose'};
+const CASE_C={open:'blue',in_progress:'amber',waiting:'violet',resolved:'emerald',closed:'slate'};
+const caseC=c=>c.escalation_level||c.priority==='urgent'?'rose':(CASE_C[c.status]||'slate');
+const avCls=n=>{let x=0;for(const ch of String(n||''))x=(x*31+ch.charCodeAt(0))>>>0;return 'a'+(x%7)};
 function signal(i){
   if(i.status==='new'){const h1=waitMs(i)/36e5;return h('span',{class:'pill '+(h1>24?'hot':h1>4?'warm':'cool'),text:'Waiting '+dur(waitMs(i))})}
   if(isActive(i)&&idleDays(i)>=5)return h('span',{class:'pill '+(idleDays(i)>=10?'hot':'warm'),text:'Going cold · '+Math.floor(idleDays(i))+'d quiet'});
@@ -616,7 +632,7 @@ function signal(i){
 function inquiryRow(i){
   const sel=h('select',{'aria-label':'Status for '+i.name,class:'sel-sm',onchange:e=>setStatus(i,e.target.value)},STATUSES.map(s=>h('option',{value:s,text:cap(s)})));
   sel.value=i.status;
-  return h('div',{class:'card item'},h('div',{class:'body'},
+  return h('div',{class:'card item acc c-'+(INQ_C[i.status]||'slate')},h('div',{class:'body'},
     h('div',{class:'t'},i.name,h('span',{class:'pill '+i.status,text:cap(i.status)}),signal(i),pendingFor(i.id).length?h('span',{class:'pill contacted',text:'Awaiting approval'}):null),
     h('div',{class:'s',text:[i.email,i.phone,i.source,ago(i.created_at)].filter(Boolean).join(' · ')}),
     i.message?h('div',{class:'m',text:i.message}):null,
@@ -685,7 +701,7 @@ function caseRow(c){
   const sel=h('select',{'aria-label':'Status for '+caseNo(c),class:'sel-sm',onchange:e=>setCaseStatus(c,e.target.value)},CASE_STATUSES.map(x=>h('option',{value:x,text:stLabel(x)})));
   sel.value=c.status;
   const who=[c.requester_name||c.requester_email,c.assigned_to?'Assigned to '+c.assigned_to:'Unassigned',ago(c.created_at)].filter(Boolean).join(' · ');
-  return h('div',{class:'card item'},h('div',{class:'body'},
+  return h('div',{class:'card item acc c-'+caseC(c)},h('div',{class:'body'},
     h('div',{class:'t'},h('span',{class:'muted',text:caseNo(c)+' '}),c.subject,
       h('span',{class:'pill '+c.status,text:stLabel(c.status)}),
       c.priority!=='normal'?h('span',{class:'pill '+c.priority,text:cap(c.priority)}):null,
@@ -905,7 +921,7 @@ function subChat(){
 function contactRow(c){
   const pv=c.last?(isMe(c.last.sender_email)?'You: ':c.type==='team'?who(c.last.sender_email)+': ':'')+c.last.body.replace(/\s+/g,' '):(c.sub||'No messages yet');
   return h('button',{class:'cc','aria-current':String(chatSel===c.key),onclick:()=>{chatSel=c.key;chatOpen=true;markSeen(c.key);paintList();paintPane()}},
-    h('div',{class:'av'+(c.type==='team'?' grp':''),text:c.type==='team'?'All':initials(c.name),'aria-hidden':'true'}),
+    h('div',{class:'av '+(c.type==='team'?'grp':avCls(c.name)),text:c.type==='team'?'All':initials(c.name),'aria-hidden':'true'}),
     h('div',{class:'bd'},h('div',{class:'nm'},h('span',{text:c.name}),c.last?h('span',{class:'tm',text:listTime(c.last.created_at)}):null),
       h('div',{class:'pv',text:pv})),
     c.unread?h('span',{class:'dot',text:String(c.unread),'aria-label':c.unread+' unread'}):null);
@@ -966,7 +982,7 @@ function paintPane(){
   pane.replaceChildren(
     h('div',{class:'chat-head'},
       h('button',{class:'btn ghost sm back',text:'Back',onclick:()=>{chatOpen=false;paintPane()}}),
-      h('div',{class:'av'+(c.type==='team'?' grp':''),text:c.type==='team'?'All':initials(c.name),'aria-hidden':'true'}),
+      h('div',{class:'av '+(c.type==='team'?'grp':avCls(c.name)),text:c.type==='team'?'All':initials(c.name),'aria-hidden':'true'}),
       h('div',{class:'who'},h('b',{text:c.name}),h('span',{text:c.sub})),
       c.type==='member'?h('a',{class:'btn ghost sm',href:'mailto:'+c.rec.email,text:'Email'}):null),
     h('div',{class:'chat-msgs',id:'chat-msgs',role:'log','aria-live':'polite','aria-label':'Conversation with '+c.name}),
@@ -1009,11 +1025,11 @@ function avgReply(){
 function overview(){
   const nNew=inquiries.filter(i=>i.status==='new').length;
   const open=tasks.filter(t=>!t.done),over=open.filter(isOverdue).length;
-  const stat=(v,l,hot)=>h('div',{class:'card stat'+(hot&&v>0?' hot':'')},h('div',{class:'v',text:String(v)}),h('div',{class:'l',text:l}));
+  const stat=(v,l,c,hot)=>h('div',{class:'card stat c-'+(c||'slate')+(hot&&v>0?' hot':'')},h('div',{class:'v',text:String(v)}),h('div',{class:'l',text:l}));
   const liveCases=cases.filter(isLive).length,breached=cases.filter(c=>isLive(c)&&sla(c).breach).length;
   const recent=inquiries.slice(0,5),upcoming=open.slice(0,6);
   return h('div',{},nextCard(),
-    h('div',{class:'stats'},stat(nNew,'New inquiries'),stat(avgReply(),'Avg first reply'),stat(open.length,'Open tasks'),stat(over,'Overdue tasks',true),stat(liveCases,'Open cases'),stat(breached,'SLA breached',true),stat(clients.length,'Clients')),
+    h('div',{class:'stats'},stat(nNew,'New inquiries','blue'),stat(avgReply(),'Avg first reply','teal'),stat(open.length,'Open tasks','indigo'),stat(over,'Overdue tasks','rose',true),stat(liveCases,'Open cases','violet'),stat(breached,'SLA breached','amber',true),stat(clients.length,'Clients','emerald')),
     h('div',{class:'grid2'},
       h('div',{},h('div',{class:'bar'},h('h3',{style:'margin:0',text:'Latest inquiries'}),h('span',{class:'sp'}),h('button',{class:'btn ghost sm',text:'Add inquiry',onclick:addInquiry})),
         recent.length?h('div',{class:'list'},recent.map(inquiryRow)):empty('No inquiries yet','Add one when someone gets in touch.')),
@@ -1030,7 +1046,7 @@ function clientsView(){
   const list=clients.filter(c=>match(c,['name','email','phone','company','notes']));
   const row=c=>{
     const nt=tasks.filter(t=>t.client_id===c.id&&!t.done).length,ni=inquiries.filter(i=>i.client_id===c.id).length;
-    return h('div',{class:'card item'},h('div',{class:'body'},
+    return h('div',{class:'card item acc c-emerald'},h('div',{class:'body'},
       h('div',{class:'t',text:c.name+(c.company?' — '+c.company:'')}),
       h('div',{class:'s',text:[c.email,c.phone].filter(Boolean).join(' · ')||'No contact details'}),
       h('div',{class:'s',text:ni+' inquir'+(ni===1?'y':'ies')+' · '+nt+' open task'+(nt===1?'':'s')}),
@@ -1042,13 +1058,13 @@ function clientsView(){
     list.length?h('div',{class:'list'},list.map(row)):empty(clients.length?'No matches':'No clients yet',clients.length?'Try a different search.':'Add a client, or turn an inquiry into one.',clients.length?null:h('button',{class:'btn blue',text:'Add client',onclick:addClient})));
 }
 function membersView(){
-  const adminRow=h('div',{class:'card item'},h('div',{class:'body'},
+  const adminRow=h('div',{class:'card item acc c-violet'},h('div',{class:'body'},
     h('div',{class:'t'},document.createTextNode('Admin'),h('span',{class:'pill new',text:'Admin'})),
     h('div',{class:'s',text:ADMIN_EMAIL}),
     h('div',{class:'muted',style:'font-size:.78rem;margin-top:4px',text:'Full access. Only the admin can add, pause or remove staff.'}),
     isMe(ADMIN_EMAIL)?null:h('div',{class:'acts'},msgBtn(ADMIN_EMAIL))
   ));
-  const staffRows=staff.map(m=>h('div',{class:'card item',style:m.active?'':'opacity:.65'},h('div',{class:'body'},
+  const staffRows=staff.map(m=>h('div',{class:'card item acc c-'+(m.active?'blue':'slate'),style:m.active?'':'opacity:.65'},h('div',{class:'body'},
     h('div',{class:'t'},document.createTextNode(m.name||m.email),h('span',{class:'pill '+(m.active?'won':'closed'),text:m.active?'Active':'Paused'})),
     h('div',{class:'s',text:m.email}),
     h('div',{class:'muted',style:'font-size:.78rem;margin-top:4px',text:'Staff'+(m.created_at?' · added '+fmtDate(String(m.created_at).slice(0,10)):'')}),
@@ -1150,12 +1166,12 @@ function teamView(){
   const live=people.map(p=>({...p,open:openRow(p.email)}));
   const count=k=>live.filter(p=>p.open&&p.open.status===k).length;
   const notIn=live.filter(p=>!p.open&&!p.paused).length;
-  const stat=(v,l)=>h('div',{class:'card stat'},h('div',{class:'v',text:String(v)}),h('div',{class:'l',text:l}));
+  const stat=(v,l,c)=>h('div',{class:'card stat c-'+(c||'slate')},h('div',{class:'v',text:String(v)}),h('div',{class:'l',text:l}));
   const rangeBtn=(v,t)=>h('button',{class:'chip',type:'button','aria-pressed':String(presRange===v),text:t,onclick:async()=>{presRange=v;try{await loadPresence()}catch(e){console.error(e)}render()}});
   const done=(arr,key,e)=>arr.filter(r=>low(r[key])===e).length;
   const liveCards=live.map(p=>{
     const tt=secondsBy(p.email,todayFrom,now);
-    return h('div',{class:'card item'},h('div',{class:'body'},
+    return h('div',{class:'card item acc c-'+(p.open?({active:'emerald',lunch:'amber',meeting:'violet',out:'slate'}[p.open.status]||'slate'):'slate')},h('div',{class:'body'},
       h('div',{class:'t'},document.createTextNode(p.name),p.open?h('span',{class:'pill st-'+p.open.status,text:ST[p.open.status].l}):h('span',{class:'pill closed',text:p.paused?'Access paused':'Not checked in'}),p.admin?h('span',{class:'pill new',text:'Admin'}):null),
       h('div',{class:'s',text:p.email}),
       p.open?h('div',{class:'muted',style:'font-size:.8rem;margin-top:4px',text:'Since '+fmtClock(p.open.started_at)+' ('+fmtDur(now-new Date(p.open.started_at).getTime())+')'}):null,
@@ -1178,7 +1194,7 @@ function teamView(){
       h('div',{},h('h3',{style:'margin:0',text:'Team activity'}),h('div',{class:'muted',style:'font-size:.82rem;margin-top:3px',text:'Who is working right now, and how the team is spending its time.'})),
       h('span',{class:'sp'}),h('div',{class:'chips'},rangeBtn('today','Today'),rangeBtn('7d','7 days'),rangeBtn('30d','30 days'))
     ),
-    h('div',{class:'stats'},stat(count('active'),'Active'),stat(count('meeting'),'In a meeting'),stat(count('lunch'),'On lunch'),stat(count('out'),'Out of office'),stat(notIn,'Not checked in')),
+    h('div',{class:'stats'},stat(count('active'),'Active','emerald'),stat(count('meeting'),'In a meeting','violet'),stat(count('lunch'),'On lunch','amber'),stat(count('out'),'Out of office','slate'),stat(notIn,'Not checked in','slate')),
     h('h3',{style:'margin:18px 0 10px',text:'Right now'}),
     h('div',{class:'list'},liveCards),
     h('h3',{style:'margin:22px 0 10px',text:'Productivity · '+(presRange==='today'?'today':presRange==='7d'?'last 7 days':'last 30 days')}),
