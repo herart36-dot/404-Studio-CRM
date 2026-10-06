@@ -522,7 +522,15 @@ const ACT={
   inq_edit:a=>{const i=inqById(a.target_id),v=a.payload.values||{};return i?sb.from('crm_inquiries').update({...v,...touchPatch(i,v.status||i.status)}).eq('id',i.id):gone},
   inq_delete:a=>sb.from('crm_inquiries').delete().eq('id',a.target_id),
   inq_client:a=>{const i=inqById(a.target_id);return i?convertNow(i):gone},
-  inq_case:a=>sb.from('crm_cases').insert({...(a.payload.values||{}),...(a.payload.extra||{})})
+  inq_case:a=>sb.from('crm_cases').insert({...(a.payload.values||{}),...(a.payload.extra||{})}),
+  task_add:async a=>{
+    const v=a.payload.values||{},row={title:v.title,due_date:v.due_date||null,priority:PRIORITIES.includes(v.priority)?v.priority:'normal',client_id:v.client_id||null};
+    if(!row.title)return{error:{message:'The request has no task title.'}};
+    const r=await sb.from('crm_tasks').insert(row).select().single();
+    if(!r.error&&a.payload.assigned)saveTaskAssignment(r.data.id,a.payload.assigned);
+    return r;
+  },
+  task_delete:a=>sb.from('crm_tasks').delete().eq('id',a.target_id)
 };
 async function decide(a,ok,note){
   if(!isAdmin)return;
@@ -580,8 +588,8 @@ function approvalsView(){
   const pend=approvals.filter(a=>a.status==='pending'),done=approvals.filter(a=>a.status!=='pending').slice(0,40);
   return h('div',{},
     h('div',{class:'bar'},h('div',{},h('h3',{style:'margin:0',text:isAdmin?'Approvals':'My requests'}),
-      h('div',{class:'muted',style:'font-size:.82rem;margin-top:3px',text:isAdmin?'Changes staff ask to make to inquiries wait here. Nothing happens until you approve.':'Changes to inquiries need the admin to approve them first. You will be notified when they decide.'}))),
-    pend.length?h('div',{class:'list'},pend.map(apprRow)):empty(isAdmin?'Nothing waiting':'No pending requests',isAdmin?'You will be notified here the moment staff ask for something.':'Use the buttons on an inquiry and your request will show up here.'),
+      h('div',{class:'muted',style:'font-size:.82rem;margin-top:3px',text:isAdmin?'Changes staff ask to make to inquiries, and tasks they want to add or delete, wait here. Nothing happens until you approve.':'Changes to inquiries, and adding or deleting tasks, need the admin to approve them first. You will be notified when they decide.'}))),
+    pend.length?h('div',{class:'list'},pend.map(apprRow)):empty(isAdmin?'Nothing waiting':'No pending requests',isAdmin?'You will be notified here the moment staff ask for something.':'Use the buttons on an inquiry, or add or delete a task, and your request will show up here.'),
     done.length?h('h3',{style:'margin:22px 4px 8px;font-size:.95rem',text:'Recent decisions'}):null,
     done.length?h('div',{class:'list'},done.map(apprRow)):null);
 }
@@ -607,10 +615,16 @@ const taskFields=()=>[
   {k:'priority',label:'Priority',type:'select',options:PRIORITIES.map(p=>({v:p,t:cap(p)})),def:'normal'},
   {k:'client_id',label:'Client',type:'select',options:clientOptions()}
 ];
-const addTask=(client_id)=>openForm({title:'New task',fields:taskFields(),values:{client_id:client_id||'',assigned_to:''},saveText:'Add task',onSave:async v=>{const assigned=v.assigned_to||'';delete v.assigned_to;const r=await sb.from('crm_tasks').insert(v).select().single();if(r.error)return fail(r.error);saveTaskAssignment(r.data.id,assigned);await loadAll();toast('Task added.');render()}});
+const addTask=(client_id)=>openForm({title:'New task',fields:taskFields(),values:{client_id:client_id||'',assigned_to:''},saveText:'Add task',onSave:async v=>{const assigned=v.assigned_to||'';delete v.assigned_to;
+  if(!isAdmin)return ask('task_add',{id:null},'Add the task "'+v.title+'"'+(assigned?' for '+memberName(assigned):'')+(v.due_date?' · due '+fmtDate(v.due_date):''),{values:v,assigned});
+  const r=await sb.from('crm_tasks').insert(v).select().single();if(r.error)return fail(r.error);saveTaskAssignment(r.data.id,assigned);await loadAll();toast('Task added.');render()}});
 const editTask=t=>openForm({title:'Edit task',fields:taskFields(),values:{...t,assigned_to:t.assigned_to||'',client_id:t.client_id||'',due_date:t.due_date||''},onSave:async v=>{const assigned=v.assigned_to||'';delete v.assigned_to;const r=await sb.from('crm_tasks').update(v).eq('id',t.id);if(r.error)return fail(r.error);saveTaskAssignment(t.id,assigned);await loadAll();toast('Task saved.');render()}});
 const toggleTask=t=>run(sb.from('crm_tasks').update({done:!t.done}).eq('id',t.id));
-const delTask=t=>{if(confirm('Delete this task?'))run(sb.from('crm_tasks').delete().eq('id',t.id),'Task deleted.')};
+const delTask=t=>{
+  if(isAdmin){if(confirm('Delete this task?'))run(sb.from('crm_tasks').delete().eq('id',t.id),'Task deleted.');return}
+  if(pendingFor(t.id).some(a=>a.action==='task_delete')){toast('That is already waiting for admin approval.');return}
+  if(confirm('Ask the admin to delete the task "'+t.title+'"?'))ask('task_delete',t,'Delete the task "'+t.title+'"');
+};
 const memberName=email=>{const m=members.find(x=>(x.email||'').toLowerCase()===(email||'').toLowerCase());return m?(m.name||m.email):email||''};
 
 /* ---- shared pieces ---- */
@@ -624,7 +638,7 @@ function taskRow(t){
   return h('div',{class:'card item acc c-'+(t.done?'slate':t.priority==='high'?'rose':t.priority==='low'?'slate':'indigo')+(t.done?' done':'')},
     h('input',{type:'checkbox',class:'chk',checked:t.done,'aria-label':'Mark done: '+t.title,onchange:()=>toggleTask(t)}),
     h('div',{class:'body'},
-      h('div',{class:'t'},t.title,t.priority!=='normal'?h('span',{class:'pill '+t.priority,text:cap(t.priority)}):null),
+      h('div',{class:'t'},t.title,t.priority!=='normal'?h('span',{class:'pill '+t.priority,text:cap(t.priority)}):null,pendingFor(t.id).some(a=>a.action==='task_delete')?h('span',{class:'pill contacted',text:'Delete pending'}):null),
       h('div',{class:'s'},dueEl(t),t.assigned_to?h('span',{text:(t.due_date?' · ':'')+'Assigned to '+memberName(t.assigned_to)}):h('span',{text:(t.due_date?' · ':'')+'Unassigned'}),t.client_id?h('span',{text:' · '+clientName(t.client_id)}):null),
       h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editTask(t)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delTask(t)}))));
 }
