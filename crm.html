@@ -330,7 +330,8 @@ const out=()=>location.replace('index.html?logout=1');
 const STATUSES=['new','contacted','quoted','won','lost'];
 const PRIORITIES=['low','normal','high'];
 
-let me=null,clients=[],inquiries=[],tasks=[],members=JSON.parse(localStorage.getItem('orchid_crm_members')||'[]');
+let me=null,clients=[],inquiries=[],tasks=[],members=[],staff=[],isAdmin=false,staffErr=false;
+const ADMIN_EMAIL='keandonato@404studio.click';
 const taskAssignments=()=>JSON.parse(localStorage.getItem('orchid_crm_task_assignments')||'{}');
 const saveTaskAssignment=(id,email)=>{const a=taskAssignments();if(email)a[id]=email;else delete a[id];localStorage.setItem('orchid_crm_task_assignments',JSON.stringify(a))};
 let cases=[],policies=[],rules=[],casesErr=false,caseFilter='all';
@@ -365,6 +366,11 @@ async function loadAll(){
   const assigned=taskAssignments();
   tasks=(t.data||[]).map(x=>({...x,assigned_to:assigned[x.id]||''}));
   casesErr=!!(cs.error||sp.error||rr.error);cases=cs.data||[];policies=sp.data||[];rules=rr.data||[];
+  try{
+    const [st,ad]=await Promise.all([sb.from('crm_staff').select('*').order('created_at',{ascending:true}),sb.rpc('crm_is_admin')]);
+    staffErr=!!st.error;staff=st.data||[];isAdmin=ad.data===true;
+  }catch(e){console.error(e);staffErr=true;staff=[];isAdmin=false}
+  members=[{name:'Admin',email:ADMIN_EMAIL,role:'admin'},...staff.filter(x=>x.active).map(x=>({name:x.name||x.email,email:x.email,role:'staff'}))];
 }
 async function run(p,okMsg){const r=await p;if(r.error)return fail(r.error);try{await loadAll()}catch(e){return fail(e,'Saved, but could not refresh. Please reload.')}if(okMsg)toast(okMsg);render()}
 
@@ -907,33 +913,42 @@ function clientsView(){
     list.length?h('div',{class:'list'},list.map(row)):empty(clients.length?'No matches':'No clients yet',clients.length?'Try a different search.':'Add a client, or turn an inquiry into one.',clients.length?null:h('button',{class:'btn blue',text:'Add client',onclick:addClient})));
 }
 function membersView(){
-  const list=members.length
-    ? h('div',{class:'list'},members.map((m,i)=>
-        h('div',{class:'card item'},
-          h('div',{class:'body'},
-            h('div',{class:'t',text:m.name||m.email}),
-            h('div',{class:'s',text:m.email}),
-            h('div',{class:'acts'},
-              h('button',{class:'btn ghost sm danger',text:'Remove',onclick:()=>removeMember(i)})
-            )
-          )
-        )
-      ))
-    : empty('No members yet','Add a member here so the task assignment option is ready for them.');
+  const adminRow=h('div',{class:'card item'},h('div',{class:'body'},
+    h('div',{class:'t'},document.createTextNode('Admin'),h('span',{class:'pill new',text:'Admin'})),
+    h('div',{class:'s',text:ADMIN_EMAIL}),
+    h('div',{class:'muted',style:'font-size:.78rem;margin-top:4px',text:'Full access. Only the admin can add, pause or remove staff.'})
+  ));
+  const staffRows=staff.map(m=>h('div',{class:'card item',style:m.active?'':'opacity:.65'},h('div',{class:'body'},
+    h('div',{class:'t'},document.createTextNode(m.name||m.email),h('span',{class:'pill '+(m.active?'won':'closed'),text:m.active?'Active':'Paused'})),
+    h('div',{class:'s',text:m.email}),
+    h('div',{class:'muted',style:'font-size:.78rem;margin-top:4px',text:'Staff'+(m.created_at?' · added '+fmtDate(String(m.created_at).slice(0,10)):'')}),
+    isAdmin?h('div',{class:'acts'},
+      h('button',{class:'btn ghost sm',text:m.active?'Pause access':'Restore access',onclick:()=>toggleStaff(m)}),
+      h('button',{class:'btn ghost sm danger',text:'Remove',onclick:()=>removeStaff(m)})
+    ):null
+  )));
+  const body=staffErr
+    ? empty('Staff list could not be loaded','Ask the admin to check the crm_staff setup in Supabase, then reload.')
+    : h('div',{class:'list'},adminRow,...staffRows,staff.length?null:h('div',{class:'muted',style:'padding:10px 4px;font-size:.88rem',text:isAdmin?'No staff yet. Add the first person with the button above.':'No staff have been added yet.'}));
   return h('div',{},
     h('div',{class:'bar'},
       h('div',{},
-        h('h3',{style:'margin:0',text:'CRM Members'}),
-        h('div',{class:'muted',style:'font-size:.82rem;margin-top:3px',text:'Prepared member list. Supabase access and task assignment will be connected later.'})
+        h('h3',{style:'margin:0',text:'Staff access'}),
+        h('div',{class:'muted',style:'font-size:.82rem;margin-top:3px',text:isAdmin?'People listed here can sign in and use the CRM. Pause or remove someone to cut their access right away.':'People listed here can sign in and use the CRM. Only the admin can change this list.'})
       ),
       h('span',{class:'sp'}),
-      h('button',{class:'btn blue',text:'Add member',onclick:addMember})
+      isAdmin?h('button',{class:'btn blue',text:'Add staff',onclick:addStaff}):null
     ),
-    list
+    body
   );
 }
-const addMember=()=>openForm({title:'Add CRM member',fields:[{k:'name',label:'Name',req:true},{k:'email',label:'Email',type:'email',req:true}],saveText:'Add member',onSave:v=>{if(members.some(m=>m.email.toLowerCase()===v.email.toLowerCase())){toast('That email is already a member.');return}members.push(v);localStorage.setItem('orchid_crm_members',JSON.stringify(members));toast('Member added.');render()}});
-const removeMember=i=>{const m=members[i];if(!m)return;if(!confirm('Remove '+(m.name||m.email)+' from this local member list?'))return;members.splice(i,1);localStorage.setItem('orchid_crm_members',JSON.stringify(members));toast('Member removed.');render()};
+const addStaff=()=>openForm({title:'Add staff',fields:[{k:'name',label:'Name',req:true},{k:'email',label:'Email',type:'email',req:true,placeholder:'They must sign in with this exact email'}],saveText:'Add staff',onSave:v=>{
+  const email=String(v.email||'').trim().toLowerCase();
+  if(email===ADMIN_EMAIL||staff.some(x=>(x.email||'').toLowerCase()===email)){toast('That email already has access.');return}
+  return run(sb.from('crm_staff').insert({email,name:String(v.name||'').trim(),role:'staff',active:true,added_by:me.email}),'Staff added. They can sign in with '+email+'.');
+}});
+const toggleStaff=m=>run(sb.from('crm_staff').update({active:!m.active}).eq('id',m.id),m.active?'Access paused.':'Access restored.');
+const removeStaff=m=>{if(confirm('Remove '+(m.name||m.email)+'? They will lose access to the CRM.'))run(sb.from('crm_staff').delete().eq('id',m.id),'Staff removed.')};
 
 function tasksView(){
   const list=tasks.filter(t=>{const statusOk=taskFilter==='all'||taskFilter==='mine'||(taskFilter==='open'?!t.done:t.done);const mineOk=taskFilter!=='mine'||(t.assigned_to||'').toLowerCase()===me.email.toLowerCase();return statusOk&&mineOk&&match(t,['title','assigned_to'])});
