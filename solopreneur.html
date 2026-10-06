@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orchid Solopreneur</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14122e;--muted:#64748b;--line:rgba(20,18,46,.09);--brand:#059669;--grad:linear-gradient(135deg,#059669,#84cc16);--glass:rgba(255,255,255,.66);--sh:0 10px 40px rgba(60,70,140,.10);--dark:#1b1a2e;--danger:#be123c;--warn:#b45309;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}html,body{margin:0;min-height:100%}
+body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--ink);line-height:1.5;background:radial-gradient(900px 520px at 6% 0%,#cdf5e0 0,transparent 60%),radial-gradient(800px 600px at 96% 8%,#f3f8c9 0,transparent 55%),radial-gradient(900px 600px at 50% 100%,#c8e8f1 0,transparent 60%),#eef4f1;background-attachment:fixed}
+button,input,textarea,select{font:inherit;color:inherit}[hidden]{display:none!important}
+:focus-visible{outline:3px solid rgba(5,150,105,.45);outline-offset:2px}
+.wm{font-weight:800;font-size:1.4rem;letter-spacing:-.03em;display:inline-flex;align-items:baseline}
+.wm b{color:#f97316;font-size:1.8em;line-height:.7;margin-right:1px}.wm .lg{font-size:.6em;font-weight:700;color:#6b7280;margin-left:.35em}
+.center{min-height:100vh;display:grid;place-items:center;padding:24px}
+.panel,.card{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.85);border-radius:24px;box-shadow:var(--sh)}
+.panel{padding:36px 30px;max-width:420px;width:100%;text-align:center}.panel h1{font-size:1.5rem;margin:12px 0 6px}.sub{color:var(--muted);margin:0 0 20px}
+.muted{color:var(--muted)}
+.btn{border:0;cursor:pointer;border-radius:999px;padding:9px 18px;font-weight:700;font-size:.9rem;display:inline-block;transition:transform .15s}
+.btn:active{transform:scale(.98)}.btn:disabled{opacity:.6}
+.primary{background:var(--dark);color:#fff}.go{background:var(--grad);color:#fff;box-shadow:0 8px 20px rgba(5,150,105,.28)}
+.ghost{background:#fff;border:1px solid #e2e8f0;text-decoration:none;color:var(--ink)}.ghost:hover{background:#f8fafc}
+.danger{color:var(--danger)}.sm{padding:6px 12px;font-size:.8rem}.wide{width:100%}
+input[type=text],input[type=email],input[type=password],input[type=tel],input[type=date],input[type=number],textarea,select{width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:12px;background:rgba(255,255,255,.85)}
+textarea{resize:vertical;min-height:80px}
+label.f{display:block;font-size:.82rem;font-weight:700;margin-top:12px;text-align:left}label.f>*:last-child{margin-top:5px;font-weight:400}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(238,244,241,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1000px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}.sp{flex:1}
+.tabs{display:flex;gap:4px;overflow-x:auto;max-width:100%;padding:2px}
+.tab{border:0;background:none;cursor:pointer;padding:8px 14px;border-radius:999px;font-weight:700;font-size:.88rem;color:var(--muted);white-space:nowrap}
+.tab:hover{background:rgba(255,255,255,.7)}.tab[aria-selected=true]{background:var(--dark);color:#fff}.tab .n{margin-left:6px;font-size:.75rem;opacity:.8}
+main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.bar input[type=text]{max-width:260px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid #e2e8f0;background:#fff;border-radius:999px;padding:5px 12px;font-size:.8rem;font-weight:700;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--brand);border-color:var(--brand);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat{padding:16px 18px}.stat .v{font-size:1.8rem;font-weight:800;letter-spacing:-.03em;line-height:1.1}.stat .l{color:var(--muted);font-size:.85rem;font-weight:600}.stat.hot .v{color:var(--danger)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.list{display:flex;flex-direction:column;gap:10px}.item{padding:14px 18px;display:flex;gap:12px;align-items:flex-start}
+.item .body{flex:1;min-width:0}.t{font-weight:700;overflow-wrap:anywhere}.s{color:var(--muted);font-size:.85rem;overflow-wrap:anywhere}.m{font-size:.9rem;margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere}
+.acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.pill{display:inline-block;font-size:.72rem;font-weight:800;padding:2px 10px;border-radius:999px;background:#e2e8f0;margin-left:6px}
+.pill.new,.pill.scheduled,.pill.cool{background:#dbeafe;color:#1d4ed8}.pill.contacted,.pill.warm{background:#fef3c7;color:#92400e}.pill.quoted{background:#ede9fe;color:#5b21b6}
+.pill.won,.pill.done,.pill.paid{background:#d1fae5;color:#065f46}.pill.lost,.pill.hot,.pill.unpaid,.pill.high{background:#fee2e2;color:#991b1b}.pill.cancelled{background:#f1f5f9;color:#475569}
+.due{font-size:.82rem;font-weight:600;color:var(--muted)}.due.over{color:var(--danger)}.due.today{color:var(--warn)}
+.chk{width:22px;height:22px;margin-top:2px;accent-color:var(--brand);flex:none;cursor:pointer}.done .t{text-decoration:line-through;color:var(--muted)}
+.next{padding:18px 22px;margin-bottom:16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;border-left:6px solid #f97316}
+.next .k{font-size:.82rem;font-weight:700;color:var(--muted)}.next .w{font-size:1.15rem;font-weight:800;letter-spacing:-.02em}
+.empty{text-align:center;color:var(--muted);padding:32px 16px}.empty b{display:block;color:var(--ink);margin-bottom:4px}
+.err{color:var(--danger);font-size:.88rem;margin-top:10px;min-height:1.2em}
+.scrim{position:fixed;inset:0;background:rgba(20,18,46,.45);display:grid;place-items:center;padding:18px;z-index:50}
+.modal{background:#fff;border-radius:24px;padding:24px;width:100%;max-width:460px;max-height:92vh;overflow:auto;box-shadow:0 30px 80px rgba(20,18,46,.35)}
+.modal h2{margin:0 0 4px;font-size:1.25rem}.modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;padding:10px 18px;border-radius:999px;z-index:99;font-size:.88rem;max-width:90%}
+pre{text-align:left;background:#f1f5f9;border-radius:12px;padding:10px;font-size:.8rem;overflow:auto}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+/* ---- Uses the same Orchid login as the CRM (same Supabase project). Run solopreneur_setup.sql there once. ---- */
+const SB_URL='https://acxrobzulaswsubfoghg.supabase.co';
+const SB_KEY='sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD';
+const CUR='₱';           // currency symbol
+const CHECKIN_DAYS=60;   // nudge to re-contact a customer after this many days
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+
+const $=s=>document.querySelector(s);
+const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]===true)el.setAttribute(k,'');else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&x!==false&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
+const toast=t=>{const e=h('div',{class:'toast',text:t,role:'status'});document.body.append(e);setTimeout(()=>e.remove(),3000)};
+const fail=(e,m)=>{console.error(e);toast(m||'Something went wrong. Please try again.')};
+const cap=s=>s?s[0].toUpperCase()+s.slice(1):s;
+const iso=()=>new Date().toISOString();
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=()=>ymd(new Date());
+const inDays=n=>ymd(new Date(Date.now()+n*864e5));
+const fmtDate=d=>d?new Date(d+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'';
+const daysAgo=t=>Math.floor((Date.now()-new Date(t))/864e5);
+const money=n=>CUR+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:2});
+const nullify=o=>{for(const k in o)if(typeof o[k]==='string'){o[k]=o[k].trim();if(o[k]==='')o[k]=null}return o};
+
+const TB={leads:'solo_leads',customers:'solo_customers',jobs:'solo_jobs',tasks:'solo_tasks'};
+const STAGES=['new','contacted','quoted','won','lost'],JOBST=['scheduled','done','cancelled'];
+let me=null,D={leads:[],customers:[],jobs:[],tasks:[]},view='today',q='',lf='all',jf='upcoming',tf='open',state='loading';
+
+async function load(){
+  const ks=Object.keys(TB),r=await Promise.all(ks.map(k=>sb.from(TB[k]).select('*').order('created_at',{ascending:false})));
+  const e=r.find(x=>x.error);if(e)throw e.error;ks.forEach((k,i)=>D[k]=r[i].data);
+}
+async function run(p,ok){const r=await p;if(r.error)return fail(r.error);try{await load()}catch(e){return fail(e,'Saved, but could not refresh. Please reload.')}if(ok)toast(ok);render()}
+const cust=id=>D.customers.find(c=>c.id===id),cname=id=>(cust(id)||{}).name||'';
+const custOpts=()=>[{v:'',t:'No customer'},...D.customers.map(c=>({v:c.id,t:c.name}))];
+const match=(o,keys)=>!q||keys.some(k=>String(o[k]||'').toLowerCase().includes(q.toLowerCase()));
+
+/* ---- modal form ---- */
+function openForm({title,fields,values={},saveText='Save',onSave}){
+  const inp={};
+  const form=h('div',{},...fields.map(f=>{
+    let el;
+    if(f.type==='textarea')el=h('textarea',{id:'f_'+f.k});
+    else if(f.type==='select')el=h('select',{id:'f_'+f.k},...f.options.map(o=>h('option',{value:o.v,text:o.t})));
+    else el=h('input',{id:'f_'+f.k,type:f.type||'text',step:f.type==='number'?'any':null,min:f.type==='number'?'0':null,placeholder:f.ph||null});
+    el.value=values[f.k]??f.def??'';inp[f.k]=el;
+    return h('label',{class:'f',for:'f_'+f.k},f.label,el);
+  }));
+  const err=h('div',{class:'err',role:'alert'});
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape')close()};
+  const save=h('button',{class:'btn go',text:saveText,onclick:async()=>{
+    const out={};
+    for(const f of fields){out[f.k]=inp[f.k].value;
+      if(f.req&&!out[f.k].trim()){err.textContent=f.label+' is required.';inp[f.k].focus();return}
+      if(f.type==='email'&&out[f.k].trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(out[f.k].trim())){err.textContent='Enter a valid email address.';inp[f.k].focus();return}}
+    save.disabled=true;try{await onSave(nullify(out));close()}finally{save.disabled=false}
+  }});
+  const scrim=h('div',{class:'scrim',onclick:e=>{if(e.target===scrim)close()}},
+    h('div',{class:'modal',role:'dialog','aria-modal':'true','aria-label':title},h('h2',{text:title}),form,err,
+      h('div',{class:'row'},h('button',{class:'btn ghost',text:'Cancel',onclick:close}),save)));
+  document.body.append(scrim);document.addEventListener('keydown',esc);
+  const f1=scrim.querySelector('input,textarea,select');f1&&f1.focus();
+}
+
+/* ---- leads ---- */
+const leadF=()=>[{k:'name',label:'Name',req:true},{k:'phone',label:'Phone',type:'tel'},{k:'email',label:'Email',type:'email'},
+  {k:'source',label:'Where they found you',ph:'Facebook, referral, walk-in…'},{k:'value',label:'Estimated value ('+CUR+')',type:'number'},
+  {k:'stage',label:'Stage',type:'select',options:STAGES.map(s=>({v:s,t:cap(s)})),def:'new'},{k:'notes',label:'What they need',type:'textarea'}];
+const addLead=()=>openForm({title:'New lead',fields:leadF(),saveText:'Add lead',onSave:v=>run(sb.from(TB.leads).insert(v),'Lead added.')});
+const editLead=l=>openForm({title:'Edit lead',fields:leadF(),values:l,onSave:v=>run(sb.from(TB.leads).update(v).eq('id',l.id),'Lead saved.')});
+const setStage=(l,s)=>run(sb.from(TB.leads).update({stage:s,last_touch:iso()}).eq('id',l.id));
+const touch=l=>run(sb.from(TB.leads).update({last_touch:iso()}).eq('id',l.id),'Touch logged.');
+const delLead=l=>{if(confirm('Delete the lead '+l.name+'?'))run(sb.from(TB.leads).delete().eq('id',l.id),'Lead deleted.')};
+async function toCustomer(l){
+  const r=await sb.from(TB.customers).insert({name:l.name,phone:l.phone,email:l.email,notes:l.notes}).select('id').single();
+  if(r.error)return fail(r.error);
+  await run(sb.from(TB.leads).update({customer_id:r.data.id,stage:'won',last_touch:iso()}).eq('id',l.id),'Customer created.');
+}
+const idle=l=>daysAgo(l.last_touch||l.created_at);
+const coldLead=l=>(l.stage==='contacted'||l.stage==='quoted')&&idle(l)>=4;
+
+/* ---- customers ---- */
+const custF=()=>[{k:'name',label:'Name',req:true},{k:'phone',label:'Phone',type:'tel'},{k:'email',label:'Email',type:'email'},{k:'address',label:'Address'},{k:'notes',label:'Notes',type:'textarea'}];
+const addCust=()=>openForm({title:'New customer',fields:custF(),saveText:'Add customer',onSave:v=>run(sb.from(TB.customers).insert(v),'Customer added.')});
+const editCust=c=>openForm({title:'Edit customer',fields:custF(),values:c,onSave:v=>run(sb.from(TB.customers).update(v).eq('id',c.id),'Customer saved.')});
+const delCust=c=>{if(confirm('Delete '+c.name+'? Their jobs stay but are unlinked.'))run(sb.from(TB.customers).delete().eq('id',c.id),'Customer deleted.')};
+const custJobs=c=>D.jobs.filter(j=>j.customer_id===c.id&&j.status!=='cancelled');
+const lastJob=c=>custJobs(c).filter(j=>j.status==='done'&&j.scheduled_on).map(j=>j.scheduled_on).sort().pop();
+
+/* ---- jobs ---- */
+const jobF=()=>[{k:'title',label:'Job',req:true,ph:'Haircut, aircon cleaning, catering order…'},{k:'customer_id',label:'Customer',type:'select',options:custOpts()},
+  {k:'scheduled_on',label:'Date',type:'date'},{k:'price',label:'Price ('+CUR+')',type:'number'},
+  {k:'status',label:'Status',type:'select',options:JOBST.map(s=>({v:s,t:cap(s)})),def:'scheduled'},{k:'notes',label:'Notes',type:'textarea'}];
+const addJob=cid=>openForm({title:'New job',fields:jobF(),values:{customer_id:cid||'',scheduled_on:today()},saveText:'Add job',onSave:v=>run(sb.from(TB.jobs).insert(v),'Job added.')});
+const editJob=j=>openForm({title:'Edit job',fields:jobF(),values:j,onSave:v=>run(sb.from(TB.jobs).update(v).eq('id',j.id),'Job saved.')});
+const jobStatus=(j,s)=>run(sb.from(TB.jobs).update({status:s}).eq('id',j.id));
+const togglePaid=j=>run(sb.from(TB.jobs).update({paid:!j.paid}).eq('id',j.id),j.paid?null:'Marked paid.');
+const delJob=j=>{if(confirm('Delete this job?'))run(sb.from(TB.jobs).delete().eq('id',j.id),'Job deleted.')};
+const owed=j=>j.status==='done'&&!j.paid&&Number(j.price)>0;
+
+/* ---- tasks ---- */
+const taskF=()=>[{k:'title',label:'Task',req:true},{k:'due_date',label:'Due date',type:'date'}];
+const addTask=t=>openForm({title:'New task',fields:taskF(),values:t||{},saveText:'Add task',onSave:v=>run(sb.from(TB.tasks).insert(v),'Task added.')});
+const editTask=t=>openForm({title:'Edit task',fields:taskF(),values:t,onSave:v=>run(sb.from(TB.tasks).update(v).eq('id',t.id),'Task saved.')});
+const toggleTask=t=>run(sb.from(TB.tasks).update({done:!t.done}).eq('id',t.id));
+const delTask=t=>{if(confirm('Delete this task?'))run(sb.from(TB.tasks).delete().eq('id',t.id),'Task deleted.')};
+const overdue=t=>!t.done&&t.due_date&&t.due_date<today();
+
+/* ---- shared pieces ---- */
+const empty=(a,b,btn)=>h('div',{class:'card empty'},h('b',{text:a}),b,btn?h('div',{style:'margin-top:14px'},btn):null);
+const searchBar=ph=>{const i=h('input',{type:'text',placeholder:ph,value:q,'aria-label':ph,oninput:e=>{q=e.target.value;const p=e.target.selectionStart;render();const n=$('#search');if(n){n.focus();n.setSelectionRange(p,p)}}});i.id='search';return i};
+const chips=(opts,cur,set)=>h('div',{class:'chips'},opts.map(([v,t])=>h('button',{class:'chip','aria-pressed':String(cur===v),text:t,onclick:()=>{set(v);render()}})));
+const del=(f)=>h('button',{class:'btn ghost sm danger',text:'Delete',onclick:f});
+const edit=(f)=>h('button',{class:'btn ghost sm',text:'Edit',onclick:f});
+const contactLinks=o=>[o.phone?h('a',{class:'btn ghost sm',href:'tel:'+o.phone,text:'Call'}):null,o.phone?h('a',{class:'btn ghost sm',href:'sms:'+o.phone,text:'Text'}):null,o.email?h('a',{class:'btn ghost sm',href:'mailto:'+o.email,text:'Email'}):null];
+const dueEl=t=>{if(!t.due_date)return null;const o=overdue(t),td=!t.done&&t.due_date===today();return h('span',{class:'due'+(o?' over':td?' today':''),text:(o?'Overdue · ':td?'Due today · ':'Due ')+fmtDate(t.due_date)})};
+
+function taskRow(t){
+  return h('div',{class:'card item'+(t.done?' done':'')},h('input',{type:'checkbox',class:'chk',checked:t.done,'aria-label':'Mark done: '+t.title,onchange:()=>toggleTask(t)}),
+    h('div',{class:'body'},h('div',{class:'t',text:t.title}),h('div',{class:'s'},dueEl(t)),h('div',{class:'acts'},edit(()=>editTask(t)),del(()=>delTask(t)))));
+}
+function leadRow(l){
+  const sel=h('select',{'aria-label':'Stage for '+l.name,style:'width:auto;padding:6px 10px;border-radius:999px;font-size:.8rem;font-weight:700',onchange:e=>setStage(l,e.target.value)},STAGES.map(s=>h('option',{value:s,text:cap(s)})));sel.value=l.stage;
+  const sig=l.stage==='new'?h('span',{class:'pill '+(daysAgo(l.created_at)>=1?'hot':'cool'),text:'Waiting '+(daysAgo(l.created_at)||'<1')+'d'}):coldLead(l)?h('span',{class:'pill '+(idle(l)>=8?'hot':'warm'),text:'Going cold · '+idle(l)+'d quiet'}):null;
+  return h('div',{class:'card item'},h('div',{class:'body'},
+    h('div',{class:'t'},l.name,h('span',{class:'pill '+l.stage,text:cap(l.stage)}),sig),
+    h('div',{class:'s',text:[l.phone,l.email,l.source,l.value?money(l.value):null].filter(Boolean).join(' · ')}),
+    l.notes?h('div',{class:'m',text:l.notes}):null,
+    h('div',{class:'acts'},sel,contactLinks(l),
+      coldLead(l)?h('button',{class:'btn ghost sm',text:'Log a touch',onclick:()=>touch(l)}):null,
+      l.customer_id?null:h('button',{class:'btn go sm',text:'Make customer',onclick:()=>toCustomer(l)}),edit(()=>editLead(l)),del(()=>delLead(l)))));
+}
+function jobRow(j){
+  const od=j.status==='scheduled'&&j.scheduled_on&&j.scheduled_on<today();
+  return h('div',{class:'card item'},h('div',{class:'body'},
+    h('div',{class:'t'},j.title,h('span',{class:'pill '+j.status,text:cap(j.status)}),
+      j.price?h('span',{class:'pill '+(j.paid?'paid':owed(j)?'unpaid':''),text:money(j.price)+(j.paid?' · Paid':owed(j)?' · Unpaid':'')}):null),
+    h('div',{class:'s',text:[cname(j.customer_id),j.scheduled_on?fmtDate(j.scheduled_on)+(od?' (past)':''):null].filter(Boolean).join(' · ')}),
+    j.notes?h('div',{class:'m',text:j.notes}):null,
+    h('div',{class:'acts'},
+      j.status==='scheduled'?h('button',{class:'btn go sm',text:'Mark done',onclick:()=>jobStatus(j,'done')}):null,
+      j.status!=='cancelled'&&Number(j.price)>0?h('button',{class:'btn ghost sm',text:j.paid?'Mark unpaid':'Mark paid',onclick:()=>togglePaid(j)}):null,
+      j.status==='scheduled'?h('button',{class:'btn ghost sm',text:'Cancel',onclick:()=>jobStatus(j,'cancelled')}):null,
+      edit(()=>editJob(j)),del(()=>delJob(j)))));
+}
+
+/* ---- views ---- */
+function nextMove(){
+  const o=D.jobs.filter(owed)[0];
+  if(o)return{k:'Money waiting',w:'Collect '+money(o.price)+' for '+o.title+(o.customer_id?' ('+cname(o.customer_id)+')':''),b:'Mark paid',go:()=>togglePaid(o)};
+  const n=D.leads.filter(l=>l.stage==='new').sort((a,b)=>new Date(a.created_at)-new Date(b.created_at))[0];
+  if(n)return{k:'New lead',w:'Reply to '+n.name+(n.value?' (worth about '+money(n.value)+')':''),b:"I've replied",go:()=>setStage(n,'contacted')};
+  const t=D.tasks.filter(overdue).sort((a,b)=>a.due_date<b.due_date?-1:1)[0];
+  if(t)return{k:'Overdue task',w:t.title,b:'Mark done',go:()=>toggleTask(t)};
+  const c=D.leads.filter(coldLead).sort((a,b)=>idle(b)-idle(a))[0];
+  if(c)return{k:'Going cold',w:'Follow up with '+c.name+' ('+idle(c)+' days quiet)',b:'Log a touch',go:()=>touch(c)};
+  return null;
+}
+function todayView(){
+  const ym=today().slice(0,7),n=nextMove();
+  const earned=D.jobs.filter(j=>j.paid&&(j.scheduled_on||'').startsWith(ym)).reduce((a,j)=>a+Number(j.price||0),0);
+  const unpaid=D.jobs.filter(owed).reduce((a,j)=>a+Number(j.price),0);
+  const soon=D.jobs.filter(j=>j.status==='scheduled'&&j.scheduled_on&&j.scheduled_on<=inDays(7)).sort((a,b)=>a.scheduled_on<b.scheduled_on?-1:1);
+  const checkin=D.customers.map(c=>({c,last:lastJob(c)})).filter(x=>x.last&&daysAgo(x.last+'T00:00:00')>=CHECKIN_DAYS&&!D.jobs.some(j=>j.customer_id===x.c.id&&j.status==='scheduled')).sort((a,b)=>a.last<b.last?-1:1).slice(0,5);
+  const stat=(v,l,hot)=>h('div',{class:'card stat'+(hot&&v?' hot':'')},h('div',{class:'v',text:String(v)}),h('div',{class:'l',text:l}));
+  return h('div',{},
+    h('div',{class:'card next'},h('div',{class:'body',style:'flex:1;min-width:200px'},h('div',{class:'k',text:n?'Do this next · '+n.k:'Do this next'}),h('div',{class:'w',text:n?n.w:"You're all caught up."})),n?h('button',{class:'btn primary',text:n.b,onclick:n.go}):null),
+    h('div',{class:'stats'},stat(money(earned),'Earned this month'),stat(money(unpaid),'Waiting to be paid',unpaid>0),stat(D.leads.filter(l=>l.stage==='new').length,'New leads'),stat(soon.length,'Jobs in the next 7 days'),stat(D.tasks.filter(overdue).length,'Overdue tasks',true)),
+    h('div',{class:'grid2'},
+      h('div',{},h('div',{class:'bar'},h('h3',{style:'margin:0',text:'Coming up'}),h('span',{class:'sp'}),h('button',{class:'btn ghost sm',text:'Add job',onclick:()=>addJob()})),
+        soon.length?h('div',{class:'list'},soon.slice(0,6).map(jobRow)):empty('Nothing booked this week','Add a job to fill the calendar.')),
+      h('div',{},h('div',{class:'bar'},h('h3',{style:'margin:0',text:'Time to check in'})),
+        checkin.length?h('div',{class:'list'},checkin.map(({c,last})=>h('div',{class:'card item'},h('div',{class:'body'},h('div',{class:'t',text:c.name}),h('div',{class:'s',text:'Last job '+daysAgo(last+'T00:00:00')+' days ago'}),h('div',{class:'acts'},contactLinks(c),h('button',{class:'btn go sm',text:'Book job',onclick:()=>addJob(c.id)})))))):empty('No one is overdue for a visit','Past customers show up here after '+CHECKIN_DAYS+' quiet days.'))));
+}
+function leadsView(){
+  const list=D.leads.filter(l=>(lf==='all'||l.stage===lf)&&match(l,['name','phone','email','source','notes']));
+  return h('div',{},h('div',{class:'bar'},searchBar('Search leads'),chips([['all','All'],...STAGES.map(s=>[s,cap(s)])],lf,v=>lf=v),h('span',{class:'sp'}),h('button',{class:'btn go',text:'Add lead',onclick:addLead})),
+    list.length?h('div',{class:'list'},list.map(leadRow)):empty(D.leads.length?'No matches':'No leads yet','Add anyone who asks about your work, so nobody slips away.',D.leads.length?null:h('button',{class:'btn go',text:'Add lead',onclick:addLead})));
+}
+function customersView(){
+  const list=D.customers.filter(c=>match(c,['name','phone','email','address','notes']));
+  const row=c=>{const js=custJobs(c),total=js.filter(j=>j.paid).reduce((a,j)=>a+Number(j.price||0),0),lj=lastJob(c);
+    return h('div',{class:'card item'},h('div',{class:'body'},h('div',{class:'t',text:c.name}),
+      h('div',{class:'s',text:[c.phone,c.email,c.address].filter(Boolean).join(' · ')||'No contact details'}),
+      h('div',{class:'s',text:js.length+' job'+(js.length===1?'':'s')+' · '+money(total)+' paid'+(lj?' · last visit '+fmtDate(lj):'')}),
+      c.notes?h('div',{class:'m',text:c.notes}):null,
+      h('div',{class:'acts'},contactLinks(c),h('button',{class:'btn go sm',text:'Book job',onclick:()=>addJob(c.id)}),edit(()=>editCust(c)),del(()=>delCust(c)))))};
+  return h('div',{},h('div',{class:'bar'},searchBar('Search customers'),h('span',{class:'sp'}),h('button',{class:'btn go',text:'Add customer',onclick:addCust})),
+    list.length?h('div',{class:'list'},list.map(row)):empty(D.customers.length?'No matches':'No customers yet','Add a customer, or turn a won lead into one.',D.customers.length?null:h('button',{class:'btn go',text:'Add customer',onclick:addCust})));
+}
+function jobsView(){
+  const f={upcoming:j=>j.status==='scheduled',unpaid:owed,done:j=>j.status==='done',all:()=>true}[jf];
+  const list=D.jobs.filter(j=>f(j)&&(match(j,['title','notes'])||(q&&cname(j.customer_id).toLowerCase().includes(q.toLowerCase())))).sort((a,b)=>jf==='upcoming'?String(a.scheduled_on).localeCompare(String(b.scheduled_on)):String(b.scheduled_on).localeCompare(String(a.scheduled_on)));
+  return h('div',{},h('div',{class:'bar'},searchBar('Search jobs'),chips([['upcoming','Upcoming'],['unpaid','Unpaid'],['done','Done'],['all','All']],jf,v=>jf=v),h('span',{class:'sp'}),h('button',{class:'btn go',text:'Add job',onclick:()=>addJob()})),
+    list.length?h('div',{class:'list'},list.map(jobRow)):empty(D.jobs.length?'Nothing here':'No jobs yet','Log the work you do and what you charge to track your income.',D.jobs.length?null:h('button',{class:'btn go',text:'Add job',onclick:()=>addJob()})));
+}
+function tasksView(){
+  const list=D.tasks.filter(t=>(tf==='all'||(tf==='open'?!t.done:t.done))&&match(t,['title']));
+  return h('div',{},h('div',{class:'bar'},searchBar('Search tasks'),chips([['open','Open'],['done','Done'],['all','All']],tf,v=>tf=v),h('span',{class:'sp'}),h('button',{class:'btn go',text:'Add task',onclick:()=>addTask()})),
+    list.length?h('div',{class:'list'},list.map(taskRow)):empty(D.tasks.length?'Nothing here':'No tasks yet','Add a reminder for a follow-up or errand.',D.tasks.length?null:h('button',{class:'btn go',text:'Add task',onclick:()=>addTask()})));
+}
+function appView(){
+  const tabs=[['today','Today'],['leads','Leads',D.leads.filter(l=>l.stage==='new').length],['customers','Customers'],['jobs','Jobs',D.jobs.filter(owed).length],['tasks','Tasks',D.tasks.filter(t=>!t.done).length]];
+  const body={leads:leadsView,customers:customersView,jobs:jobsView,tasks:tasksView}[view]||todayView;
+  return h('div',{},h('header',{class:'top'},h('div',{class:'top-in'},
+    h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'Solopreneur'})),
+    h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0)}},t,n?h('span',{class:'n',text:String(n)}):null))),
+    h('span',{class:'sp'}),h('span',{class:'muted',style:'font-size:.82rem',text:me.email}),
+    h('a',{class:'btn ghost sm',href:'index.html',text:'Apps'}),h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),h('main',{},body()));
+}
+
+/* ---- setup screen ---- */
+const setupView=()=>h('div',{class:'center'},h('div',{class:'panel'},h('h1',{text:'One-time setup needed'}),
+  h('p',{class:'sub',text:'The Solopreneur tables are not in this Supabase project yet. Open Supabase, go to SQL Editor, run solopreneur_setup.sql, then reload.'}),
+  h('button',{class:'btn primary wide',text:'Reload',onclick:()=>location.reload()}),h('a',{class:'btn ghost wide',style:'margin-top:10px',href:'index.html',text:'Back to apps'})));
+
+function render(){
+  const y=window.scrollY;
+  $('#app').replaceChildren(state==='loading'?h('div',{class:'center'},h('p',{class:'muted',text:'Loading…'})):state==='setup'?setupView():appView());
+  window.scrollTo(0,y);
+}
+const home=()=>location.replace('index.html'),out=()=>location.replace('index.html?logout=1');
+async function logout(){try{await sb.auth.signOut()}catch(e){}out()}
+async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)return home();   // not signed in through the Orchid launcher
+  sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')out()});
+  me={id:session.user.id,email:session.user.email};
+  try{await load();state='app'}catch(e){console.error(e);state='setup'}
+  render();
+}
+boot().catch(e=>{console.error(e);home()});
+})();
+</script>
+</body>
+</html>
