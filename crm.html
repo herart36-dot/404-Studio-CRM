@@ -160,7 +160,7 @@ const out=()=>location.replace('index.html?logout=1');
 const STATUSES=['new','contacted','quoted','won','lost'];
 const PRIORITIES=['low','normal','high'];
 
-let me=null,clients=[],inquiries=[],tasks=[],members=[];
+let me=null,clients=[],inquiries=[],tasks=[],members=JSON.parse(localStorage.getItem('orchid_crm_members')||'[]');
 let cases=[],policies=[],rules=[],casesErr=false,caseFilter='all';
 let view='overview',q='',inqFilter='all',taskFilter='open';
 let chatMsgs=[],chatErr=false,chatSel=null,chatOpen=false,chatMode='out',chatQ='',chatSub=null;const chatDrafts={};
@@ -180,17 +180,16 @@ const nullify=o=>{for(const k in o)if(typeof o[k]==='string'){o[k]=o[k].trim();i
 
 /* ---- data ---- */
 async function loadAll(){
-  const [c,i,t,m,cs,sp,rr]=await Promise.all([
+  const [c,i,t,cs,sp,rr]=await Promise.all([
     sb.from('crm_clients').select('*').order('name'),
     sb.from('crm_inquiries').select('*').order('created_at',{ascending:false}),
     sb.from('crm_tasks').select('*').order('due_date',{ascending:true,nullsFirst:false}),
-    sb.from('crm_members').select('*').order('email'),
     sb.from('crm_cases').select('*').order('created_at',{ascending:false}),
     sb.from('crm_sla_policies').select('*'),
     sb.from('crm_routing_rules').select('*').order('position',{ascending:true})
   ]);
-  const e=c.error||i.error||t.error||m.error;if(e)throw e;
-  clients=c.data;inquiries=i.data;tasks=t.data;members=m.data||[];
+  const e=c.error||i.error||t.error;if(e)throw e;
+  clients=c.data;inquiries=i.data;tasks=t.data;
   casesErr=!!(cs.error||sp.error||rr.error);cases=cs.data||[];policies=sp.data||[];rules=rr.data||[];
 }
 async function run(p,okMsg){const r=await p;if(r.error)return fail(r.error);try{await loadAll()}catch(e){return fail(e,'Saved, but could not refresh. Please reload.')}if(okMsg)toast(okMsg);render()}
@@ -269,7 +268,7 @@ const editClient=c=>openForm({title:'Edit client',fields:clientFields(),values:c
 const delClient=c=>{if(confirm('Delete '+c.name+'? Their inquiries and tasks stay, but are unlinked.'+chatNote(m=>m.client_id===c.id)))run(sb.from('crm_clients').delete().eq('id',c.id),'Client deleted.')};
 
 /* ---- tasks ---- */
-const memberOptions=()=>[{v:'',t:'Unassigned'},...members.map(m=>({v:m.email,t:m.name?m.name+' · '+m.email:m.email}))];
+const memberOptions=()=>[{v:'',t:'Unassigned'},...members.map(m=>({v:m.email,t:m.name+' · '+m.email}))];
 const taskFields=()=>[
   {k:'title',label:'Task',req:true},
   {k:'assigned_to',label:'Assign to member',type:'select',options:memberOptions(),def:''},
@@ -277,8 +276,8 @@ const taskFields=()=>[
   {k:'priority',label:'Priority',type:'select',options:PRIORITIES.map(p=>({v:p,t:cap(p)})),def:'normal'},
   {k:'client_id',label:'Client',type:'select',options:clientOptions()}
 ];
-const addTask=(client_id)=>openForm({title:'New task',fields:taskFields(),values:{client_id:client_id||'',assigned_to:''},saveText:'Add task',onSave:v=>run(sb.from('crm_tasks').insert(v),'Task added.')});
-const editTask=t=>openForm({title:'Edit task',fields:taskFields(),values:{...t,assigned_to:t.assigned_to||'',client_id:t.client_id||'',due_date:t.due_date||''},onSave:v=>run(sb.from('crm_tasks').update(v).eq('id',t.id),'Task saved.')});
+const addTask=(client_id)=>openForm({title:'New task',fields:taskFields(),values:{client_id:client_id||'',assigned_to:''},saveText:'Add task',onSave:v=>{delete v.assigned_to;return run(sb.from('crm_tasks').insert(v),'Task added.')}});
+const editTask=t=>openForm({title:'Edit task',fields:taskFields(),values:{...t,assigned_to:'',client_id:t.client_id||'',due_date:t.due_date||''},onSave:v=>{delete v.assigned_to;return run(sb.from('crm_tasks').update(v).eq('id',t.id),'Task saved.')}});
 const toggleTask=t=>run(sb.from('crm_tasks').update({done:!t.done}).eq('id',t.id));
 const delTask=t=>{if(confirm('Delete this task?'))run(sb.from('crm_tasks').delete().eq('id',t.id),'Task deleted.')};
 const memberName=email=>{const m=members.find(x=>(x.email||'').toLowerCase()===(email||'').toLowerCase());return m?(m.name||m.email):email||''};
@@ -733,6 +732,14 @@ function clientsView(){
     h('div',{class:'bar'},searchBar('Search clients'),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'Add client',onclick:addClient})),
     list.length?h('div',{class:'list'},list.map(row)):empty(clients.length?'No matches':'No clients yet',clients.length?'Try a different search.':'Add a client, or turn an inquiry into one.',clients.length?null:h('button',{class:'btn blue',text:'Add client',onclick:addClient})));
 }
+function membersView(){
+  return h('div',{},
+    h('div',{class:'bar'},h('div',{},h('h3',{style:'margin:0',text:'CRM Members'}),h('div',{class:'muted',style:'font-size:.82rem;margin-top:3px',text:'Prepared member list. Supabase access and task assignment will be connected later.'})),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'Add member',onclick:addMember})),
+    members.length?h('div',{class:'list'},members.map((m,i)=>h('div',{class:'card item'},h('div',{class:'body'},h('div',{class:'t',text:m.name||m.email}),h('div',{class:'s',text:m.email}),h('div',{class:'acts'},h('button',{class:'btn ghost sm danger',text:'Remove',onclick:()=>removeMember(i)})))))):empty('No members yet','Add a member here so the task assignment option is ready for them.')));
+}
+const addMember=()=>openForm({title:'Add CRM member',fields:[{k:'name',label:'Name',req:true},{k:'email',label:'Email',type:'email',req:true}],saveText:'Add member',onSave:v=>{if(members.some(m=>m.email.toLowerCase()===v.email.toLowerCase())){toast('That email is already a member.');return}members.push(v);localStorage.setItem('orchid_crm_members',JSON.stringify(members));toast('Member added.');render()}});
+const removeMember=i=>{const m=members[i];if(!m)return;if(!confirm('Remove '+(m.name||m.email)+' from this local member list?'))return;members.splice(i,1);localStorage.setItem('orchid_crm_members',JSON.stringify(members));toast('Member removed.');render()};
+
 function tasksView(){
   const list=tasks.filter(t=>{const statusOk=taskFilter==='all'||taskFilter==='mine'||(taskFilter==='open'?!t.done:t.done);const mineOk=taskFilter!=='mine'||(t.assigned_to||'').toLowerCase()===me.email.toLowerCase();return statusOk&&mineOk&&match(t,['title','assigned_to'])});
   return h('div',{},
@@ -741,8 +748,8 @@ function tasksView(){
 }
 
 function appView(){
-  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['tasks','Tasks',tasks.filter(t=>!t.done).length]];
-  const body=view==='chat'?chatView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():overview();
+  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['tasks','Tasks',tasks.filter(t=>!t.done).length],['members','Members',members.length]];
+  const body=view==='chat'?chatView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():overview();
   return h('div',{},
     h('header',{class:'top'},h('div',{class:'top-in'},
       h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'CRM'})),
@@ -773,8 +780,7 @@ async function init(){
   if(!session)return home();
   sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')out()});
   me={id:session.user.id,email:session.user.email};
-  const m=await sb.from('crm_members').select('email').limit(1);
-  if(m.error||!m.data||!m.data.length){ready=false;return render()}
+  // Member management is intentionally local for now; Supabase integration will be added later.
   try{await loadAll();ready=true}catch(e){console.error(e);ready=false;return $('#app').replaceChildren(h('div',{class:'center'},h('div',{class:'panel'},h('h1',{text:'Could not load the CRM'}),h('p',{class:'sub',text:'The CRM tables may not be set up yet. Run crm_setup.sql in Supabase, then reload.'}),h('button',{class:'btn primary wide',text:'Reload',onclick:()=>location.reload()}))))}
   try{await loadChat()}catch(e){console.error(e);chatErr=true}
   render();
