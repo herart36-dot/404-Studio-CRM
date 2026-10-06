@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orchid: CRM, Pals and Solopreneur</title>
+<meta name="description" content="Orchid brings a CRM, a private community and a small-business manager under one login.">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14122e;--mut:#64748b;--line:rgba(20,18,46,.09);--glass:rgba(255,255,255,.7);--card:#fff;--soft:#f3f0ff;--sh:0 10px 40px rgba(60,70,140,.12);--bg1:#cfe3ff;--bg2:#ead7ff;--bg3:#c8f1e5;--base:#eef1fb;--nav:rgba(238,241,251,.82);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#f3f2fb;--mut:#a5a8bd;--line:rgba(255,255,255,.12);--glass:rgba(32,30,52,.72);--card:#26243c;--soft:#2c2a47;--bg1:#1d2a55;--bg2:#3a2260;--bg3:#12403a;--base:#12111f;--nav:rgba(18,17,31,.85)}}
+:root[data-theme="dark"]{--ink:#f3f2fb;--mut:#a5a8bd;--line:rgba(255,255,255,.12);--glass:rgba(32,30,52,.72);--card:#26243c;--soft:#2c2a47;--bg1:#1d2a55;--bg2:#3a2260;--bg3:#12403a;--base:#12111f;--nav:rgba(18,17,31,.85)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:calc(70px + env(safe-area-inset-top,0px))}html,body{margin:0}
+body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--ink);line-height:1.55;background:radial-gradient(900px 520px at 6% 0%,var(--bg1) 0,transparent 60%),radial-gradient(800px 600px at 96% 8%,var(--bg2) 0,transparent 55%),radial-gradient(900px 600px at 50% 100%,var(--bg3) 0,transparent 60%),var(--base);background-attachment:fixed}
+.w{max-width:1000px;margin:0 auto;padding:0 20px}
+.wm{font-weight:800;letter-spacing:-.03em;display:inline-flex;align-items:baseline;font-size:1.4rem}.wm b{color:#f97316;font-size:1.8em;line-height:.7;margin-right:1px}.wm .lg{font-size:.6em;font-weight:700;color:var(--mut);margin-left:.35em}
+.wm.xl{font-size:clamp(2.6rem,9vw,4.4rem)}.wm.md{font-size:2rem}.wm.sm{font-size:1.15rem}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--nav);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+nav .w{display:flex;gap:4px;align-items:center;overflow-x:auto;padding-top:10px;padding-bottom:10px}nav .wm{margin-right:auto;font-size:1.25rem}
+nav a.t{color:var(--mut);text-decoration:none;font-weight:700;font-size:.85rem;padding:7px 14px;border-radius:99px;white-space:nowrap}nav a.t:hover{background:var(--glass);color:var(--ink)}
+.kick{font-size:.75rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#7c3aed}
+h1{font-size:clamp(2.1rem,6vw,3.5rem);line-height:1.1;letter-spacing:-.035em;margin:10px 0 14px}h2{font-size:clamp(1.6rem,4.4vw,2.3rem);line-height:1.15;letter-spacing:-.03em;margin:6px 0 8px}h3{margin:0 0 8px;font-size:1.05rem}
+.grad{background:linear-gradient(90deg,#7c3aed,#d946ef,#f97316);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{color:var(--mut);font-size:1.08rem;max-width:640px;margin:0}
+.ic{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;flex:none;box-shadow:0 8px 18px rgba(20,18,46,.18)}.ic svg{width:28px;height:28px}.ic.big{width:72px;height:72px;border-radius:22px}.ic.big svg{width:42px;height:42px}
+.ic.crm{background:linear-gradient(135deg,#2563eb,#06b6d4)}.ic.pals{background:linear-gradient(135deg,#7c3aed,#d946ef)}.ic.solo{background:linear-gradient(135deg,#059669,#84cc16)}
+.hero{padding:70px 0 30px;text-align:center}.hero .lead{margin:0 auto}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:34px;text-align:left}
+.pick{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card);border:1.5px solid transparent;border-radius:22px;box-shadow:0 6px 20px rgba(60,70,140,.10);text-decoration:none;color:inherit;transition:transform .18s,box-shadow .18s,border-color .18s}
+.pick:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(60,70,140,.18)}.pick.crm:hover{border-color:#06b6d4}.pick.pals:hover{border-color:#d946ef}.pick.solo:hover{border-color:#84cc16}
+.pick small{display:block;color:var(--mut);font-size:.82rem;font-weight:500}.pick .arr{margin-left:auto;color:#94a3b8;transition:transform .18s}.pick:hover .arr{transform:translateX(4px)}
+section.app{padding:28px 0}
+.panel{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.7);border-radius:28px;box-shadow:var(--sh);padding:28px}
+.head{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+.tag{font-size:1.15rem;font-weight:800;letter-spacing:-.02em;margin:10px 0 6px}
+.crm .tag{color:#2563eb}.pals .tag{color:#7c3aed}.solo .tag{color:#059669}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+.in{background:var(--card);border-radius:20px;padding:18px 20px;box-shadow:0 6px 20px rgba(60,70,140,.08)}
+ul{margin:6px 0 0;padding-left:1.1em}li{margin:5px 0}li::marker{color:var(--m,#7c3aed)}.crm{--m:#06b6d4}.pals{--m:#d946ef}.solo{--m:#84cc16}
+.chip{display:inline-block;font-size:.76rem;font-weight:700;padding:4px 12px;border-radius:99px;background:var(--soft);margin:0 6px 6px 0}
+.pipe{display:flex;gap:10px;margin-top:16px}.col{width:88px;padding:8px;border-radius:14px;background:var(--soft);display:grid;gap:6px;align-content:start;min-height:92px}
+.col i{height:18px;border-radius:7px;background:#dbe7ff}.col i:nth-child(2){background:#c9f0ee}.col u{height:18px;border-radius:7px;background:linear-gradient(90deg,#2563eb,#06b6d4);animation:hop 4s ease-in-out infinite}
+@keyframes hop{0%,15%{transform:translateX(0)}45%,100%{transform:translateX(196px)}}
+.floaty{display:grid;gap:10px;margin-top:14px}.th{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:18px 18px 18px 6px;padding:8px 14px 8px 8px;font-size:.88rem;font-weight:600;box-shadow:0 8px 20px rgba(60,70,140,.12);animation:bob 4s ease-in-out infinite alternate;width:fit-content;max-width:100%}
+.th:nth-child(2){animation-delay:-1.4s;margin-left:24px}.th:nth-child(3){animation-delay:-2.6s}
+.th em{font-style:normal;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:.75rem;font-weight:800;background:linear-gradient(135deg,#7c3aed,#d946ef);flex:none}
+.photo{height:84px;border-radius:12px;background:linear-gradient(135deg,#f97316,#d946ef 55%,#7c3aed);margin:6px 0 2px;min-width:200px}
+@keyframes bob{to{transform:translateY(-6px)}}
+.kp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.kp div{background:var(--soft);border-radius:16px;padding:12px 14px}
+.kp b{display:block;font-size:1.4rem;letter-spacing:-.03em}.kp span{font-size:.8rem;color:var(--mut);font-weight:600}.kp .hot b{color:#be123c}
+.next{margin-top:10px;border-left:6px solid #f97316;background:var(--soft);border-radius:16px;padding:10px 14px;font-weight:700;font-size:.9rem}
+.wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.9rem;min-width:560px}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--mut);font-size:.74rem;text-transform:uppercase;letter-spacing:.08em}tr:last-child td{border:0}
+.quote{font-weight:800;letter-spacing:-.01em;padding:8px 0 8px 14px;border-left:4px solid #d946ef;margin:8px 0}
+.bt{border:0;cursor:pointer;border-radius:999px;padding:9px 18px;font:inherit;font-weight:700;font-size:.9rem;text-decoration:none;white-space:nowrap;display:inline-block;transition:transform .15s}.bt:hover{transform:translateY(-2px)}
+.bt.go{background:#1b1a2e;color:#fff;box-shadow:0 8px 20px rgba(20,18,46,.25)}.bt.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}.bt.lg{padding:13px 28px;font-size:1rem}
+nav .bt{padding:7px 14px;font-size:.85rem;margin-left:4px}.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+.scrim{position:fixed;inset:0;background:rgba(20,18,46,.5);display:grid;place-items:center;padding:18px;z-index:50}
+.modal{background:var(--card);border-radius:26px;padding:26px;width:100%;max-width:460px;max-height:92vh;overflow:auto;box-shadow:0 30px 80px rgba(20,18,46,.35)}
+.modal h2{font-size:1.4rem;margin:0 0 4px}.modal label{display:block;font-size:.82rem;font-weight:700;margin-top:12px}
+.modal input,.modal select,.modal textarea{width:100%;margin-top:5px;padding:11px 14px;border:1px solid var(--line);border-radius:14px;background:var(--base);color:var(--ink);font:inherit;font-weight:400}
+.modal textarea{min-height:90px;resize:vertical}.modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+.modal .err{color:#be123c;font-size:.88rem;min-height:1.3em;margin-top:8px}.hp{position:absolute;left:-9999px;height:0;overflow:hidden}.done{text-align:center;padding:10px 0}
+footer{padding:50px 0 70px;text-align:center;color:var(--mut)}
+.r{opacity:0;transform:translateY(22px);transition:opacity .8s,transform .8s}.r.on{opacity:1;transform:none}
+@media(max-width:760px){.three,.two{grid-template-columns:1fr}.col{width:70px}@keyframes hop{0%,15%{transform:translateX(0)}45%,100%{transform:translateX(160px)}}.panel{padding:20px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.r{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<nav><div class="w"><span class="wm"><b>O</b>rchid</span><a class="t" href="#crm">CRM</a><a class="t" href="#pals">Pals</a><a class="t" href="#solo">Solopreneur</a><a class="t" href="#market">Marketing</a><button class="bt ghost" type="button" data-inq>Inquiry</button><a class="bt go" href="index.html?login=1">Log in</a></div></nav>
+
+<header class="hero"><div class="w">
+  <div class="kick r">A small family of apps</div>
+  <div class="wm xl r"><b>O</b>rchid</div>
+  <h1 class="r">Work that feels <span class="grad">calm</span>.<br>Connection that feels <span class="grad">real</span>.</h1>
+  <p class="lead r">Three focused apps behind one login: a CRM for teams, a private social space for communities, and a simple business manager for one-person shops.</p>
+  <div class="cta r"><a class="bt go lg" href="index.html?login=1">Log in</a><button class="bt ghost lg" type="button" data-inq>Send an inquiry</button></div>
+  <p class="lead r" style="font-size:.9rem;margin-top:12px">After you log in, choose Orchid CRM, Pals or Solopreneur.</p>
+  <div class="three r">
+    <a class="pick crm" href="#crm"><span class="ic crm" data-ic="crm"></span><span><span class="wm sm"><b>O</b>rchid<span class="lg">CRM</span></span><small>Inquiries, clients and tasks</small></span><span class="arr">→</span></a>
+    <a class="pick pals" href="#pals"><span class="ic pals" data-ic="pals"></span><span><span class="wm sm"><b>O</b>rchid<span class="lg">Pals</span></span><small>Share stories, get along</small></span><span class="arr">→</span></a>
+    <a class="pick solo" href="#solo"><span class="ic solo" data-ic="solo"></span><span><span class="wm sm"><b>O</b>rchid<span class="lg">Solopreneur</span></span><small>Jobs and payments, small business</small></span><span class="arr">→</span></a>
+  </div>
+</div></header>
+
+<section class="app crm" id="crm"><div class="w"><div class="panel r">
+  <div class="head"><span class="ic crm big" data-ic="crm"></span><div><div class="kick" style="color:#2563eb">Meet the first one</div><div class="wm md"><b>O</b>rchid<span class="lg">CRM</span></div></div></div>
+  <div class="tag">One calm home for every inquiry, client and task.</div>
+  <p class="lead">For small teams who handle requests from several places and need to know who is waiting and who is going quiet.</p>
+  <div class="pipe"><div class="col"><u></u><i></i></div><div class="col"><i></i></div><div class="col"><i></i></div></div>
+  <div class="two">
+    <div class="in"><h3>What it does</h3><ul>
+      <li><b>Inquiries:</b> new, contacted, quoted, won, lost, with a live "waiting" timer.</li>
+      <li><b>Going-cold alerts</b> when a lead has been quiet for 5+ days.</li>
+      <li><b>Clients</b> with contact details, notes and history.</li>
+      <li><b>Tasks</b> with due dates, priorities and overdue highlights.</li>
+      <li><b>Cases:</b> turn emails, chats and calls into numbered tickets.</li>
+      <li><b>Routing and SLA:</b> rules assign owners; missed deadlines escalate.</li>
+      <li><b>Team chat log</b> per client with unread badges.</li></ul></div>
+    <div class="in"><h3>Why people choose it</h3><ul>
+      <li>A "Do this next" card names the single best action right now.</li>
+      <li>Average first-reply time shows how fast you really respond.</li>
+      <li>Approved members only; data stays with your team.</li>
+      <li>Works well on phones; nothing to learn.</li></ul>
+      <p style="margin-top:12px"><span class="chip">Agencies</span><span class="chip">Clinics</span><span class="chip">Service teams</span><span class="chip">Support desks</span><span class="chip">Small sales teams</span></p></div>
+  </div>
+</div></div></section>
+
+<section class="app pals" id="pals"><div class="w"><div class="panel r">
+  <div class="head"><span class="ic pals big" data-ic="pals"></span><div><div class="kick">And the second</div><div class="wm md"><b>O</b>rchid<span class="lg">Pals</span></div></div></div>
+  <div class="tag">Share a moment. Say it in your own words. Get along.</div>
+  <p class="lead">A private, members-only community. People post stories with photos or voice notes, react, add each other as Pals and chat one to one. Your own social space, without the noise or the strangers.</p>
+  <div class="two">
+    <div class="in"><h3>What members can do</h3><ul>
+      <li><b>Post stories</b> and attach a photo (up to 8 MB).</li>
+      <li><b>Voice notes:</b> record and share a voice story.</li>
+      <li><b>React</b> to posts.</li>
+      <li><b>Pals:</b> search people, send requests, build a circle.</li>
+      <li><b>Private chat</b> with your Pals.</li>
+      <li><b>Notifications</b> for stories, messages and requests.</li></ul>
+      <h3 style="margin-top:14px">For organizations</h3><ul>
+      <li><b>Invite only:</b> just admin-approved emails can join.</li>
+      <li>Clubs, schools, alumni, churches, neighborhoods, company culture.</li></ul></div>
+    <div class="in"><h3>A peek inside</h3><div class="floaty">
+      <div class="th"><em>M</em><div>Sunday market haul. Good day.<div class="photo"></div></div></div>
+      <div class="th"><em>J</em>🎙 Voice story · 0:42</div>
+      <div class="th"><em>A</em>Need a quiet evening.</div></div></div>
+  </div>
+</div></div></section>
+
+<section class="app solo" id="solo"><div class="w"><div class="panel r">
+  <div class="head"><span class="ic solo big" data-ic="solo"></span><div><div class="kick" style="color:#059669">And now the third</div><div class="wm md"><b>O</b>rchid<span class="lg">Solopreneur</span></div></div></div>
+  <div class="tag">Know who to reply to, what to do today, and who owes you money.</div>
+  <p class="lead">For one-person and local businesses: salons, repair shops, tutors, caterers, cleaners, photographers and freelancers. Just the essentials.</p>
+  <div class="two">
+    <div class="in"><h3>What it does</h3><ul>
+      <li><b>Today:</b> a "Do this next" card with money owed first.</li>
+      <li><b>Leads:</b> pipeline with estimated value and one-tap call, text or email.</li>
+      <li><b>Customers:</b> history, total paid, last visit, "Book job".</li>
+      <li><b>Jobs and payments:</b> date, price, done, paid or unpaid.</li>
+      <li><b>Time to check in:</b> reminds you of customers unseen for 60 days.</li>
+      <li><b>Tasks</b> with due dates.</li></ul>
+      <p style="margin-top:12px"><span class="chip">Salons</span><span class="chip">Repair</span><span class="chip">Tutors</span><span class="chip">Food</span><span class="chip">Cleaning</span><span class="chip">Freelancers</span></p></div>
+    <div class="in"><h3>Your day at a glance <span class="mut" style="font-size:.75rem;font-weight:600">(example)</span></h3>
+      <div class="next">Do this next · Collect ₱1,500 for aircon cleaning</div>
+      <div class="kp"><div><b>₱24,800</b><span>Earned this month</span></div><div class="hot"><b>₱3,200</b><span>Waiting to be paid</span></div><div><b>4</b><span>New leads</span></div><div><b>6</b><span>Jobs this week</span></div></div>
+      <ul style="margin-top:12px"><li>Repeat customers are local income; it nudges you to bring them back.</li><li>Each business sees only its own data.</li></ul></div>
+  </div>
+</div></div></section>
+
+<section class="app" id="market"><div class="w"><div class="panel r">
+  <div class="kick">Marketing guide</div><h2>How to position and promote each app</h2>
+  <p class="lead">Lead with the problem each audience feels today, then show the calm way out.</p>
+  <div class="wrap" style="margin-top:16px"><table>
+    <tr><th>App</th><th>Audience</th><th>Pain</th><th>Promise</th></tr>
+    <tr><td><b>CRM</b></td><td>Small teams, agencies, clinics, support desks</td><td>Requests scattered across inbox, chat and notes</td><td>Nothing slips through; know who to answer first</td></tr>
+    <tr><td><b>Pals</b></td><td>Clubs, schools, churches, companies, neighborhoods</td><td>Public social media is loud; group chats get lost</td><td>A private home for members to share and connect</td></tr>
+    <tr><td><b>Solopreneur</b></td><td>One-person and local shops, freelancers</td><td>Orders in Messenger, payments in memory</td><td>See today's work and who owes you, in one place</td></tr></table></div>
+  <div class="two">
+    <div class="in"><h3>Sample taglines</h3>
+      <div class="quote">CRM: Never lose a lead to a slow reply.</div><div class="quote">Pals: Your community, minus the noise.</div><div class="quote">Solopreneur: Your business in your pocket.</div></div>
+    <div class="in"><h3>Channels that work</h3><ul>
+      <li><b>Facebook and Messenger groups</b> where local owners already are.</li>
+      <li><b>Short video:</b> a 20-second "my day in Solopreneur".</li>
+      <li><b>Community admins:</b> offer Pals free to a first group for testimonials.</li>
+      <li><b>Referrals:</b> each happy owner introduces one more business.</li>
+      <li><b>Local partners:</b> co-working spaces, small business associations.</li></ul></div>
+    <div class="in"><h3>Launch plan</h3><ul>
+      <li><b>Week 1:</b> onboard 5 friendly businesses and 1 community.</li>
+      <li><b>Weeks 2 to 3:</b> collect feedback and 3 testimonials.</li>
+      <li><b>Week 4:</b> publish case stories and open a waiting list.</li>
+      <li><b>Measure:</b> sign-ups, weekly active users, jobs logged, posts per member.</li></ul></div>
+    <div class="in"><h3>Trust message</h3><ul>
+      <li>Approved-members-only sign-up</li><li>Business data is private to each user</li><li>One login, no scattered passwords</li><li>Photos are stored privately and shown to members only</li></ul></div>
+  </div>
+</div></div></section>
+
+<footer><div class="w"><div class="wm md"><b>O</b>rchid</div><p>CRM, Pals and Solopreneur. One login, three calm apps.</p><div class="cta"><a class="bt go" href="index.html?login=1">Log in</a><button class="bt ghost" type="button" data-inq>Inquiry</button></div></div></footer>
+<script>
+const IC={crm:'<svg viewBox="0 0 28 28" fill="none"><rect x="4" y="14" width="5" height="10" rx="2" fill="#fff"/><rect x="11.5" y="8" width="5" height="16" rx="2" fill="#fff"/><rect x="19" y="3" width="5" height="21" rx="2" fill="#fff" opacity=".75"/></svg>',
+pals:'<svg viewBox="0 0 28 28" fill="none"><circle cx="11" cy="12" r="7" fill="#fff"/><circle cx="18.5" cy="16" r="7" fill="#fff" fill-opacity=".35" stroke="#fff" stroke-width="1.6"/><circle cx="23" cy="6" r="2.6" fill="#f97316"/><path d="M8 13.6c1.4 1.8 4.6 1.8 6 0" stroke="#7c3aed" stroke-width="1.6" stroke-linecap="round"/></svg>',
+solo:'<svg viewBox="0 0 28 28" fill="none"><path d="M5 12l2-6h14l2 6" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M6 12v11h16V12" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><rect x="11" y="16" width="6" height="7" rx="1.5" fill="#fff" opacity=".75"/><circle cx="23" cy="5" r="2.4" fill="#f97316"/></svg>'};
+document.querySelectorAll('[data-ic]').forEach(e=>e.innerHTML=IC[e.dataset.ic]);
+const els=document.querySelectorAll('.r');
+if('IntersectionObserver' in window){const o=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add('on');o.unobserve(x.target)}}),{threshold:.12});els.forEach(e=>o.observe(e))}else els.forEach(e=>e.classList.add('on'));
+
+/* ---- Inquiry form: saves into the CRM's inquiries (run welcome_inquiry_setup.sql once) ---- */
+/* Where inquiries are emailed if the CRM database is not set up for website inquiries yet. Change this to your business email. */
+const INQUIRY_EMAIL='herart36@gmail.com';
+const SB_URL='https://acxrobzulaswsubfoghg.supabase.co',SB_KEY='sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD';
+function openInquiry(){
+  const f=(t,a={},...c)=>{const e=document.createElement(t);for(const k in a)k==='text'?e.textContent=a[k]:e.setAttribute(k,a[k]);c.forEach(x=>e.append(x));return e};
+  const name=f('input',{type:'text',maxlength:'120',autocomplete:'name'}),email=f('input',{type:'email',maxlength:'200',autocomplete:'email'}),phone=f('input',{type:'tel',maxlength:'40',autocomplete:'tel'}),
+    app=f('select'),msg=f('textarea',{maxlength:'2000'}),hp=f('input',{type:'text',tabindex:'-1',autocomplete:'off','aria-hidden':'true'}),err=f('div',{class:'err',role:'alert'});
+  ['Orchid CRM','Orchid Pals','Orchid Solopreneur','Not sure yet'].forEach(o=>app.append(f('option',{text:o})));
+  const lab=(t,el)=>f('label',{},t,el);
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape')close()};
+  const send=f('button',{class:'bt go',type:'button',text:'Send inquiry'});
+  send.onclick=async()=>{
+    err.textContent='';
+    if(hp.value)return close();
+    if(!name.value.trim())return err.textContent='Please enter your name.';
+    if(!email.value.trim()&&!phone.value.trim())return err.textContent='Add an email or phone so we can reply.';
+    if(email.value.trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim()))return err.textContent='Enter a valid email address.';
+    send.disabled=true;send.textContent='Sending…';
+    try{
+      const r=await fetch(SB_URL+'/rest/v1/crm_inquiries',{method:'POST',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+        body:JSON.stringify({name:name.value.trim(),email:email.value.trim()||null,phone:phone.value.trim()||null,source:'Website',status:'new',message:'Interested in: '+app.value+(msg.value.trim()?'\n\n'+msg.value.trim():'')})});
+      if(!r.ok)throw new Error(r.status);
+      box.replaceChildren(f('div',{class:'done'},f('h2',{text:'Thank you!'}),f('p',{class:'lead',text:'We got your inquiry and will reply soon.'}),f('div',{class:'row',style:'justify-content:center'},f('button',{class:'bt go',type:'button',text:'Close',onclick:close}))));
+    }catch(e){
+      const body='Name: '+name.value.trim()+'\nEmail: '+email.value.trim()+'\nPhone: '+phone.value.trim()+'\nInterested in: '+app.value+'\n\n'+msg.value.trim();
+      const href='mailto:'+INQUIRY_EMAIL+'?subject='+encodeURIComponent('Orchid inquiry from '+name.value.trim())+'&body='+encodeURIComponent(body);
+      box.replaceChildren(f('div',{class:'done'},f('h2',{text:'One more step'}),f('p',{class:'lead',text:'Tap the button to open your email app with your inquiry ready, then press Send.'}),f('div',{class:'row',style:'justify-content:center'},f('a',{class:'bt go',href:href,text:'Open my email'}),f('button',{class:'bt ghost',type:'button',text:'Close',onclick:close}))));
+    }
+  };
+  const box=f('div',{class:'modal',role:'dialog','aria-modal':'true','aria-label':'Send an inquiry'},f('h2',{text:'Send an inquiry'}),f('p',{class:'lead',style:'font-size:.92rem',text:'Tell us what you need. We will get back to you.'}),
+    lab('Your name',name),lab('Email',email),lab('Phone',phone),lab('Interested in',app),lab('Message (optional)',msg),f('div',{class:'hp'},lab('Leave empty',hp)),err,
+    f('div',{class:'row'},f('button',{class:'bt ghost',type:'button',text:'Cancel',onclick:close}),send));
+  const scrim=f('div',{class:'scrim'},box);scrim.addEventListener('click',e=>{if(e.target===scrim)close()});
+  document.body.append(scrim);document.addEventListener('keydown',esc);name.focus();
+}
+document.querySelectorAll('[data-inq]').forEach(b=>b.addEventListener('click',openInquiry));
+</script>
+</body>
+</html>
