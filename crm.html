@@ -1187,7 +1187,8 @@ const sb=window.supabase.createClient(SB_URL,SB_KEY);
 
 const $=s=>document.querySelector(s);
 const home=()=>location.replace('index.html');
-const out=()=>location.replace('index.html?logout=1');
+let leaving=false;
+const out=()=>{if(out.done)return;out.done=true;location.replace('index.html?logout=1')};
 const STATUSES=['new','contacted','quoted','won','lost'];
 const PRIORITIES=['low','normal','high'];
 
@@ -2303,19 +2304,30 @@ function noAccess(){
 }
 
 function render(){
+  if(leaving)return;
   const y=window.scrollY;
   $('#app').replaceChildren(ready?appView():noAccess());
   if(ready)updateApprBadge();
   window.scrollTo(0,y);
 }
 let ready=false;
-async function logout(){try{await sb.auth.signOut()}catch(e){}out()}
+const timers=[];
+async function logout(){
+  if(leaving)return;
+  leaving=true;
+  timers.forEach(clearInterval);
+  try{if(chatSub)sb.removeChannel(chatSub)}catch(e){}
+  try{if(apprSub)sb.removeChannel(apprSub)}catch(e){}
+  $('#app').replaceChildren(h('div',{class:'center'},h('p',{class:'muted',text:'Signing out…'})));
+  try{await Promise.race([sb.auth.signOut(),new Promise(r=>setTimeout(r,2500))])}catch(e){console.error(e)}
+  out();
+}
 
 async function init(){
   $('#app').replaceChildren(h('div',{class:'center'},h('p',{class:'muted',text:'Loading…'})));
   const {data:{session}}=await sb.auth.getSession();
   if(!session)return home();
-  sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')out()});
+  sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT'){leaving=true;timers.forEach(clearInterval);out()}});
   me={id:session.user.id,email:session.user.email};
   try{await loadAll();ready=true}catch(e){console.error(e);ready=false;return $('#app').replaceChildren(h('div',{class:'center'},h('div',{class:'panel'},h('h1',{text:'Could not load the CRM'}),h('p',{class:'sub',text:'The CRM tables may not be set up yet. Run crm_setup.sql in Supabase, then reload.'}),h('button',{class:'btn primary wide',text:'Reload',onclick:()=>location.reload()}))))}
   try{await loadPresence()}catch(e){console.error(e);presErr=true}
@@ -2325,9 +2337,9 @@ async function init(){
   render();
   sweep();
   subChat();subApprovals();
-  setInterval(pollChat,20000);setInterval(syncApprovals,20000);
-  setInterval(async()=>{try{await loadPresence();if(view==='productivity')await loadProd();const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()}catch(e){console.error(e)}},30000);
-  setInterval(()=>{sweep();const a=document.activeElement;if(view!=='chat'&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()},60000);
+  timers.push(setInterval(()=>{if(!leaving)pollChat()},20000),setInterval(()=>{if(!leaving)syncApprovals()},20000));
+  timers.push(setInterval(async()=>{if(leaving)return;try{await loadPresence();if(view==='productivity')await loadProd();const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()}catch(e){console.error(e)}},30000));
+  timers.push(setInterval(()=>{if(leaving)return;sweep();const a=document.activeElement;if(view!=='chat'&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()},60000));
 }
 /* ---- Orchid UI interaction polish (visual only) ---- */
 document.addEventListener('click',function(e){
@@ -2362,7 +2374,7 @@ init().catch(e=>{console.error(e);home()});
 })();
 </script>
 
-<!-- ===== Orchid AI assistant (Gemini via Supabase Edge Function "crm-ai"). No API key lives here. ===== -->
+<!-- ===== Orchid AI assistant (Groq via Supabase Edge Function "crm-ai"). No API key lives here. ===== -->
 <style id="orchid-ai-css">
 #oai-fab{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:40;width:56px;height:56px;border-radius:50%;border:0;cursor:pointer;color:#fff;background:var(--grad);box-shadow:0 8px 24px rgba(37,99,235,.35),0 2px 6px rgba(15,23,42,.18);display:grid;place-items:center;transition:transform .15s,box-shadow .15s}
 #oai-fab:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 12px 28px rgba(37,99,235,.4),0 2px 6px rgba(15,23,42,.2)}
@@ -2399,7 +2411,7 @@ init().catch(e=>{console.error(e);home()});
 </button>
 <section id="oai-panel" role="dialog" aria-label="AI assistant" hidden>
   <div class="oai-hd">
-    <div><div class="t">Orchid Assistant</div><div class="s">Powered by Gemini · read-only</div></div>
+    <div><div class="t">Orchid Assistant</div><div class="s">Powered by Groq · read-only</div></div>
     <span class="sp"></span>
     <button class="oai-ib" id="oai-clear" type="button" title="New chat" aria-label="New chat">↺</button>
     <button class="oai-ib" id="oai-x" type="button" title="Close" aria-label="Close">✕</button>
