@@ -2440,6 +2440,66 @@ document.addEventListener('click',function(e){
   setTimeout(()=>r.remove(),520);
 },true);
 
+/* ---- bridge for the AI assistant: adds tasks / schedules through the same rules as the forms ---- */
+const AI_DAYS=['sun','mon','tue','wed','thu','fri','sat'];
+const aiTime=t=>{const m=/^([01]?\d|2[0-3]):([0-5]\d)$/.exec(String(t||'').trim());return m?String(m[1]).padStart(2,'0')+':'+m[2]:null};
+const aiMember=q=>{q=lc(q).trim();if(!q)return null;return members.find(m=>lc(m.email)===q)||members.find(m=>lc(m.name)===q)||(()=>{const f=members.filter(m=>lc(m.name).includes(q)||lc(m.email).split('@')[0]===q);return f.length===1?f[0]:null})()};
+const aiClient=q=>{q=lc(q).trim();if(!q)return null;return clients.find(c=>lc(c.name)===q)||(()=>{const f=clients.filter(c=>lc(c.name).includes(q)||lc(c.company).includes(q));return f.length===1?f[0]:null})()};
+function aiPlan(a){
+  a=a||{};
+  if(a.type==='create_task'){
+    const title=String(a.title||'').trim().slice(0,200);
+    if(!title)return{error:'I need a task title.'};
+    const due=/^\d{4}-\d{2}-\d{2}$/.test(String(a.due_date||''))&&!isNaN(new Date(a.due_date+'T00:00:00'))?a.due_date:null;
+    const pr=PRIORITIES.includes(a.priority)?a.priority:'normal';
+    const lines=['Task: '+title,'Due: '+(due?fmtDate(due):'no date'),'Priority: '+cap(pr)];
+    let cl=null,as='';
+    if(a.client){cl=aiClient(a.client);lines.push('Client: '+(cl?cl.name:'"'+String(a.client).slice(0,60)+'" not found, left blank'))}
+    if(a.assigned_to){
+      const m=aiMember(a.assigned_to);
+      if(!m)lines.push('Assigned to: not found, left unassigned');
+      else if(!isAdmin&&!isMe(m.email))lines.push('Assigned to: staff can only assign to themselves, left unassigned');
+      else{as=m.email;lines.push('Assigned to: '+(m.name||m.email))}
+    }
+    if(!isAdmin)lines.push('This will be sent to the admin for approval.');
+    return{title:'Add task',lines,confirm:isAdmin?'Add task':'Send for approval',exec:async()=>{
+      const values={title,due_date:due,priority:pr,client_id:cl?cl.id:null};
+      if(!isAdmin){
+        const n=approvals.length;
+        await ask('task_add',{id:null},'Add the task "'+title+'"'+(as?' for '+memberName(as):'')+(due?' · due '+fmtDate(due):''),{values,assigned:as});
+        if(approvals.length<=n)throw new Error('The request was not sent (it may already be waiting for approval).');
+        return 'Sent to the admin for approval.';
+      }
+      const r=await sb.from('crm_tasks').insert(values).select().single();
+      if(r.error){console.error(r.error);throw new Error('Could not add the task.')}
+      saveTaskAssignment(r.data.id,as);await loadAll();render();toast('Task added.');return 'Task added.';
+    }};
+  }
+  if(a.type==='set_schedule'){
+    if(!isAdmin)return{error:'Only an admin can set schedules.'};
+    const m=aiMember(a.email);if(!m)return{error:'I could not find that member. Check the name or email.'};
+    const rec={};
+    for(const d of (Array.isArray(a.days)?a.days:[])){
+      const i=AI_DAYS.indexOf(lc(d&&d.day).slice(0,3)),s=aiTime(d&&d.start),e=aiTime(d&&d.end);
+      const b=Math.max(0,Math.min(480,Math.round(+((d&&d.break_minutes)??60))||0));
+      if(i<0||!s||!e||toMin(e)<=toMin(s))return{error:'One of the days has an invalid day or time.'};
+      rec[i]={works:true,start:s,end:e,brk:b};
+    }
+    if(!Object.keys(rec).length)return{error:'I need at least one working day.'};
+    const lines=['Member: '+(m.name||m.email)];
+    [1,2,3,4,5,6,0].forEach(i=>{const r=rec[i];lines.push(DOW_NAMES[i].slice(0,3)+': '+(r?r.start+'–'+r.end+', '+r.brk+' min break ('+(Math.round(schedHours(r)*10)/10)+' h)':'day off'))});
+    lines.push('This replaces their current weekly schedule.');
+    return{title:'Set weekly schedule',lines,confirm:'Save schedule',exec:async()=>{
+      const recs=[0,1,2,3,4,5,6].map(d=>{const r=rec[d];return{email:m.email,dow:d,works:!!r,start_time:r?r.start:'09:00',end_time:r?r.end:'17:00',break_minutes:r?r.brk:60,updated_by:low(me.email),updated_at:new Date().toISOString()}});
+      const {error}=await sb.from('crm_schedules').upsert(recs,{onConflict:'email,dow'});
+      if(error){console.error(error);throw new Error('Could not save the schedule.')}
+      await loadProd();schedDraft=null;render();toast('Schedule saved');return 'Schedule saved.';
+    }};
+  }
+  return{error:'I cannot do that kind of action.'};
+}
+window.__orchidCrm={plan:aiPlan};
+
 init().catch(e=>{console.error(e);home()});
 })();
 </script>
@@ -2487,6 +2547,10 @@ init().catch(e=>{console.error(e);home()});
 .oai-ft textarea{flex:1;min-height:40px;max-height:110px;resize:none;border-radius:12px;padding:9px 12px;font-size:.875rem}
 .oai-send{border:0;background:var(--brand);color:#fff;width:40px;height:40px;border-radius:12px;cursor:pointer;display:grid;place-items:center;flex:none}.oai-send:hover:not(:disabled){background:var(--brand-d)}.oai-send:disabled{opacity:.5;cursor:not-allowed}
 .oai-note{font-size:.68rem;color:var(--muted);text-align:center;padding:0 10px 8px;background:#fff}
+.oai-act{align-self:flex-start;max-width:92%;background:#fff;border:1px solid var(--brand);border-radius:12px;padding:10px 12px;font-size:.82rem;line-height:1.45}
+.oai-act .at{font-weight:700;margin-bottom:4px}.oai-act .al{color:var(--ink)}.oai-act.err{border-color:#fecdd3;background:#fff1f2;color:var(--danger)}
+.oai-act .ab{display:flex;gap:8px;margin-top:8px}.oai-act .ab button{border:0;border-radius:8px;padding:6px 12px;font-size:.78rem;font-weight:700;cursor:pointer}
+.oai-act .ok{background:var(--brand);color:#fff}.oai-act .no{background:#eef2f7;color:var(--ink)}.oai-act button:disabled{opacity:.55;cursor:not-allowed}
 @media (max-width:520px){#oai-panel{right:8px;left:8px;width:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
 @media (prefers-reduced-motion:reduce){#oai-panel{animation:none}.oai-dots i{animation:none}}
 </style>
@@ -2496,14 +2560,14 @@ init().catch(e=>{console.error(e);home()});
 </button>
 <section id="oai-panel" role="dialog" aria-label="AI assistant" hidden>
   <div class="oai-hd">
-    <div><div class="t">Orchid Assistant</div><div class="s">Powered by OpenRouter · read-only</div></div>
+    <div><div class="t">Orchid Assistant</div><div class="s">Powered by OpenRouter · asks before changing anything</div></div>
     <span class="sp"></span>
     <button class="oai-ib" id="oai-clear" type="button" title="New chat" aria-label="New chat">↺</button>
     <button class="oai-ib" id="oai-x" type="button" title="Close" aria-label="Close">✕</button>
   </div>
   <div class="oai-body" id="oai-body" aria-live="polite"></div>
   <div class="oai-ft">
-    <textarea id="oai-in" rows="1" placeholder="Ask about your clients, inquiries, tasks…" aria-label="Message"></textarea>
+    <textarea id="oai-in" rows="1" placeholder="Ask a question, or say add task / set schedule…" aria-label="Message"></textarea>
     <button class="oai-send" id="oai-send" type="button" aria-label="Send"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg></button>
   </div>
   <div class="oai-note">AI can make mistakes. Check important details.</div>
@@ -2517,7 +2581,7 @@ init().catch(e=>{console.error(e);home()});
   const sb=window.__orchidSb||(window.__orchidSb=window.supabase.createClient(SB_URL,SB_KEY)); // shared with the CRM so only one auth client exists
   const $=id=>document.getElementById(id);
   const fab=$('oai-fab'),panel=$('oai-panel'),body=$('oai-body'),inp=$('oai-in'),send=$('oai-send');
-  const SUGGEST=['Who needs a follow-up?','What tasks are due soon?','Summarize my open inquiries','Draft a follow-up email'];
+  const SUGGEST=['Who needs a follow-up?','What tasks are due soon?','Add a task for tomorrow','Draft a follow-up email'];
   let msgs=[],busy=false;
 
   // show the button only while someone is logged in
@@ -2529,7 +2593,7 @@ init().catch(e=>{console.error(e);home()});
   function welcome(){
     body.replaceChildren();
     const hi=el('oai-hi');const b=document.createElement('b');b.textContent='Hi, how can I help?';
-    hi.append(b,document.createTextNode('I can look through your CRM, draft emails and suggest next steps.'));
+    hi.append(b,document.createTextNode('I can look through your CRM, draft emails, add tasks and set schedules. I always ask you to confirm first.'));
     const sg=el('oai-sg');
     SUGGEST.forEach(t=>{const x=document.createElement('button');x.type='button';x.textContent=t;x.onclick=()=>ask(t);sg.append(x)});
     hi.append(sg);body.append(hi);
@@ -2540,6 +2604,22 @@ init().catch(e=>{console.error(e);home()});
       c.onclick=async()=>{try{await navigator.clipboard.writeText(text);c.textContent='Copied';setTimeout(()=>c.textContent='Copy',1200)}catch(e){}};body.append(c)}
     scroll();return m;
   }
+  function localToday(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function actionCard(a,at){
+    const p=window.__orchidCrm&&window.__orchidCrm.plan(a);
+    const card=el('oai-act');
+    if(!p||p.error){card.classList.add('err');card.textContent=(p&&p.error)||'I could not prepare that action.';body.append(card);scroll();return}
+    card.append(el('at',p.title));p.lines.forEach(l=>card.append(el('al',l)));
+    const bar=el('ab');const ok=document.createElement('button');ok.type='button';ok.className='ok';ok.textContent=p.confirm||'Confirm';
+    const no=document.createElement('button');no.type='button';no.className='no';no.textContent='Cancel';
+    const note=t=>{if(msgs[at]&&msgs[at].role==='model')msgs[at].text+='\n['+t+']'};
+    ok.onclick=async()=>{ok.disabled=no.disabled=true;ok.textContent='Working…';
+      try{const m=await p.exec();card.classList.remove('err');card.replaceChildren(el('at','✓ '+m));note('The user confirmed. '+m)}
+      catch(e){card.classList.add('err');card.replaceChildren(el('at',e.message||'Something went wrong.'));note('The action failed.')}
+      scroll()};
+    no.onclick=()=>{card.replaceChildren(el('al','Cancelled.'));note('The user cancelled this action.')};
+    bar.append(ok,no);card.append(bar);body.append(card);scroll();
+  }
   async function ask(text){
     text=(text||'').trim();if(!text||busy)return;
     if(!msgs.length)body.replaceChildren();
@@ -2549,14 +2629,14 @@ init().catch(e=>{console.error(e);home()});
     try{
       const {data:{session}}=await sb.auth.getSession();
       if(!session)throw new Error('Your session ended. Please log in again.');
-      const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SB_KEY},body:JSON.stringify({messages:msgs})});
+      const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SB_KEY},body:JSON.stringify({messages:msgs,today:localToday(),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC')})});
       let d={};try{d=await r.json()}catch(e){}
       wait.remove();
       if(!r.ok||!d.reply){
         msgs.pop();
         const m=r.status===404?'The AI is not switched on yet. Ask your admin to deploy the crm-ai function.':(d.error||'Something went wrong. Please try again.');
         body.append(el('oai-m e',m));
-      }else{msgs.push({role:'model',text:d.reply});addMsg('a',d.reply)}
+      }else{msgs.push({role:'model',text:d.reply});addMsg('a',d.reply);const at=msgs.length-1;(Array.isArray(d.actions)?d.actions:[]).slice(0,3).forEach(a=>actionCard(a,at))}
     }catch(e){
       wait.remove();msgs.pop();
       body.append(el('oai-m e',e.message&&e.message.indexOf('log in')>-1?e.message:'Could not reach the assistant. Check your connection and try again.'));
