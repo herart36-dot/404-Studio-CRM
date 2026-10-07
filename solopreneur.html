@@ -55,6 +55,15 @@ main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
 .modal h2{margin:0 0 4px;font-size:1.25rem}.modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
 .toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;padding:10px 18px;border-radius:999px;z-index:99;font-size:.88rem;max-width:90%}
 pre{text-align:left;background:#f1f5f9;border-radius:12px;padding:10px;font-size:.8rem;overflow:auto}
+#oai-fab{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:40;width:56px;height:56px;border-radius:50%;border:0;cursor:pointer;color:#fff;font-size:1.5rem;background:var(--grad);box-shadow:0 8px 24px rgba(5,150,105,.35)}
+#oai-panel{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:41;width:min(400px,calc(100vw - 24px));height:min(560px,calc(100dvh - 120px));display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 60px rgba(15,23,42,.22);overflow:hidden}
+#oai-panel[hidden]{display:none!important}
+.oai-hd{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--grad);color:#fff}.oai-hd .s{font-size:.72rem;color:rgba(255,255,255,.92)}
+.oai-x{border:0;background:rgba(255,255,255,.2);color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer}
+.oai-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#f8fafc;overscroll-behavior:contain}
+.oai-m{max-width:88%;padding:9px 12px;border-radius:14px;font-size:.875rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.oai-m.u{align-self:flex-end;background:var(--brand);color:#fff}.oai-m.a{align-self:flex-start;background:#fff;border:1px solid #e2e8f0}.oai-m.e{align-self:flex-start;background:#fff1f2;color:var(--danger);border:1px solid #fecdd3}
+.oai-ft{display:flex;gap:8px;align-items:flex-end;padding:10px;border-top:1px solid #e2e8f0}.oai-ft textarea{min-height:40px;max-height:110px;resize:none;padding:9px 12px}
 </style>
 </head>
 <body>
@@ -66,7 +75,8 @@ const SB_URL='https://acxrobzulaswsubfoghg.supabase.co';
 const SB_KEY='sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD';
 const CUR='₱';           // currency symbol
 const CHECKIN_DAYS=60;   // nudge to re-contact a customer after this many days
-const sb=window.supabase.createClient(SB_URL,SB_KEY);
+const sb=window.__orchidSb||(window.__orchidSb=window.supabase.createClient(SB_URL,SB_KEY));
+const AI_URL=SB_URL+'/functions/v1/solo-ai';
 
 const $=s=>document.querySelector(s);
 const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]===true)el.setAttribute(k,'');else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&x!==false&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
@@ -82,9 +92,10 @@ const daysAgo=t=>Math.floor((Date.now()-new Date(t))/864e5);
 const money=n=>CUR+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:2});
 const nullify=o=>{for(const k in o)if(typeof o[k]==='string'){o[k]=o[k].trim();if(o[k]==='')o[k]=null}return o};
 
-const TB={leads:'solo_leads',customers:'solo_customers',jobs:'solo_jobs',tasks:'solo_tasks'};
+const TB={leads:'solo_leads',customers:'solo_customers',jobs:'solo_jobs',tasks:'solo_tasks',expenses:'solo_expenses'};
 const STAGES=['new','contacted','quoted','won','lost'],JOBST=['scheduled','done','cancelled'];
-let me=null,D={leads:[],customers:[],jobs:[],tasks:[]},view='today',q='',lf='all',jf='upcoming',tf='open',state='loading';
+let ef='all';
+let me=null,D={leads:[],customers:[],jobs:[],tasks:[],expenses:[]},view='today',q='',lf='all',jf='upcoming',tf='open',state='loading';
 
 async function load(){
   const ks=Object.keys(TB),r=await Promise.all(ks.map(k=>sb.from(TB[k]).select('*').order('created_at',{ascending:false})));
@@ -201,7 +212,46 @@ function jobRow(j){
       j.status==='scheduled'?h('button',{class:'btn go sm',text:'Mark done',onclick:()=>jobStatus(j,'done')}):null,
       j.status!=='cancelled'&&Number(j.price)>0?h('button',{class:'btn ghost sm',text:j.paid?'Mark unpaid':'Mark paid',onclick:()=>togglePaid(j)}):null,
       j.status==='scheduled'?h('button',{class:'btn ghost sm',text:'Cancel',onclick:()=>jobStatus(j,'cancelled')}):null,
+      j.status!=='cancelled'&&Number(j.price)>0?h('button',{class:'btn ghost sm',text:'Invoice',onclick:()=>invoice(j)}):null,
       edit(()=>editJob(j)),del(()=>delJob(j)))));
+}
+
+/* ---- expenses, money, invoice ---- */
+const CATS=['Supplies','Transport','Rent','Marketing','Software','Food','Equipment','Other'];
+const expF=()=>[{k:'title',label:'What was it for',req:true},{k:'category',label:'Category',type:'select',options:CATS.map(c=>({v:c,t:c})),def:'Supplies'},{k:'amount',label:'Amount ('+CUR+')',type:'number',req:true},{k:'spent_on',label:'Date',type:'date'},{k:'notes',label:'Notes',type:'textarea'}];
+const addExp=()=>openForm({title:'New expense',fields:expF(),values:{spent_on:today()},saveText:'Add expense',onSave:v=>run(sb.from(TB.expenses).insert(v),'Expense added.')});
+const editExp=x=>openForm({title:'Edit expense',fields:expF(),values:x,onSave:v=>run(sb.from(TB.expenses).update(v).eq('id',x.id),'Expense saved.')});
+const delExp=x=>{if(confirm('Delete this expense?'))run(sb.from(TB.expenses).delete().eq('id',x.id),'Expense deleted.')};
+const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function invoice(j){
+  let biz=localStorage.getItem('solo_biz');
+  if(!biz){biz=prompt('Your business name (shown on invoices):');if(!biz)return;try{localStorage.setItem('solo_biz',biz)}catch(e){}}
+  const c=cust(j.customer_id)||{},no='INV-'+String(j.id).slice(0,6).toUpperCase();
+  const w=window.open('','_blank');if(!w){toast('Allow pop-ups to print the invoice.');return}
+  w.document.write('<!doctype html><title>'+no+'</title><body style="font:15px system-ui,sans-serif;max-width:640px;margin:40px auto;color:#14122e"><h1 style="margin:0">'+esc(biz)+'</h1><p style="color:#64748b">Invoice '+no+' · '+esc(fmtDate(today()))+'</p><p><b>Bill to</b><br>'+esc(c.name||'Customer')+'<br>'+esc(c.email||'')+' '+esc(c.phone||'')+'<br>'+esc(c.address||'')+'</p><table style="width:100%;border-collapse:collapse;margin-top:20px"><tr style="border-bottom:2px solid #14122e;text-align:left"><th style="padding:8px 0">Description</th><th>Date</th><th style="text-align:right">Amount</th></tr><tr style="border-bottom:1px solid #e2e8f0"><td style="padding:10px 0">'+esc(j.title)+'</td><td>'+esc(fmtDate(j.scheduled_on))+'</td><td style="text-align:right">'+esc(money(j.price))+'</td></tr></table><h2 style="text-align:right">Total '+esc(money(j.price))+'</h2><p style="text-align:right"><b>'+(j.paid?'PAID':'UNPAID')+'</b></p>'+(j.notes?'<p style="color:#64748b">'+esc(j.notes)+'</p>':'')+'<p style="color:#64748b;margin-top:40px">Thank you for your business.</p></body>');
+  w.document.close();w.focus();setTimeout(()=>w.print(),300);
+}
+const mkey=d=>String(d||'').slice(0,7);
+function moneyView(){
+  const now=new Date(),months=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push(ymd(d).slice(0,7))}
+  const inc=m=>D.jobs.filter(j=>j.paid&&mkey(j.scheduled_on)===m).reduce((a,j)=>a+Number(j.price||0),0);
+  const exp=m=>D.expenses.filter(x=>mkey(x.spent_on)===m).reduce((a,x)=>a+Number(x.amount||0),0);
+  const cur=months[5],I=inc(cur),E=exp(cur),unpaid=D.jobs.filter(owed).reduce((a,j)=>a+Number(j.price),0);
+  const data=months.map(m=>({m,i:inc(m),e:exp(m)})),mx=Math.max(1,...data.flatMap(d=>[d.i,d.e]));
+  const W=600,H=190,L=8,B=26,T=10,bw=(W-L*2)/6;
+  let svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Income and expenses, last 6 months" style="width:100%;height:auto">';
+  data.forEach((d,k)=>{const x=L+k*bw,hh=H-B-T,hi=hh*d.i/mx,he=hh*d.e/mx;
+    svg+='<rect x="'+(x+bw*.14)+'" y="'+(H-B-hi)+'" width="'+bw*.32+'" height="'+Math.max(1,hi)+'" rx="3" fill="#059669"><title>Income '+esc(money(d.i))+'</title></rect><rect x="'+(x+bw*.5)+'" y="'+(H-B-he)+'" width="'+bw*.32+'" height="'+Math.max(1,he)+'" rx="3" fill="#f97316"><title>Expenses '+esc(money(d.e))+'</title></rect><text x="'+(x+bw/2)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11" fill="#64748b">'+new Date(d.m+'-01T00:00:00').toLocaleDateString(undefined,{month:'short'})+'</text>'});
+  svg+='</svg>';
+  const chart=h('div',{class:'card',style:'padding:14px 18px;margin-bottom:16px'});chart.innerHTML=svg;
+  const stat=(v,l,hot)=>h('div',{class:'card stat'+(hot&&v?' hot':'')},h('div',{class:'v',text:v}),h('div',{class:'l',text:l}));
+  const cats=['all',...CATS],list=D.expenses.filter(x=>(ef==='all'||x.category===ef)&&match(x,['title','category','notes'])).sort((a,b)=>String(b.spent_on).localeCompare(String(a.spent_on)));
+  const row=x=>h('div',{class:'card item'},h('div',{class:'body'},h('div',{class:'t'},x.title,h('span',{class:'pill',text:x.category||'Other'}),h('span',{class:'pill',text:money(x.amount)})),h('div',{class:'s',text:fmtDate(x.spent_on)}),x.notes?h('div',{class:'m',text:x.notes}):null,h('div',{class:'acts'},edit(()=>editExp(x)),del(()=>delExp(x)))));
+  return h('div',{},
+    h('div',{class:'stats'},stat(money(I),'Income this month'),stat(money(E),'Expenses this month'),stat(money(I-E),(I-E>=0?'Profit':'Loss')+' this month'),stat(money(unpaid),'Waiting to be paid',true)),
+    chart,h('div',{class:'chips',style:'margin:-6px 0 16px'},h('span',{class:'s'},h('span',{style:'color:#059669',text:'■ Income (paid jobs)'}),'   ',h('span',{style:'color:#f97316',text:'■ Expenses'}))),
+    h('div',{class:'bar'},searchBar('Search expenses'),chips(cats.map(c=>[c,c==='all'?'All':c]),ef,v=>ef=v),h('span',{class:'sp'}),h('button',{class:'btn go',text:'Add expense',onclick:addExp})),
+    list.length?h('div',{class:'list'},list.map(row)):empty(D.expenses.length?'No matches':'No expenses yet','Log what you spend so you can see your real profit.',D.expenses.length?null:h('button',{class:'btn go',text:'Add expense',onclick:addExp})));
 }
 
 /* ---- views ---- */
@@ -260,8 +310,8 @@ function tasksView(){
     list.length?h('div',{class:'list'},list.map(taskRow)):empty(D.tasks.length?'Nothing here':'No tasks yet','Add a reminder for a follow-up or errand.',D.tasks.length?null:h('button',{class:'btn go',text:'Add task',onclick:()=>addTask()})));
 }
 function appView(){
-  const tabs=[['today','Today'],['leads','Leads',D.leads.filter(l=>l.stage==='new').length],['customers','Customers'],['jobs','Jobs',D.jobs.filter(owed).length],['tasks','Tasks',D.tasks.filter(t=>!t.done).length]];
-  const body={leads:leadsView,customers:customersView,jobs:jobsView,tasks:tasksView}[view]||todayView;
+  const tabs=[['today','Today'],['leads','Leads',D.leads.filter(l=>l.stage==='new').length],['customers','Customers'],['jobs','Jobs',D.jobs.filter(owed).length],['money','Money'],['tasks','Tasks',D.tasks.filter(t=>!t.done).length]];
+  const body={leads:leadsView,customers:customersView,jobs:jobsView,money:moneyView,tasks:tasksView}[view]||todayView;
   return h('div',{},h('header',{class:'top'},h('div',{class:'top-in'},
     h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'Solopreneur'})),
     h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0)}},t,n?h('span',{class:'n',text:String(n)}):null))),
@@ -275,19 +325,60 @@ const setupView=()=>h('div',{class:'center'},h('div',{class:'panel'},h('h1',{tex
   h('button',{class:'btn primary wide',text:'Reload',onclick:()=>location.reload()}),h('a',{class:'btn ghost wide',style:'margin-top:10px',href:'index.html',text:'Back to apps'})));
 
 function render(){
+  if(leaving)return;
   const y=window.scrollY;
   $('#app').replaceChildren(state==='loading'?h('div',{class:'center'},h('p',{class:'muted',text:'Loading…'})):state==='setup'?setupView():appView());
   window.scrollTo(0,y);
 }
-const home=()=>location.replace('index.html'),out=()=>location.replace('index.html?logout=1');
-async function logout(){try{await sb.auth.signOut()}catch(e){}out()}
+const home=()=>location.replace('index.html');
+let leaving=false;const out=()=>{if(out.done)return;out.done=true;location.replace('index.html?logout=1')};
+async function logout(){
+  if(leaving)return;leaving=true;
+  $('#app').replaceChildren(h('div',{class:'center'},h('p',{class:'muted',text:'Signing out…'})));
+  try{await Promise.race([sb.auth.signOut({scope:'local'}),new Promise(r=>setTimeout(r,1500))])}catch(e){}
+  try{Object.keys(localStorage).filter(k=>/^sb-.*-auth-token/.test(k)).forEach(k=>localStorage.removeItem(k))}catch(e){}
+  out();
+}
+
+/* ---- AI assistant (Groq via Supabase Edge Function "solo-ai") ---- */
+function mountAI(){
+  if($('#oai-fab'))return;
+  const msgs=[];let busy=false;
+  const fab=h('button',{id:'oai-fab',type:'button','aria-label':'Open AI assistant',text:'✨'});
+  const body=h('div',{class:'oai-body'}),inp=h('textarea',{rows:'1',placeholder:'Ask about your business…','aria-label':'Message'}),send=h('button',{class:'btn go sm',type:'button',text:'Send'});
+  const panel=h('section',{id:'oai-panel',role:'dialog','aria-label':'AI assistant',hidden:true},
+    h('div',{class:'oai-hd'},h('div',{},h('b',{text:'Orchid Assistant'}),h('div',{class:'s',text:'Powered by Groq · read-only'})),h('span',{class:'sp'}),h('button',{class:'oai-x',type:'button',text:'✕','aria-label':'Close',onclick:()=>panel.hidden=true})),
+    body,h('div',{class:'oai-ft'},inp,send));
+  const add=(c,t)=>{const m=h('div',{class:'oai-m '+c,text:t});body.append(m);body.scrollTop=body.scrollHeight;return m};
+  const hi=()=>{body.replaceChildren(h('div',{class:'empty'},h('b',{text:'Hi, how can I help?'}),'I can read your data, draft messages and suggest what to do next.',h('div',{class:'chips',style:'justify-content:center;margin-top:10px'},['Who should I follow up with?','Who still owes me money?','Draft a quote follow-up','How is my month going?'].map(t=>h('button',{class:'chip',type:'button',text:t,onclick:()=>ask(t)})))))};
+  async function ask(text){
+    text=(text||'').trim();if(!text||busy)return;
+    if(!msgs.length)body.replaceChildren();
+    msgs.push({role:'user',text});add('u',text);inp.value='';busy=true;send.disabled=true;
+    const w=add('a','…');
+    try{
+      const {data:{session}}=await sb.auth.getSession();if(!session)throw new Error('Your session ended. Please log in again.');
+      const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:SB_KEY},body:JSON.stringify({messages:msgs})});
+      let d={};try{d=await r.json()}catch(e){}
+      w.remove();
+      if(!r.ok||!d.reply){msgs.pop();add('e',r.status===404?'The AI is not deployed yet.':(d.error||'Something went wrong. Please try again.'))}
+      else{msgs.push({role:'model',text:d.reply});add('a',d.reply)}
+    }catch(e){w.remove();msgs.pop();add('e',e.message&&e.message.includes('log in')?e.message:'Could not reach the assistant.')}
+    busy=false;send.disabled=false;inp.focus();
+  }
+  send.addEventListener('click',()=>ask(inp.value));
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask(inp.value)}});
+  fab.addEventListener('click',()=>{panel.hidden=!panel.hidden;if(!panel.hidden){if(!msgs.length&&!body.children.length)hi();setTimeout(()=>inp.focus(),50)}});
+  document.body.append(fab,panel);
+}
 async function boot(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session)return home();   // not signed in through the Orchid launcher
-  sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')out()});
+  sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT'){leaving=true;out()}});
   me={id:session.user.id,email:session.user.email};
   try{await load();state='app'}catch(e){console.error(e);state='setup'}
   render();
+  if(state==='app')mountAI();
 }
 boot().catch(e=>{console.error(e);home()});
 })();
