@@ -1183,7 +1183,7 @@ input[type=range]{width:100%;accent-color:var(--brand);margin:6px 0 0}
 /* ---- CRM Supabase project (same one the login page uses) ---- */
 const SB_URL='https://acxrobzulaswsubfoghg.supabase.co';
 const SB_KEY='sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD';
-const sb=window.supabase.createClient(SB_URL,SB_KEY);
+const sb=window.__orchidSb||(window.__orchidSb=window.supabase.createClient(SB_URL,SB_KEY));
 
 const $=s=>document.querySelector(s);
 const home=()=>location.replace('index.html');
@@ -2319,7 +2319,8 @@ async function logout(){
   try{if(chatSub)sb.removeChannel(chatSub)}catch(e){}
   try{if(apprSub)sb.removeChannel(apprSub)}catch(e){}
   $('#app').replaceChildren(h('div',{class:'center'},h('p',{class:'muted',text:'Signing out…'})));
-  try{await Promise.race([sb.auth.signOut(),new Promise(r=>setTimeout(r,2500))])}catch(e){console.error(e)}
+  try{await Promise.race([sb.auth.signOut({scope:'local'}),new Promise(r=>setTimeout(r,1500))])}catch(e){console.error(e)}
+  try{Object.keys(localStorage).filter(k=>/^sb-.*-auth-token/.test(k)).forEach(k=>localStorage.removeItem(k))}catch(e){}
   out();
 }
 
@@ -2429,7 +2430,7 @@ init().catch(e=>{console.error(e);home()});
   const SB_URL='https://acxrobzulaswsubfoghg.supabase.co';
   const SB_KEY='sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD';
   const FN=SB_URL+'/functions/v1/crm-ai';
-  const sb=window.supabase.createClient(SB_URL,SB_KEY); // same project, so it shares the CRM's login session
+  const sb=window.__orchidSb||(window.__orchidSb=window.supabase.createClient(SB_URL,SB_KEY)); // shared with the CRM so only one auth client exists
   const $=id=>document.getElementById(id);
   const fab=$('oai-fab'),panel=$('oai-panel'),body=$('oai-body'),inp=$('oai-in'),send=$('oai-send');
   const SUGGEST=['Who needs a follow-up?','What tasks are due soon?','Summarize my open inquiries','Draft a follow-up email'];
