@@ -1186,9 +1186,32 @@ const SB_KEY='sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD';
 const sb=window.__orchidSb||(window.__orchidSb=window.supabase.createClient(SB_URL,SB_KEY));
 
 const $=s=>document.querySelector(s);
-const home=()=>location.replace('index.html');
+const home=()=>{const f=location.pathname.split('/').pop();if(f===''||f==='index.html'){showLogin();return}location.replace('index.html')};
+function showLogin(msg){
+  const em=h('input',{type:'email',placeholder:'Email',autocomplete:'username',required:true});
+  const pw=h('input',{type:'password',placeholder:'Password',autocomplete:'current-password',required:true});
+  const err=h('p',{class:'sub',style:'color:var(--danger)',text:msg||''});
+  const go=h('button',{class:'btn primary wide',type:'button',text:'Sign in'});
+  const submit=async()=>{
+    if(!em.value.trim()||!pw.value)return;
+    go.disabled=true;go.textContent='Signing in…';err.textContent='';
+    try{
+      const {error}=await sb.auth.signInWithPassword({email:em.value.trim(),password:pw.value});
+      if(error)throw error;
+      location.reload();
+    }catch(e){err.textContent=e.message||'Could not sign in.';go.disabled=false;go.textContent='Sign in'}
+  };
+  go.addEventListener('click',submit);
+  pw.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
+  em.addEventListener('keydown',e=>{if(e.key==='Enter')pw.focus()});
+  $('#app').replaceChildren(h('div',{class:'center'},h('div',{class:'panel'},
+    h('div',{class:'wm',style:'font-size:2rem'},h('b',{text:'O'}),'rchid'),
+    h('h1',{text:'Sign in'}),h('p',{class:'sub',text:'Sign in to Orchid CRM.'}),
+    em,pw,err,go)));
+  setTimeout(()=>em.focus(),50);
+}
 let leaving=false;
-const out=()=>{if(out.done)return;out.done=true;location.replace('index.html?logout=1')};
+const out=()=>{if(out.done)return;out.done=true;leaving=true;const f=location.pathname.split('/').pop();if(f===''||f==='index.html')showLogin();else location.replace('index.html?logout=1')};
 const STATUSES=['new','contacted','quoted','won','lost'];
 const PRIORITIES=['low','normal','high'];
 
