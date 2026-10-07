@@ -1151,6 +1151,18 @@ button{touch-action:manipulation}
   .side .tab:not([aria-selected=true]){font-size:.78rem}
   .stat{padding:11px!important}
 }
+
+/* ---- productivity ---- */
+.pill.pass{background:#d1fae5;color:#065f46}.pill.fail{background:#fee2e2;color:#991b1b}
+input[type=number]{width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:var(--r);background:#fff;transition:border-color .15s,box-shadow .15s}
+input[type=number]:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.16)}
+input[type=range]{width:100%;accent-color:var(--brand);margin:6px 0 0}
+.prodchart{padding:16px 16px 8px;margin-bottom:16px}
+.prodset{padding:18px;margin:6px 0 20px}
+.prodgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:6px}
+.prodbig{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.76rem;color:var(--muted);padding:2px 4px 10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 </style>
 
 </head>
@@ -1984,7 +1996,7 @@ async function loadPresence(){
 }
 async function setMyStatus(k){
   const r=await sb.rpc('crm_set_status',{p_status:k});if(r.error)return fail(r.error);
-  try{await loadPresence()}catch(e){console.error(e)}
+  try{await loadPresence();if(view==='productivity')await loadProd()}catch(e){console.error(e)}
   toast('Status: '+ST[k].l+'.');render();
 }
 function statusBar(){
@@ -2048,10 +2060,132 @@ function teamView(){
   );
 }
 
+/* ---- productivity score, graph and admin pass mark ---- */
+let prodCfg={pass_threshold:70,target_hours:8,daily_actions:10},prodRows=[],prodErr=false,prodRange='7d',prodWho=null;
+const TZ=(()=>{try{const z=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';Intl.DateTimeFormat(undefined,{timeZone:z});return z}catch(e){return 'UTC'}})();
+const keyOf=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const prodDays=()=>{const n=prodRange==='30d'?30:7,out=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-i);out.push(d)}return out};
+async function loadProd(){
+  const days=prodDays(),from=new Date(days[0]),to=new Date(days[days.length-1]);to.setDate(to.getDate()+1);
+  const [s,r]=await Promise.all([
+    sb.from('crm_productivity_settings').select('*').eq('id',1).maybeSingle(),
+    sb.rpc('crm_productivity',{p_from:from.toISOString(),p_to:to.toISOString(),p_tz:TZ})
+  ]);
+  if(s.data)prodCfg={pass_threshold:+s.data.pass_threshold,target_hours:+s.data.target_hours,daily_actions:+s.data.daily_actions};
+  prodErr=!!r.error;prodRows=r.data||[];
+}
+/* one day's score: 60% active time vs the daily hours target + 40% output vs the daily actions target */
+const dayScore=(secs,acts)=>Math.round((Math.min(1,secs/3600/prodCfg.target_hours)*60+Math.min(1,acts/prodCfg.daily_actions)*40)*10)/10;
+function prodSeries(email){
+  const rows={};prodRows.forEach(r=>{if(low(r.email)===email)rows[r.day]=r});
+  const tk=today();
+  return prodDays().map(d=>{
+    const k=keyOf(d),r=rows[k]||{active_secs:0,tasks:0,cases:0,notes:0,chat:0};
+    const acts=r.tasks+r.cases+r.notes+r.chat,dow=d.getDay();
+    return {key:k,date:d,secs:r.active_secs,acts,score:dayScore(r.active_secs,acts),counted:(dow>0&&dow<6)||r.active_secs>0||acts>0,isToday:k===tk};
+  });
+}
+function prodSummary(series){
+  const done=series.filter(p=>p.counted&&!p.isToday),use=done.length?done:series.filter(p=>p.counted);
+  const avg=use.length?Math.round(use.reduce((a,p)=>a+p.score,0)/use.length*10)/10:0;
+  const thr=prodCfg.pass_threshold;
+  return {avg,days:use.length,passed:use.filter(p=>p.score>=thr).length,pass:use.length>0&&avg>=thr,today:series.find(p=>p.isToday)};
+}
+function prodChart(series){
+  const W=640,H=230,L=38,R=10,T=14,B=30,iw=W-L-R,ih=H-T-B,n=series.length,step=iw/n,bw=Math.max(4,Math.min(46,step*.62));
+  const y=v=>T+ih-(v/100)*ih,thr=prodCfg.pass_threshold,wide=n>14;
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Productivity percentage per day. Passing mark is '+thr+' percent." style="width:100%;height:auto;display:block">';
+  [0,25,50,75,100].forEach(v=>{s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#e2e8f0"/><text x="'+(L-6)+'" y="'+(y(v)+4)+'" text-anchor="end" font-size="10" fill="#64748b">'+v+'%</text>'});
+  series.forEach((p,i)=>{
+    const cx=L+step*i+step/2,pass=p.score>=thr;
+    if(p.counted){
+      const bh=Math.max(1.5,ih*p.score/100);
+      s+='<rect x="'+(cx-bw/2).toFixed(1)+'" y="'+(y(p.score)).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+(pass?'#059669':'#e11d48')+'" opacity="'+(p.isToday?.55:1)+'"><title>'+p.date.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+(p.isToday?' (so far)':'')+': '+p.score+'% · '+fmtDur(p.secs*1000)+' active · '+p.acts+' actions</title></rect>';
+      if(!wide)s+='<text x="'+cx.toFixed(1)+'" y="'+(y(p.score)-4).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="600" fill="#334155">'+Math.round(p.score)+'%</text>';
+    }
+    if(!wide||i%5===0||i===n-1)s+='<text x="'+cx.toFixed(1)+'" y="'+(H-10)+'" text-anchor="middle" font-size="10" fill="#64748b">'+(wide?(p.date.getMonth()+1)+'/'+p.date.getDate():p.date.toLocaleDateString(undefined,{weekday:'short'})+' '+p.date.getDate())+'</text>';
+  });
+  s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(thr)+'" y2="'+y(thr)+'" stroke="#334155" stroke-width="1.5" stroke-dasharray="6 4"/>';
+  s+='<text x="'+(W-R)+'" y="'+(y(thr)-5)+'" text-anchor="end" font-size="10" font-weight="700" fill="#334155" stroke="#fff" stroke-width="3" paint-order="stroke">Pass mark '+thr+'%</text></svg>';
+  return s;
+}
+function prodSettingsCard(){
+  const thr=h('input',{type:'range',min:'0',max:'100',step:'1','aria-label':'Passing productivity percentage'});thr.value=prodCfg.pass_threshold;
+  const big=h('div',{class:'prodbig',text:prodCfg.pass_threshold+'%'});
+  thr.addEventListener('input',()=>{big.textContent=thr.value+'%'});
+  const hrs=h('input',{type:'number',min:'1',max:'16',step:'0.5',id:'prod_hrs'});hrs.value=prodCfg.target_hours;
+  const act=h('input',{type:'number',min:'1',max:'500',step:'1',id:'prod_act'});act.value=prodCfg.daily_actions;
+  const save=h('button',{class:'btn blue',text:'Save pass mark',onclick:async()=>{
+    const t=Math.round(+thr.value),hh=+hrs.value,aa=Math.round(+act.value);
+    if(!(t>=0&&t<=100))return toast('The pass mark must be between 0 and 100.');
+    if(!(hh>=1&&hh<=16))return toast('Daily active hours must be between 1 and 16.');
+    if(!(aa>=1&&aa<=500))return toast('Daily actions must be between 1 and 500.');
+    save.disabled=true;
+    const r=await sb.from('crm_productivity_settings').upsert({id:1,pass_threshold:t,target_hours:hh,daily_actions:aa,updated_at:nowIso(),updated_by:me.email});
+    save.disabled=false;if(r.error)return fail(r.error);
+    try{await loadProd()}catch(e){console.error(e)}toast('Pass mark saved. It now applies to everyone.');render()}});
+  return h('div',{class:'card prodset'},
+    h('h3',{style:'margin:0',text:'Pass mark for staff'}),
+    h('div',{class:'muted',style:'font-size:.82rem;margin:3px 0 12px',text:'A person passes when their average daily productivity is at or above this percentage. Everyone can see the mark on their own graph; only admins can change it.'}),
+    h('div',{class:'prodgrid'},
+      h('div',{},h('div',{class:'muted',style:'font-size:.8rem;font-weight:600',text:'Passing percentage'}),big,thr),
+      h('label',{class:'f',for:'prod_hrs',style:'margin-top:0'},'Daily active-hours target',hrs),
+      h('label',{class:'f',for:'prod_act',style:'margin-top:0'},'Daily actions target',act)),
+    h('div',{style:'margin-top:14px'},save));
+}
+function productivityView(){
+  if(prodErr)return empty('Productivity is not set up','Ask the admin to check the crm_productivity function in Supabase, then reload.');
+  const people=[{email:low(ADMIN_EMAIL),name:'Admin'},...staff.filter(x=>x.active).map(x=>({email:low(x.email),name:x.name||x.email}))];
+  const mine=low(me.email);
+  if(!isAdmin)prodWho=mine;
+  if(!prodWho||!people.some(p=>p.email===prodWho)&&prodWho!==mine)prodWho=mine;
+  const who=prodWho,whoName=who===mine?'You':(people.find(p=>p.email===who)||{name:who}).name;
+  const series=prodSeries(who),sm=prodSummary(series),thr=prodCfg.pass_threshold;
+  const stat=(v,l,c)=>h('div',{class:'card stat c-'+(c||'slate')},h('div',{class:'v',text:String(v)}),h('div',{class:'l',text:l}));
+  const rangeBtn=(v,t)=>h('button',{class:'chip',type:'button','aria-pressed':String(prodRange===v),text:t,onclick:async()=>{prodRange=v;try{await loadProd()}catch(e){console.error(e)}render()}});
+  const picker=isAdmin?(()=>{const sel=h('select',{class:'sel-sm','aria-label':'Show productivity for'},...people.map(p=>h('option',{value:p.email,text:p.email===mine?p.name+' (me)':p.name})));sel.value=who;sel.addEventListener('change',()=>{prodWho=sel.value;render()});return sel})():null;
+  const rangeLbl=prodRange==='30d'?'last 30 days':'last 7 days';
+  const chart=h('div',{class:'card prodchart'});chart.innerHTML=prodChart(series);
+  const t=sm.today;
+  let team=null;
+  if(isAdmin){
+    const rows=people.map(p=>{const ss=prodSummary(prodSeries(p.email));return {p,ss}}).sort((a,b)=>b.ss.avg-a.ss.avg);
+    const pass=rows.filter(r=>r.ss.pass).length;
+    team=h('div',{},
+      h('h3',{style:'margin:22px 0 4px',text:'Team results · '+rangeLbl}),
+      h('div',{class:'muted',style:'font-size:.82rem;margin-bottom:10px',text:pass+' of '+rows.length+' are at or above the '+thr+'% pass mark.'}),
+      h('div',{class:'card'},h('div',{class:'tblwrap'},h('table',{class:'tbl'},
+        h('thead',{},h('tr',{},h('th',{text:'Person'}),h('th',{class:'n',text:'Average'}),h('th',{class:'n',text:'Days passed'}),h('th',{text:'Result'}),h('th',{text:''}))),
+        h('tbody',{},rows.map(({p,ss})=>h('tr',{},
+          h('td',{},h('b',{text:p.name}),h('div',{class:'muted',style:'font-size:.76rem',text:p.email})),
+          h('td',{class:'n',text:ss.days?ss.avg+'%':'–'}),
+          h('td',{class:'n',text:ss.days?ss.passed+' / '+ss.days:'–'}),
+          h('td',{},ss.days?h('span',{class:'pill '+(ss.pass?'pass':'fail'),style:'margin-left:0',text:ss.pass?'Passing':'Below mark'}):h('span',{class:'muted',text:'No data'})),
+          h('td',{},h('button',{class:'btn ghost sm',text:'View graph',onclick:()=>{prodWho=p.email;render();window.scrollTo(0,0)}}))))))))
+    );
+  }
+  return h('div',{},
+    h('div',{class:'bar'},
+      h('div',{},h('h3',{style:'margin:0',text:who===mine?'My productivity':whoName+'’s productivity'}),h('div',{class:'muted',style:'font-size:.82rem;margin-top:3px',text:'Daily percentage score, '+rangeLbl+'. Green bars reach the pass mark.'})),
+      h('span',{class:'sp'}),picker,h('div',{class:'chips'},rangeBtn('7d','7 days'),rangeBtn('30d','30 days'))),
+    h('div',{class:'stats'},
+      stat(sm.days?sm.avg+'%':'–','Average ('+rangeLbl+')',sm.days?(sm.pass?'emerald':'rose'):'slate'),
+      stat(thr+'%','Pass mark','slate'),
+      stat(sm.days?sm.passed+' / '+sm.days:'–','Days at or above the mark','blue'),
+      stat(t?t.score+'%':'–','Today so far','violet')),
+    h('div',{style:'margin:-6px 0 12px'},sm.days?h('span',{class:'pill '+(sm.pass?'pass':'fail'),style:'margin-left:0',text:sm.pass?'Passing':'Below the pass mark'}):null),
+    chart,
+    h('div',{class:'legend'},h('span',{},h('i',{style:'background:#059669'}),'At or above pass mark'),h('span',{},h('i',{style:'background:#e11d48'}),'Below pass mark'),h('span',{},'Lighter bar = today, still in progress')),
+    team,
+    isAdmin?prodSettingsCard():null,
+    h('p',{class:'muted',style:'font-size:.78rem;margin:10px 4px 0',text:'Each day scores 60% for time set to Active (against a '+prodCfg.target_hours+'h target) plus 40% for work done in the CRM (tasks completed, cases resolved, replies and notes, chat messages, against '+prodCfg.daily_actions+' a day). Active time comes from the status buttons, so it is self-reported. Weekends only count if there was activity, and the average leaves out today until it ends.'})
+  );
+}
+
 function appView(){
-  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['approvals',isAdmin?'Approvals':'My requests',isAdmin?pendingCount():0],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['tasks','Tasks',tasks.filter(t=>!t.done).length],...(isAdmin?[['team','Team']]:[]),['members','Members',members.length]];
-  const body=view==='chat'?chatView():view==='approvals'?approvalsView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():view==='team'&&isAdmin?teamView():overview();
-  const ICONS={overview:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',inquiries:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',approvals:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',cases:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',clients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',team:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',members:'<path d="M12 3 4 6v6c0 4.5 3.4 7.8 8 9 4.6-1.2 8-4.5 8-9V6z"/>'};
+  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['approvals',isAdmin?'Approvals':'My requests',isAdmin?pendingCount():0],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['tasks','Tasks',tasks.filter(t=>!t.done).length],['productivity','Productivity'],...(isAdmin?[['team','Team']]:[]),['members','Members',members.length]];
+  const body=view==='chat'?chatView():view==='approvals'?approvalsView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():view==='team'&&isAdmin?teamView():view==='productivity'?productivityView():overview();
+  const ICONS={overview:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',inquiries:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',approvals:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',cases:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',clients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',productivity:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',team:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',members:'<path d="M12 3 4 6v6c0 4.5 3.4 7.8 8 9 4.6-1.2 8-4.5 8-9V6z"/>'};
   const ico=k=>{const s=h('span',{class:'ico','aria-hidden':'true'});s.innerHTML='<svg viewBox="0 0 24 24">'+(ICONS[k]||'')+'</svg>';return s};
   return h('div',{},
     h('header',{class:'top'},h('div',{class:'top-in'},
@@ -2087,13 +2221,14 @@ async function init(){
   me={id:session.user.id,email:session.user.email};
   try{await loadAll();ready=true}catch(e){console.error(e);ready=false;return $('#app').replaceChildren(h('div',{class:'center'},h('div',{class:'panel'},h('h1',{text:'Could not load the CRM'}),h('p',{class:'sub',text:'The CRM tables may not be set up yet. Run crm_setup.sql in Supabase, then reload.'}),h('button',{class:'btn primary wide',text:'Reload',onclick:()=>location.reload()}))))}
   try{await loadPresence()}catch(e){console.error(e);presErr=true}
+  try{await loadProd()}catch(e){console.error(e);prodErr=true}
   try{await loadChat()}catch(e){console.error(e);chatErr=true}
   try{await loadApprovals()}catch(e){console.error(e);apprErr=true}
   render();
   sweep();
   subChat();subApprovals();
   setInterval(pollChat,20000);setInterval(syncApprovals,20000);
-  setInterval(async()=>{try{await loadPresence();const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()}catch(e){console.error(e)}},30000);
+  setInterval(async()=>{try{await loadPresence();if(view==='productivity')await loadProd();const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()}catch(e){console.error(e)}},30000);
   setInterval(()=>{sweep();const a=document.activeElement;if(view!=='chat'&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()},60000);
 }
 /* ---- Orchid UI interaction polish (visual only) ---- */
