@@ -2096,7 +2096,7 @@ function teamView(){
 
 /* ---- productivity score, graph and admin pass mark ---- */
 let prodCfg={pass_threshold:70,target_hours:8,daily_actions:10},prodRows=[],prodErr=false,prodRange='7d',prodWho=null;
-let scheds={},schedErr=false,schedWho=null,schedDraft=null;
+let scheds={},schedErr=false,schedWho=null,schedDraft=null,schedEditing=false;
 const TZ=(()=>{try{const z=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';Intl.DateTimeFormat(undefined,{timeZone:z});return z}catch(e){return 'UTC'}})();
 const keyOf=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const prodDays=()=>{const n=prodRange==='30d'?30:7,out=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-i);out.push(d)}return out};
@@ -2182,7 +2182,7 @@ function schedCard(people,mine){
   const who=schedWho&&people.some(p=>p.email===schedWho)?schedWho:people[0].email;
   if(schedWho!==who||!schedDraft){schedWho=who;schedDraft=Array.from({length:7},(_,d)=>{const r=(scheds[who]||[])[d];return r?{...r}:{works:d>0&&d<6,start:'09:00',end:'17:00',brk:60}})}
   const sel=h('select',{class:'sel-sm','aria-label':'Schedule for'},...people.map(p=>h('option',{value:p.email,text:p.name+' · '+p.email})));
-  sel.value=who;sel.addEventListener('change',()=>{schedWho=sel.value;schedDraft=null;render()});
+  sel.value=who;sel.addEventListener('change',()=>{schedWho=sel.value;schedDraft=null;schedEditing=false;render()});
   const order=[1,2,3,4,5,6,0];
   const rows=order.map(d=>{
     const r=schedDraft[d];
@@ -2191,7 +2191,7 @@ function schedCard(people,mine){
     const en=h('input',{type:'time',value:r.end,'aria-label':DOW_NAMES[d]+' end'});
     const bk=h('input',{type:'number',min:'0',max:'480',step:'5',value:String(r.brk),style:'width:72px','aria-label':DOW_NAMES[d]+' break minutes'});
     const hrs=h('span',{class:'muted',style:'font-size:.8rem'});
-    const upd=()=>{r.works=cb.checked;r.start=st.value||'09:00';r.end=en.value||'17:00';r.brk=Math.max(0,Math.min(480,+bk.value||0));[st,en,bk].forEach(x=>x.disabled=!r.works);hrs.textContent=r.works?(Math.round(schedHours(r)*10)/10)+' h target':'Day off'};
+    const upd=()=>{r.works=cb.checked;r.start=st.value||'09:00';r.end=en.value||'17:00';r.brk=Math.max(0,Math.min(480,+bk.value||0));cb.disabled=!schedEditing;[st,en,bk].forEach(x=>x.disabled=!schedEditing||!r.works);hrs.textContent=r.works?(Math.round(schedHours(r)*10)/10)+' h target':'Day off'};
     [cb,st,en,bk].forEach(x=>x.addEventListener('input',upd));upd();
     return h('tr',{},h('td',{},h('label',{style:'display:flex;gap:8px;align-items:center;font-weight:600'},cb,DOW_NAMES[d])),h('td',{},st),h('td',{},en),h('td',{},bk),h('td',{},hrs));
   });
@@ -2202,12 +2202,14 @@ function schedCard(people,mine){
       const recs=schedDraft.map((r,d)=>({email:who,dow:d,works:r.works,start_time:r.start,end_time:r.end,break_minutes:r.brk,updated_by:low(me.email),updated_at:new Date().toISOString()}));
       const {error}=await sb.from('crm_schedules').upsert(recs,{onConflict:'email,dow'});
       if(error)throw error;
-      await loadProd();schedDraft=null;toast('Schedule saved');render();
+      await loadProd();schedDraft=null;schedEditing=false;toast('Schedule saved');render();
     }catch(e){fail(e,'Could not save the schedule. Make sure the crm_schedules table exists in Supabase.');msg.textContent='';save.disabled=false}
   }});
+  const edit=h('button',{class:'btn primary sm',type:'button',text:'Edit schedule',onclick:()=>{schedEditing=true;render()}});
+  const cancel=h('button',{class:'btn ghost sm',type:'button',text:'Cancel',onclick:()=>{schedEditing=false;schedDraft=null;render()}});
   const clear=h('button',{class:'btn ghost sm',type:'button',text:'Use default (Mon–Fri)',onclick:async()=>{
     if(!confirm('Remove the custom schedule for this person? They go back to Monday–Friday with the default hours target.'))return;
-    try{const {error}=await sb.from('crm_schedules').delete().eq('email',who);if(error)throw error;await loadProd();schedDraft=null;toast('Schedule removed');render()}catch(e){fail(e)}
+    try{const {error}=await sb.from('crm_schedules').delete().eq('email',who);if(error)throw error;await loadProd();schedDraft=null;schedEditing=false;toast('Schedule removed');render()}catch(e){fail(e)}
   }});
   return h('div',{},
     h('h3',{style:'margin:22px 0 4px',text:'Work schedules'}),
@@ -2215,7 +2217,7 @@ function schedCard(people,mine){
     h('div',{class:'card'},
       h('div',{class:'bar',style:'margin-bottom:10px'},sel,h('span',{class:'sp'}),hasSched(who)?h('span',{class:'pill pass',style:'margin-left:0',text:'Custom schedule'}):h('span',{class:'pill',style:'margin-left:0',text:'Default'})),
       h('div',{class:'tblwrap'},h('table',{class:'tbl'},h('thead',{},h('tr',{},h('th',{text:'Day'}),h('th',{text:'Start'}),h('th',{text:'End'}),h('th',{text:'Break (min)'}),h('th',{text:''}))),h('tbody',{},rows))),
-      h('div',{class:'row',style:'margin-top:12px;gap:8px;flex-wrap:wrap;align-items:center'},save,hasSched(who)?clear:null,msg)));
+      h('div',{class:'row',style:'margin-top:12px;gap:8px;flex-wrap:wrap;align-items:center'},...(schedEditing?[save,cancel,hasSched(who)?clear:null,msg]:[edit]))));
 }
 function mySchedLine(mine){
   if(!hasSched(mine))return null;
@@ -2493,7 +2495,7 @@ function aiPlan(a){
       const recs=[0,1,2,3,4,5,6].map(d=>{const r=rec[d];return{email:m.email,dow:d,works:!!r,start_time:r?r.start:'09:00',end_time:r?r.end:'17:00',break_minutes:r?r.brk:60,updated_by:low(me.email),updated_at:new Date().toISOString()}});
       const {error}=await sb.from('crm_schedules').upsert(recs,{onConflict:'email,dow'});
       if(error){console.error(error);throw new Error('Could not save the schedule.')}
-      await loadProd();schedDraft=null;render();toast('Schedule saved');return 'Schedule saved.';
+      await loadProd();schedDraft=null;schedEditing=false;render();toast('Schedule saved');return 'Schedule saved.';
     }};
   }
   return{error:'I cannot do that kind of action.'};
