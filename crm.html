@@ -2362,5 +2362,122 @@ init().catch(e=>{console.error(e);home()});
 })();
 </script>
 
+<!-- ===== Orchid AI assistant (Gemini via Supabase Edge Function "crm-ai"). No API key lives here. ===== -->
+<style id="orchid-ai-css">
+#oai-fab{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:40;width:56px;height:56px;border-radius:50%;border:0;cursor:pointer;color:#fff;background:var(--grad);box-shadow:0 8px 24px rgba(37,99,235,.35),0 2px 6px rgba(15,23,42,.18);display:grid;place-items:center;transition:transform .15s,box-shadow .15s}
+#oai-fab:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 12px 28px rgba(37,99,235,.4),0 2px 6px rgba(15,23,42,.2)}
+#oai-fab svg{width:26px;height:26px}
+#oai-panel{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:41;width:min(400px,calc(100vw - 24px));height:min(580px,calc(100dvh - 120px));display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 60px rgba(15,23,42,.22),0 4px 12px rgba(15,23,42,.08);overflow:hidden;transform-origin:bottom right;animation:oai-in .18s ease-out}
+#oai-panel[hidden]{display:none!important}
+@keyframes oai-in{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+.oai-hd{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--grad);color:#fff}
+.oai-hd .t{font-weight:700;font-size:.95rem;letter-spacing:-.01em;line-height:1.2}.oai-hd .s{font-size:.72rem;opacity:.85}
+.oai-hd .sp{flex:1}
+.oai-ib{border:0;background:rgba(255,255,255,.16);color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;display:grid;place-items:center;font-size:1rem;line-height:1}
+.oai-ib:hover{background:rgba(255,255,255,.28)}
+.oai-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#f8fafc;overscroll-behavior:contain}
+.oai-m{max-width:88%;padding:9px 12px;border-radius:14px;font-size:.875rem;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+.oai-m.u{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}
+.oai-m.a{align-self:flex-start;background:#fff;color:var(--ink);border:1px solid var(--line);border-bottom-left-radius:4px}
+.oai-m.e{align-self:flex-start;background:#fff1f2;color:var(--danger);border:1px solid #fecdd3}
+.oai-cp{align-self:flex-start;margin-top:-4px;border:0;background:none;color:var(--muted);font-size:.72rem;font-weight:600;cursor:pointer;padding:2px 4px}.oai-cp:hover{color:var(--brand)}
+.oai-dots{display:inline-flex;gap:4px;padding:4px 2px}.oai-dots i{width:6px;height:6px;border-radius:50%;background:#94a3b8;animation:oai-b 1s infinite ease-in-out}.oai-dots i:nth-child(2){animation-delay:.15s}.oai-dots i:nth-child(3){animation-delay:.3s}
+@keyframes oai-b{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.oai-hi{text-align:center;color:var(--muted);font-size:.85rem;padding:10px 6px 2px}.oai-hi b{display:block;color:var(--ink);font-size:1rem;margin-bottom:2px}
+.oai-sg{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px}
+.oai-sg button{border:1px solid var(--bd);background:#fff;border-radius:999px;padding:6px 12px;font-size:.78rem;font-weight:600;cursor:pointer;color:var(--ink)}.oai-sg button:hover{border-color:var(--brand);color:var(--brand)}
+.oai-ft{display:flex;gap:8px;align-items:flex-end;padding:10px;border-top:1px solid var(--line);background:#fff}
+.oai-ft textarea{flex:1;min-height:40px;max-height:110px;resize:none;border-radius:12px;padding:9px 12px;font-size:.875rem}
+.oai-send{border:0;background:var(--brand);color:#fff;width:40px;height:40px;border-radius:12px;cursor:pointer;display:grid;place-items:center;flex:none}.oai-send:hover:not(:disabled){background:var(--brand-d)}.oai-send:disabled{opacity:.5;cursor:not-allowed}
+.oai-note{font-size:.68rem;color:var(--muted);text-align:center;padding:0 10px 8px;background:#fff}
+@media (max-width:520px){#oai-panel{right:8px;left:8px;width:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
+@media (prefers-reduced-motion:reduce){#oai-panel{animation:none}.oai-dots i{animation:none}}
+</style>
+
+<button id="oai-fab" type="button" aria-label="Open AI assistant" aria-expanded="false" hidden>
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9L12 2z"/><path d="M19 15l.9 2.6 2.6.9-2.6.9L19 22l-.9-2.6-2.6-.9 2.6-.9L19 15z" opacity=".85"/></svg>
+</button>
+<section id="oai-panel" role="dialog" aria-label="AI assistant" hidden>
+  <div class="oai-hd">
+    <div><div class="t">Orchid Assistant</div><div class="s">Powered by Gemini · read-only</div></div>
+    <span class="sp"></span>
+    <button class="oai-ib" id="oai-clear" type="button" title="New chat" aria-label="New chat">↺</button>
+    <button class="oai-ib" id="oai-x" type="button" title="Close" aria-label="Close">✕</button>
+  </div>
+  <div class="oai-body" id="oai-body" aria-live="polite"></div>
+  <div class="oai-ft">
+    <textarea id="oai-in" rows="1" placeholder="Ask about your clients, inquiries, tasks…" aria-label="Message"></textarea>
+    <button class="oai-send" id="oai-send" type="button" aria-label="Send"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg></button>
+  </div>
+  <div class="oai-note">AI can make mistakes. Check important details.</div>
+</section>
+
+<script id="orchid-ai-js">
+(function(){
+  const SB_URL='https://acxrobzulaswsubfoghg.supabase.co';
+  const SB_KEY='sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD';
+  const FN=SB_URL+'/functions/v1/crm-ai';
+  const sb=window.supabase.createClient(SB_URL,SB_KEY); // same project, so it shares the CRM's login session
+  const $=id=>document.getElementById(id);
+  const fab=$('oai-fab'),panel=$('oai-panel'),body=$('oai-body'),inp=$('oai-in'),send=$('oai-send');
+  const SUGGEST=['Who needs a follow-up?','What tasks are due soon?','Summarize my open inquiries','Draft a follow-up email'];
+  let msgs=[],busy=false;
+
+  // show the button only while someone is logged in
+  sb.auth.getSession().then(({data})=>{fab.hidden=!data.session});
+  sb.auth.onAuthStateChange((_e,s)=>{fab.hidden=!s;if(!s)panel.hidden=true});
+
+  function el(cls,text){const d=document.createElement('div');d.className=cls;if(text!=null)d.textContent=text;return d}
+  function scroll(){body.scrollTop=body.scrollHeight}
+  function welcome(){
+    body.replaceChildren();
+    const hi=el('oai-hi');const b=document.createElement('b');b.textContent='Hi, how can I help?';
+    hi.append(b,document.createTextNode('I can look through your CRM, draft emails and suggest next steps.'));
+    const sg=el('oai-sg');
+    SUGGEST.forEach(t=>{const x=document.createElement('button');x.type='button';x.textContent=t;x.onclick=()=>ask(t);sg.append(x)});
+    hi.append(sg);body.append(hi);
+  }
+  function addMsg(role,text){
+    const m=el('oai-m '+role,text);body.append(m);
+    if(role==='a'){const c=document.createElement('button');c.type='button';c.className='oai-cp';c.textContent='Copy';
+      c.onclick=async()=>{try{await navigator.clipboard.writeText(text);c.textContent='Copied';setTimeout(()=>c.textContent='Copy',1200)}catch(e){}};body.append(c)}
+    scroll();return m;
+  }
+  async function ask(text){
+    text=(text||'').trim();if(!text||busy)return;
+    if(!msgs.length)body.replaceChildren();
+    msgs.push({role:'user',text});addMsg('u',text);inp.value='';grow();
+    busy=true;send.disabled=true;
+    const wait=el('oai-m a');const dots=el('oai-dots');dots.append(document.createElement('i'),document.createElement('i'),document.createElement('i'));wait.append(dots);body.append(wait);scroll();
+    try{
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session)throw new Error('Your session ended. Please log in again.');
+      const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SB_KEY},body:JSON.stringify({messages:msgs})});
+      let d={};try{d=await r.json()}catch(e){}
+      wait.remove();
+      if(!r.ok||!d.reply){
+        msgs.pop();
+        const m=r.status===404?'The AI is not switched on yet. Ask your admin to deploy the crm-ai function.':(d.error||'Something went wrong. Please try again.');
+        body.append(el('oai-m e',m));
+      }else{msgs.push({role:'model',text:d.reply});addMsg('a',d.reply)}
+    }catch(e){
+      wait.remove();msgs.pop();
+      body.append(el('oai-m e',e.message&&e.message.indexOf('log in')>-1?e.message:'Could not reach the assistant. Check your connection and try again.'));
+    }
+    busy=false;send.disabled=false;scroll();inp.focus();
+  }
+  function grow(){inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,110)+'px'}
+  function open(v){panel.hidden=!v;fab.setAttribute('aria-expanded',String(v));if(v){if(!msgs.length&&!body.children.length)welcome();setTimeout(()=>inp.focus(),50)}}
+
+  fab.onclick=()=>open(panel.hidden);
+  $('oai-x').onclick=()=>{open(false);fab.focus()};
+  $('oai-clear').onclick=()=>{if(busy)return;msgs=[];welcome()};
+  send.onclick=()=>ask(inp.value);
+  inp.addEventListener('input',grow);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask(inp.value)}});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)open(false)});
+})();
+</script>
+
 </body>
 </html>
