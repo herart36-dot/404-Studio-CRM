@@ -1183,35 +1183,11 @@ input[type=range]{width:100%;accent-color:var(--brand);margin:6px 0 0}
 /* ---- CRM Supabase project (same one the login page uses) ---- */
 const SB_URL='https://acxrobzulaswsubfoghg.supabase.co';
 const SB_KEY='sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD';
-const sb=window.__orchidSb||(window.__orchidSb=window.supabase.createClient(SB_URL,SB_KEY));
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
 
 const $=s=>document.querySelector(s);
-const home=()=>{const f=location.pathname.split('/').pop();if(f===''||f==='index.html'){showLogin();return}location.replace('index.html')};
-function showLogin(msg){
-  const em=h('input',{type:'email',placeholder:'Email',autocomplete:'username',required:true});
-  const pw=h('input',{type:'password',placeholder:'Password',autocomplete:'current-password',required:true});
-  const err=h('p',{class:'sub',style:'color:var(--danger)',text:msg||''});
-  const go=h('button',{class:'btn primary wide',type:'button',text:'Sign in'});
-  const submit=async()=>{
-    if(!em.value.trim()||!pw.value)return;
-    go.disabled=true;go.textContent='Signing in…';err.textContent='';
-    try{
-      const {error}=await sb.auth.signInWithPassword({email:em.value.trim(),password:pw.value});
-      if(error)throw error;
-      location.reload();
-    }catch(e){err.textContent=e.message||'Could not sign in.';go.disabled=false;go.textContent='Sign in'}
-  };
-  go.addEventListener('click',submit);
-  pw.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
-  em.addEventListener('keydown',e=>{if(e.key==='Enter')pw.focus()});
-  $('#app').replaceChildren(h('div',{class:'center'},h('div',{class:'panel'},
-    h('div',{class:'wm',style:'font-size:2rem'},h('b',{text:'O'}),'rchid'),
-    h('h1',{text:'Sign in'}),h('p',{class:'sub',text:'Sign in to Orchid CRM.'}),
-    em,pw,err,go)));
-  setTimeout(()=>em.focus(),50);
-}
-let leaving=false;
-const out=()=>{if(out.done)return;out.done=true;leaving=true;const f=location.pathname.split('/').pop();if(f===''||f==='index.html')showLogin();else location.replace('index.html?logout=1')};
+const home=()=>location.replace('index.html');
+const out=()=>location.replace('index.html?logout=1');
 const STATUSES=['new','contacted','quoted','won','lost'];
 const PRIORITIES=['low','normal','high'];
 
@@ -2327,31 +2303,19 @@ function noAccess(){
 }
 
 function render(){
-  if(leaving)return;
   const y=window.scrollY;
   $('#app').replaceChildren(ready?appView():noAccess());
   if(ready)updateApprBadge();
   window.scrollTo(0,y);
 }
 let ready=false;
-const timers=[];
-async function logout(){
-  if(leaving)return;
-  leaving=true;
-  timers.forEach(clearInterval);
-  try{if(chatSub)sb.removeChannel(chatSub)}catch(e){}
-  try{if(apprSub)sb.removeChannel(apprSub)}catch(e){}
-  $('#app').replaceChildren(h('div',{class:'center'},h('p',{class:'muted',text:'Signing out…'})));
-  try{await Promise.race([sb.auth.signOut({scope:'local'}),new Promise(r=>setTimeout(r,1500))])}catch(e){console.error(e)}
-  try{Object.keys(localStorage).filter(k=>/^sb-.*-auth-token/.test(k)).forEach(k=>localStorage.removeItem(k))}catch(e){}
-  out();
-}
+async function logout(){try{await sb.auth.signOut()}catch(e){}out()}
 
 async function init(){
   $('#app').replaceChildren(h('div',{class:'center'},h('p',{class:'muted',text:'Loading…'})));
   const {data:{session}}=await sb.auth.getSession();
   if(!session)return home();
-  sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT'){leaving=true;timers.forEach(clearInterval);out()}});
+  sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')out()});
   me={id:session.user.id,email:session.user.email};
   try{await loadAll();ready=true}catch(e){console.error(e);ready=false;return $('#app').replaceChildren(h('div',{class:'center'},h('div',{class:'panel'},h('h1',{text:'Could not load the CRM'}),h('p',{class:'sub',text:'The CRM tables may not be set up yet. Run crm_setup.sql in Supabase, then reload.'}),h('button',{class:'btn primary wide',text:'Reload',onclick:()=>location.reload()}))))}
   try{await loadPresence()}catch(e){console.error(e);presErr=true}
@@ -2361,9 +2325,9 @@ async function init(){
   render();
   sweep();
   subChat();subApprovals();
-  timers.push(setInterval(()=>{if(!leaving)pollChat()},20000),setInterval(()=>{if(!leaving)syncApprovals()},20000));
-  timers.push(setInterval(async()=>{if(leaving)return;try{await loadPresence();if(view==='productivity')await loadProd();const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()}catch(e){console.error(e)}},30000));
-  timers.push(setInterval(()=>{if(leaving)return;sweep();const a=document.activeElement;if(view!=='chat'&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()},60000));
+  setInterval(pollChat,20000);setInterval(syncApprovals,20000);
+  setInterval(async()=>{try{await loadPresence();if(view==='productivity')await loadProd();const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()}catch(e){console.error(e)}},30000);
+  setInterval(()=>{sweep();const a=document.activeElement;if(view!=='chat'&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()},60000);
 }
 /* ---- Orchid UI interaction polish (visual only) ---- */
 document.addEventListener('click',function(e){
@@ -2398,7 +2362,7 @@ init().catch(e=>{console.error(e);home()});
 })();
 </script>
 
-<!-- ===== Orchid AI assistant (Groq via Supabase Edge Function "crm-ai"). No API key lives here. ===== -->
+<!-- ===== Orchid AI assistant (Gemini via Supabase Edge Function "crm-ai"). No API key lives here. ===== -->
 <style id="orchid-ai-css">
 #oai-fab{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:40;width:56px;height:56px;border-radius:50%;border:0;cursor:pointer;color:#fff;background:var(--grad);box-shadow:0 8px 24px rgba(37,99,235,.35),0 2px 6px rgba(15,23,42,.18);display:grid;place-items:center;transition:transform .15s,box-shadow .15s}
 #oai-fab:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 12px 28px rgba(37,99,235,.4),0 2px 6px rgba(15,23,42,.2)}
@@ -2435,7 +2399,7 @@ init().catch(e=>{console.error(e);home()});
 </button>
 <section id="oai-panel" role="dialog" aria-label="AI assistant" hidden>
   <div class="oai-hd">
-    <div><div class="t">Orchid Assistant</div><div class="s">Powered by Groq · read-only</div></div>
+    <div><div class="t">Orchid Assistant</div><div class="s">AI assistant · read-only</div></div>
     <span class="sp"></span>
     <button class="oai-ib" id="oai-clear" type="button" title="New chat" aria-label="New chat">↺</button>
     <button class="oai-ib" id="oai-x" type="button" title="Close" aria-label="Close">✕</button>
@@ -2453,7 +2417,7 @@ init().catch(e=>{console.error(e);home()});
   const SB_URL='https://acxrobzulaswsubfoghg.supabase.co';
   const SB_KEY='sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD';
   const FN=SB_URL+'/functions/v1/crm-ai';
-  const sb=window.__orchidSb||(window.__orchidSb=window.supabase.createClient(SB_URL,SB_KEY)); // shared with the CRM so only one auth client exists
+  const sb=window.supabase.createClient(SB_URL,SB_KEY); // same project, so it shares the CRM's login session
   const $=id=>document.getElementById(id);
   const fab=$('oai-fab'),panel=$('oai-panel'),body=$('oai-body'),inp=$('oai-in'),send=$('oai-send');
   const SUGGEST=['Who needs a follow-up?','What tasks are due soon?','Summarize my open inquiries','Draft a follow-up email'];
