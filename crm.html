@@ -2096,27 +2096,38 @@ function teamView(){
 
 /* ---- productivity score, graph and admin pass mark ---- */
 let prodCfg={pass_threshold:70,target_hours:8,daily_actions:10},prodRows=[],prodErr=false,prodRange='7d',prodWho=null;
+let scheds={},schedErr=false,schedWho=null,schedDraft=null;
 const TZ=(()=>{try{const z=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';Intl.DateTimeFormat(undefined,{timeZone:z});return z}catch(e){return 'UTC'}})();
 const keyOf=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const prodDays=()=>{const n=prodRange==='30d'?30:7,out=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-i);out.push(d)}return out};
 async function loadProd(){
   const days=prodDays(),from=new Date(days[0]),to=new Date(days[days.length-1]);to.setDate(to.getDate()+1);
-  const [s,r]=await Promise.all([
+  const [s,r,sc]=await Promise.all([
     sb.from('crm_productivity_settings').select('*').eq('id',1).maybeSingle(),
-    sb.rpc('crm_productivity',{p_from:from.toISOString(),p_to:to.toISOString(),p_tz:TZ})
+    sb.rpc('crm_productivity',{p_from:from.toISOString(),p_to:to.toISOString(),p_tz:TZ}),
+    sb.from('crm_schedules').select('*')
   ]);
+  schedErr=!!sc.error;scheds={};
+  (sc.data||[]).forEach(x=>{const e=low(x.email);(scheds[e]=scheds[e]||[])[x.dow]={works:!!x.works,start:String(x.start_time).slice(0,5),end:String(x.end_time).slice(0,5),brk:+x.break_minutes||0}});
   if(s.data)prodCfg={pass_threshold:+s.data.pass_threshold,target_hours:+s.data.target_hours,daily_actions:+s.data.daily_actions};
   prodErr=!!r.error;prodRows=r.data||[];
 }
 /* one day's score: 60% active time vs the daily hours target + 40% output vs the daily actions target */
-const dayScore=(secs,acts)=>Math.round((Math.min(1,secs/3600/prodCfg.target_hours)*60+Math.min(1,acts/prodCfg.daily_actions)*40)*10)/10;
+const dayScore=(secs,acts,th)=>{th=th>0?th:prodCfg.target_hours;return Math.round((Math.min(1,secs/3600/th)*60+Math.min(1,acts/prodCfg.daily_actions)*40)*10)/10};
+const toMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||'');return m?(+m[1])*60+(+m[2]):0};
+const schedHours=r=>r&&r.works?Math.max(0,(toMin(r.end)-toMin(r.start)-(r.brk||0))/60):0;
+const DOW_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const hasSched=e=>!!(scheds[e]&&scheds[e].some(Boolean));
 function prodSeries(email){
   const rows={};prodRows.forEach(r=>{if(low(r.email)===email)rows[r.day]=r});
   const tk=today();
   return prodDays().map(d=>{
     const k=keyOf(d),r=rows[k]||{active_secs:0,tasks:0,cases:0,notes:0,chat:0};
     const acts=r.tasks+r.cases+r.notes+r.chat,dow=d.getDay();
-    return {key:k,date:d,secs:r.active_secs,acts,score:dayScore(r.active_secs,acts),counted:(dow>0&&dow<6)||r.active_secs>0||acts>0,isToday:k===tk};
+    const sr=hasSched(email)?(scheds[email][dow]||{works:false}):null;
+    const th=sr&&sr.works?schedHours(sr):0;
+    const counted=sr?(sr.works||r.active_secs>0||acts>0):((dow>0&&dow<6)||r.active_secs>0||acts>0);
+    return {key:k,date:d,secs:r.active_secs,acts,score:dayScore(r.active_secs,acts,th),counted,isToday:k===tk,target:th>0?th:prodCfg.target_hours,scheduled:!!sr,dayOff:!!sr&&!sr.works};
   });
 }
 function prodSummary(series){
@@ -2167,6 +2178,51 @@ function prodSettingsCard(){
       h('label',{class:'f',for:'prod_act',style:'margin-top:0'},'Daily actions target',act)),
     h('div',{style:'margin-top:14px'},save));
 }
+function schedCard(people,mine){
+  const who=schedWho&&people.some(p=>p.email===schedWho)?schedWho:people[0].email;
+  if(schedWho!==who||!schedDraft){schedWho=who;schedDraft=Array.from({length:7},(_,d)=>{const r=(scheds[who]||[])[d];return r?{...r}:{works:d>0&&d<6,start:'09:00',end:'17:00',brk:60}})}
+  const sel=h('select',{class:'sel-sm','aria-label':'Schedule for'},...people.map(p=>h('option',{value:p.email,text:p.name+' · '+p.email})));
+  sel.value=who;sel.addEventListener('change',()=>{schedWho=sel.value;schedDraft=null;render()});
+  const order=[1,2,3,4,5,6,0];
+  const rows=order.map(d=>{
+    const r=schedDraft[d];
+    const cb=h('input',{type:'checkbox','aria-label':DOW_NAMES[d]+' works'});cb.checked=r.works;
+    const st=h('input',{type:'time',value:r.start,'aria-label':DOW_NAMES[d]+' start'});
+    const en=h('input',{type:'time',value:r.end,'aria-label':DOW_NAMES[d]+' end'});
+    const bk=h('input',{type:'number',min:'0',max:'480',step:'5',value:String(r.brk),style:'width:72px','aria-label':DOW_NAMES[d]+' break minutes'});
+    const hrs=h('span',{class:'muted',style:'font-size:.8rem'});
+    const upd=()=>{r.works=cb.checked;r.start=st.value||'09:00';r.end=en.value||'17:00';r.brk=Math.max(0,Math.min(480,+bk.value||0));[st,en,bk].forEach(x=>x.disabled=!r.works);hrs.textContent=r.works?(Math.round(schedHours(r)*10)/10)+' h target':'Day off'};
+    [cb,st,en,bk].forEach(x=>x.addEventListener('input',upd));upd();
+    return h('tr',{},h('td',{},h('label',{style:'display:flex;gap:8px;align-items:center;font-weight:600'},cb,DOW_NAMES[d])),h('td',{},st),h('td',{},en),h('td',{},bk),h('td',{},hrs));
+  });
+  const msg=h('span',{class:'muted',style:'font-size:.82rem'});
+  const save=h('button',{class:'btn primary sm',type:'button',text:'Save schedule',onclick:async()=>{
+    save.disabled=true;msg.textContent='Saving…';
+    try{
+      const recs=schedDraft.map((r,d)=>({email:who,dow:d,works:r.works,start_time:r.start,end_time:r.end,break_minutes:r.brk,updated_by:low(me.email),updated_at:new Date().toISOString()}));
+      const {error}=await sb.from('crm_schedules').upsert(recs,{onConflict:'email,dow'});
+      if(error)throw error;
+      await loadProd();schedDraft=null;toast('Schedule saved');render();
+    }catch(e){fail(e,'Could not save the schedule. Make sure the crm_schedules table exists in Supabase.');msg.textContent='';save.disabled=false}
+  }});
+  const clear=h('button',{class:'btn ghost sm',type:'button',text:'Use default (Mon–Fri)',onclick:async()=>{
+    if(!confirm('Remove the custom schedule for this person? They go back to Monday–Friday with the default hours target.'))return;
+    try{const {error}=await sb.from('crm_schedules').delete().eq('email',who);if(error)throw error;await loadProd();schedDraft=null;toast('Schedule removed');render()}catch(e){fail(e)}
+  }});
+  return h('div',{},
+    h('h3',{style:'margin:22px 0 4px',text:'Work schedules'}),
+    h('div',{class:'muted',style:'font-size:.82rem;margin-bottom:10px',text:'Set each person’s working days and hours. Their daily hours target becomes shift length minus break, and days off do not count against them. People with no schedule use Monday–Friday and the default '+prodCfg.target_hours+'h target.'}),
+    h('div',{class:'card'},
+      h('div',{class:'bar',style:'margin-bottom:10px'},sel,h('span',{class:'sp'}),hasSched(who)?h('span',{class:'pill pass',style:'margin-left:0',text:'Custom schedule'}):h('span',{class:'pill',style:'margin-left:0',text:'Default'})),
+      h('div',{class:'tblwrap'},h('table',{class:'tbl'},h('thead',{},h('tr',{},h('th',{text:'Day'}),h('th',{text:'Start'}),h('th',{text:'End'}),h('th',{text:'Break (min)'}),h('th',{text:''}))),h('tbody',{},rows))),
+      h('div',{class:'row',style:'margin-top:12px;gap:8px;flex-wrap:wrap;align-items:center'},save,hasSched(who)?clear:null,msg)));
+}
+function mySchedLine(mine){
+  if(!hasSched(mine))return null;
+  const r=scheds[mine],today=new Date().getDay();
+  const parts=[1,2,3,4,5,6,0].filter(d=>r[d]&&r[d].works).map(d=>DOW_NAMES[d].slice(0,3)+' '+r[d].start+'–'+r[d].end);
+  return h('p',{class:'muted',style:'font-size:.82rem;margin:0 4px 12px',text:'Your schedule: '+(parts.length?parts.join(' · '):'no working days set')+'.'});
+}
 function productivityView(){
   if(prodErr)return empty('Productivity is not set up','Ask the admin to check the crm_productivity function in Supabase, then reload.');
   const people=[{email:low(ADMIN_EMAIL),name:'Admin'},...staff.filter(x=>x.active).map(x=>({email:low(x.email),name:x.name||x.email}))];
@@ -2211,8 +2267,9 @@ function productivityView(){
     chart,
     h('div',{class:'legend'},h('span',{},h('i',{style:'background:#059669'}),'At or above pass mark'),h('span',{},h('i',{style:'background:#e11d48'}),'Below pass mark'),h('span',{},'Lighter bar = today, still in progress')),
     team,
+    isAdmin?schedCard(people,mine):mySchedLine(mine),
     isAdmin?prodSettingsCard():null,
-    h('p',{class:'muted',style:'font-size:.78rem;margin:10px 4px 0',text:'Each day scores 60% for time set to Active (against a '+prodCfg.target_hours+'h target) plus 40% for work done in the CRM (tasks completed, cases resolved, replies and notes, chat messages, against '+prodCfg.daily_actions+' a day). Active time comes from the status buttons, so it is self-reported. Weekends only count if there was activity, and the average leaves out today until it ends.'})
+    h('p',{class:'muted',style:'font-size:.78rem;margin:10px 4px 0',text:'Each day scores 60% for time set to Active (against the daily hours target, taken from the schedule if one is set, otherwise '+prodCfg.target_hours+'h)  plus 40% for work done in the CRM (tasks completed, cases resolved, replies and notes, chat messages, against '+prodCfg.daily_actions+' a day). Active time comes from the status buttons, so it is self-reported. Weekends only count if there was activity, and the average leaves out today until it ends.'})
   );
 }
 
@@ -2261,6 +2318,7 @@ const MANUAL=[
   ['Approval','For staff, adding and deleting tasks go to the admin as requests. Ticking a task done and editing do not need approval. Tasks you complete count toward productivity.']]},
  {id:'productivity',t:'Productivity',lead:'Your daily percentage score and graph.',items:[
   ['The graph','Bars show your score for each day over 7 or 30 days. Green means at or above the pass mark, red means below. The dashed line is the pass mark. Hover a bar to see hours and actions. A lighter bar is today, still in progress.'],
+  ['Work schedules','Admins can set each person\'s working days, start and end times and break under Productivity, then Work schedules. The daily hours target for that person becomes shift length minus break, and their days off do not count. Without a schedule a person uses Monday to Friday and the default hours target. Everyone can see their own schedule at the top of their productivity page.'],
   ['How the score works','Each day is 60% active time (hours on Active status against the daily hours target) plus 40% output (tasks done, cases resolved, replies and notes, and chat messages against the daily actions target). Weekends only count if you worked. The average leaves out today until it finishes.'],
   ['Passing','You are Passing when your average is at or above the pass mark.'],
   ['Admins only','A person picker and "View graph" buttons show anyone\'s graph. The Team results table ranks everyone. The Pass mark card sets the passing percentage, the daily hours target and the daily actions target for everybody.']]},
