@@ -2459,7 +2459,7 @@ init().catch(e=>{console.error(e);home()});
 })();
 </script>
 
-<!-- ===== Orchid AI assistant (Groq via Supabase Edge Function "crm-ai"). No API key lives here. ===== -->
+<!-- ===== Orchid AI assistant (OpenRouter via Supabase Edge Function "crm-ai"). No API key lives here. ===== -->
 <style id="orchid-ai-css">
 #oai-fab{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:40;width:56px;height:56px;border-radius:50%;border:0;cursor:pointer;color:#fff;background:var(--grad);box-shadow:0 8px 24px rgba(37,99,235,.35),0 2px 6px rgba(15,23,42,.18);display:grid;place-items:center;transition:transform .15s,box-shadow .15s}
 #oai-fab:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 12px 28px rgba(37,99,235,.4),0 2px 6px rgba(15,23,42,.2)}
@@ -2496,7 +2496,7 @@ init().catch(e=>{console.error(e);home()});
 </button>
 <section id="oai-panel" role="dialog" aria-label="AI assistant" hidden>
   <div class="oai-hd">
-    <div><div class="t">Orchid Assistant</div><div class="s">Powered by Groq · read-only</div></div>
+    <div><div class="t">Orchid Assistant</div><div class="s">Powered by OpenRouter · read-only</div></div>
     <span class="sp"></span>
     <button class="oai-ib" id="oai-clear" type="button" title="New chat" aria-label="New chat">↺</button>
     <button class="oai-ib" id="oai-x" type="button" title="Close" aria-label="Close">✕</button>
