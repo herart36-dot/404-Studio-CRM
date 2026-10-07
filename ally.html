@@ -42,16 +42,39 @@ main{flex:1;min-width:0;max-width:1040px;margin:0 auto;padding:24px 28px 80px}
 pre.body{white-space:pre-wrap;font:inherit;margin:6px 0 0;color:var(--muted);font-size:.88rem}
 @media(max-width:900px){.shell{display:block}.side{width:100%;height:auto;top:57px;z-index:15;padding:6px 10px;border-right:0;border-bottom:1px solid var(--line);background:#fff}
 .tabs{flex-direction:row;overflow-x:auto;scrollbar-width:none}.tab{width:auto;white-space:nowrap;padding:7px 12px;font-size:.84rem;gap:7px}.tab svg{width:16px;height:16px}main{padding:16px 12px 80px}.grid2{grid-template-columns:1fr}.top{padding:8px 12px}.top .muted{display:none}.item{flex-wrap:wrap}input,textarea,select{font-size:16px}}
-</style></head><body><div id="app"></div>
+
+main.wide{max-width:none;margin:0}
+.kb-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}.kb-top select{width:auto;min-width:150px;max-width:240px}
+.kb{display:flex;gap:14px;overflow-x:auto;padding:10px 0 16px;align-items:flex-start;min-height:60vh}
+.kcol{flex:0 0 285px;max-width:285px;background:#f5f6f8;border-radius:12px;border-top:4px solid var(--cc,#579bfc);padding:10px;display:flex;flex-direction:column;gap:8px}
+.kcol.over{outline:2px dashed var(--brand);outline-offset:-2px;background:#eef5ff}
+.kh{display:flex;align-items:center;gap:6px;font-weight:600}.kh .cnt{font-size:.75rem;color:var(--muted);background:#fff;border-radius:99px;padding:0 8px;font-weight:500}
+.kh .ib{border:0;background:none;cursor:pointer;color:var(--muted);padding:2px 6px;border-radius:6px}.kh .ib:hover{background:#e6e9ef}
+.kcard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:grab;box-shadow:0 1px 2px rgba(50,51,56,.06)}.kcard:hover{border-color:var(--bd)}.kcard.drag{opacity:.45}
+.kcard .t{font-size:.9rem;cursor:pointer}
+.kcard .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:.75rem;color:var(--muted)}.kcard .meta .pill{margin-left:0}
+.kcard .mv{display:flex;justify-content:space-between;margin-top:8px}
+.kcard .mv button{border:0;background:#f5f6f8;border-radius:6px;cursor:pointer;padding:0 10px;color:var(--muted);font-size:1rem;line-height:1.5}.kcard .mv button:disabled{opacity:.3;cursor:default}
+.kadd{border:0;background:none;text-align:left;cursor:pointer;color:var(--muted);padding:6px 8px;border-radius:8px;font-weight:500}.kadd:hover{background:#e6e9ef;color:var(--ink)}
+.ck{display:flex;gap:8px;align-items:flex-start;padding:4px 0;cursor:pointer}.ck input{width:18px;height:18px;margin:3px 0 0;padding:0;flex:none;accent-color:var(--brand)}.ck.d span{text-decoration:line-through;color:var(--muted)}
+.pill.rec{background:#ede9fe;color:#5b21b6}.pill.off{background:#f1f5f9;color:#475569}
+.sync{font-size:.78rem;color:var(--muted);white-space:nowrap}
+@media(max-width:900px){.kcol{flex-basis:80vw;max-width:80vw}}
+</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><div id="app"></div>
 <script>
 (function(){
 const K='business_ally_v1',$=s=>document.querySelector(s);
-const S=Object.assign({user:'',clients:[],tasks:[],logs:[],invoices:[],events:[],timer:null,templates:[
+const DEF=()=>({user:'',clients:[],tasks:[],logs:[],invoices:[],events:[],timer:null,boards:[],curBoard:'',recur:[],ttpl:[
+{id:'tt1',name:'Weekly client report',pri:'normal',check:'Pull the weeks numbers\nWrite a short summary of wins\nList plans for next week\nSend the report to the client'},
+{id:'tt2',name:'Social media scheduling',pri:'normal',check:'Draft the weeks posts\nGet client approval\nSchedule the posts\nReply to comments and messages'},
+{id:'tt3',name:'Monthly invoicing',pri:'high',check:'Review logged hours\nCreate the invoice\nSend it to the client\nFollow up on payment'},
+{id:'tt4',name:'New client onboarding',pri:'normal',check:'Send welcome message\nCollect logins and access\nAgree on weekly priorities\nSet up the first board'}],templates:[
 {id:'t1',title:'Meeting confirmation',body:'Hi! Confirming our meeting on [date] at [time]. Please let me know if anything changes. Thank you!'},
 {id:'t2',title:'Follow-up, no reply yet',body:'Hi! Just following up on my earlier message. Happy to adjust if you need more time. Could you let me know how you would like to proceed?'},
-{id:'t3',title:'Task completed update',body:'Hi! A quick update: [task] is done. Details and files are attached. Is there anything else you would like me to take on this week?'}]},JSON.parse(localStorage.getItem(K)||'{}'));
+{id:'t3',title:'Task completed update',body:'Hi! A quick update: [task] is done. Details and files are attached. Is there anything else you would like me to take on this week?'}]});
+const S=Object.assign(DEF(),JSON.parse(localStorage.getItem(K)||'{}'));
 let view='today',tf='open';
-const save=()=>localStorage.setItem(K,JSON.stringify(S)),uid=()=>Math.random().toString(36).slice(2,9);
+const save=()=>{S._ts=Date.now();S._dirty=1;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}queuePush()},uid=()=>Math.random().toString(36).slice(2,9);
 const h=(t,a={},...c)=>{const e=document.createElement(t);for(const k in a){if(k==='text')e.textContent=a[k];else if(k.startsWith('on'))e.addEventListener(k.slice(2),a[k]);else if(a[k]===true)e.setAttribute(k,'');else if(a[k]!==false&&a[k]!=null)e.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&x!==false&&e.append(x.nodeType?x:document.createTextNode(x)));return e};
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const toast=t=>{const e=h('div',{class:'toast',text:t});document.body.append(e);setTimeout(()=>e.remove(),2500)};
@@ -65,6 +88,7 @@ const B=(t,fn,c='ghost')=>h('button',{class:'btn sm '+c,text:t,onclick:fn});
 const LOGO='<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0073ea"/><stop offset="1" stop-color="#7c4dff"/></linearGradient></defs><rect width="40" height="40" rx="11" fill="url(#lg)"/><path fill="#fff" fill-rule="evenodd" d="M17.6 9h4.8L30 31h-5.2l-1.5-4.4h-6.6L15.2 31H10zM20 14.5 18.2 22h3.6z"/><circle cx="31" cy="10" r="4" fill="#00c875" stroke="#fff" stroke-width="2"/></svg>';
 const wm=()=>{const e=h('span',{class:'wm'});e.innerHTML=LOGO+'<span><em>Ally</em></span>';return e};
 const I={today:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',clients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',time:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/>',invoices:'<path d="M6 2h12v20l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>',schedule:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',templates:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'};
+Object.assign(I,{boards:'<rect x="3" y="3" width="5" height="18" rx="1.5"/><rect x="10" y="3" width="5" height="12" rx="1.5"/><rect x="17" y="3" width="4" height="8" rx="1.5"/>',recur:'<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>',ttpl:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'});
 const ico=k=>{const e=h('span');e.innerHTML='<svg viewBox="0 0 24 24">'+I[k]+'</svg>';return e.firstChild};
 function modal(title,fields,vals,onSave){const inp={};
  const sc=h('div',{class:'scrim',onclick:e=>e.target===sc&&sc.remove()},h('div',{class:'modal'},h('h2',{text:title}),
@@ -84,13 +108,199 @@ function startTimer(c,d){S.timer={client:c,desc:d,start:Date.now()};save();rende
 function stopTimer(){const t=S.timer;if(!t)return;S.logs.unshift({id:uid(),client:t.client,desc:t.desc||'Work session',mins:Math.max(1,Math.round((Date.now()-t.start)/6e4)),date:today(),billed:false});S.timer=null;save();render();toast('Time saved')}
 setInterval(()=>document.querySelectorAll('.tm').forEach(e=>{if(S.timer)e.textContent=clk(Date.now()-S.timer.start)}),1000);
 
+/* ===== optional cloud sync (Supabase). Works offline; only active when signed in through Orchid. ===== */
+const SB_URL='https://acxrobzulaswsubfoghg.supabase.co',SB_KEY='sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD';
+let sb=null,sbUser=null,seen=0,pushT=null,syncTxt='Saved on this device';
+try{if(window.supabase)sb=window.__orchidSb||(window.__orchidSb=window.supabase.createClient(SB_URL,SB_KEY))}catch(e){}
+const setSync=t=>{syncTxt=t;const e=$('#sy');if(e)e.textContent=t};
+const payload=()=>{const o=JSON.parse(JSON.stringify(S));delete o.user;delete o.timer;delete o._dirty;return o};
+function queuePush(){if(!sbUser)return;clearTimeout(pushT);setSync('Saving\u2026');pushT=setTimeout(push,1200)}
+async function push(){
+  if(!sb||!sbUser)return;
+  try{
+    const cur=await sb.from('ally_state').select('updated_at').eq('user_id',sbUser).maybeSingle();
+    if(cur.error)throw cur.error;
+    if(cur.data&&Date.parse(cur.data.updated_at)>seen)return pull();   // changed on another device: reconcile first
+    const r=await sb.from('ally_state').upsert({user_id:sbUser,data:payload(),updated_at:new Date().toISOString()}).select('updated_at').single();
+    if(r.error)throw r.error;
+    seen=Date.parse(r.data.updated_at);delete S._dirty;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}setSync('Synced');
+  }catch(e){console.warn('Ally sync:',e);setSync('Not synced')}
+}
+async function pull(){
+  if(!sb)return;
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){sbUser=null;setSync('Saved on this device');return}
+    sbUser=session.user.id;
+    const r=await sb.from('ally_state').select('data,updated_at').eq('user_id',sbUser).maybeSingle();
+    if(r.error)throw r.error;
+    if(!r.data)return push();
+    const ra=Date.parse(r.data.updated_at),rd=r.data.data||{};
+    if(ra>seen){
+      if(S._dirty&&(S._ts||0)>(rd._ts||0)){seen=ra;return push()}   // my unsynced edits are newer: keep them
+      try{localStorage.setItem(K+'_backup',JSON.stringify(S))}catch(e){}   // safety copy before taking the cloud version
+      const keep={user:S.user,timer:S.timer};
+      Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,DEF(),rd,keep);delete S._dirty;
+      try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}
+      seen=ra;setSync('Synced');render();
+    }else if(S._dirty)return push();else setSync('Synced');
+  }catch(e){console.warn('Ally sync:',e);setSync('Not synced')}
+}
+
 /* views */
-const taskF=[{k:'title',l:'Task',req:1},{k:'client',l:'Client',t:'sel',o:null},{k:'due',l:'Due date',t:'date'},{k:'pri',l:'Priority',t:'sel',o:[['normal','Normal'],['high','High'],['low','Low']]}];
-const tf_=()=>taskF.map(f=>f.k==='client'?{...f,o:co()}:f);
+/* ===== boards, checklists, recurring tasks, task templates ===== */
+const COLORS=['#579bfc','#fdab3d','#a25ddc','#00c875','#df2f4a'];
+const DEF_COLS=()=>['To do','In progress','Waiting on client','Done'].map(n=>({id:uid(),name:n}));
+const boardOf=id=>S.boards.find(b=>b.id===id),firstCol=b=>b.cols[0],lastCol=b=>b.cols[b.cols.length-1];
+const defBoard=()=>boardOf(S.curBoard)?S.curBoard:'';
+const boardOpts=()=>[['','No board'],...S.boards.map(b=>[b.id,b.name])];
+const PRI=[['normal','Normal'],['high','High'],['low','Low']];
+const parseCheck=(txt,old)=>String(txt||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,50).map(x=>{const o=(old||[]).find(c=>c.t===x);return{t:x.slice(0,200),d:o?o.d:false}});
+const checkTxt=t=>(t.check||[]).map(c=>c.t).join('\n');
+const prog=t=>{const c=t.check||[];return c.length?c.filter(x=>x.d).length+'/'+c.length:''};
+function placeTask(t){const b=t.board&&boardOf(t.board);if(!b){t.board=null;t.col=null;return}if(!b.cols.some(c=>c.id===t.col))t.col=t.done?lastCol(b).id:firstCol(b).id}
+function setDone(t,v){t.done=v;const b=t.board&&boardOf(t.board);if(b&&b.cols.length>1){if(v)t.col=lastCol(b).id;else if(t.col===lastCol(b).id)t.col=firstCol(b).id}save();render()}
+function moveTask(t,colId,before){const b=boardOf(t.board);if(!b)return;t.col=colId;if(b.cols.length>1)t.done=colId===lastCol(b).id;
+  S.tasks=S.tasks.filter(x=>x!==t);const i=before?S.tasks.findIndex(x=>x.id===before):-1;if(i>=0)S.tasks.splice(i,0,t);else S.tasks.push(t);save();render()}
+const tf_=()=>[{k:'title',l:'Task',req:1},{k:'client',l:'Client',t:'sel',o:co()},{k:'due',l:'Due date',t:'date'},{k:'pri',l:'Priority',t:'sel',o:PRI},{k:'board',l:'Board',t:'sel',o:boardOpts()},{k:'check',l:'Checklist (one item per line)',t:'area'}];
+function applyTask(t,v){const pb=t.board;t.title=v.title;t.client=v.client;t.due=v.due;t.pri=v.pri;t.board=v.board||null;t.check=parseCheck(v.check,t.check);if(t.board!==pb)t.col=null;placeTask(t)}
+const newTask=()=>modal('Add task',tf_(),{pri:'normal',board:defBoard()},v=>{const t={id:uid(),done:false};applyTask(t,v);S.tasks.push(t)});
+const editTask=t=>modal('Edit task',tf_(),{...t,check:checkTxt(t)},v=>{applyTask(t,v)});
+
+/* card detail */
+function openCard(t){
+  const sc=h('div',{class:'scrim',onclick:e=>e.target===sc&&sc.remove()});
+  const draw=focus=>{
+    if(!S.tasks.includes(t)){sc.remove();return}
+    const b=t.board&&boardOf(t.board),rr=t.recur&&S.recur.find(r=>r.id===t.recur),chk=t.check||[];
+    let colSel=null;if(b){colSel=h('select',{'aria-label':'Column',onchange:e=>{moveTask(t,e.target.value,null);draw()}},b.cols.map(c=>h('option',{value:c.id,text:c.name})));colSel.value=t.col}
+    const add=h('input',{placeholder:'Add a checklist item and press Enter','aria-label':'New checklist item',onkeydown:e=>{if(e.key==='Enter'&&e.target.value.trim()){(t.check=t.check||[]).push({t:e.target.value.trim().slice(0,200),d:false});save();render();draw(true)}}});
+    sc.replaceChildren(h('div',{class:'modal',role:'dialog','aria-label':t.title},
+      h('h2',{text:t.title}),
+      h('div',{class:'s',text:[cn(t.client),t.due?'Due '+fd(t.due):'',t.pri==='high'?'High priority':t.pri==='low'?'Low priority':'',rr?'\u21bb '+fl(rr.freq):'',t.done?'Done':''].filter(Boolean).join(' \u00b7 ')||'No details yet'}),
+      b?h('label',{class:'f',text:'Column on '+b.name},colSel):null,
+      h('div',{class:'t',style:'margin-top:16px',text:'Checklist'+(chk.length?' \u00b7 '+prog(t):'')}),
+      chk.map(c=>h('label',{class:'ck'+(c.d?' d':'')},h('input',{type:'checkbox',checked:c.d,onchange:()=>{c.d=!c.d;save();render();draw()}}),h('span',{text:c.t}))),
+      h('div',{style:'margin-top:8px'},add),
+      h('div',{class:'row'},B('Delete',()=>{if(confirm('Delete this task?')){S.tasks=S.tasks.filter(x=>x!==t);save();render();sc.remove()}},'ghost danger'),h('span',{class:'sp'}),B('Edit',()=>{sc.remove();editTask(t)}),B(t.done?'Reopen':'Mark done',()=>{setDone(t,!t.done);draw()},'ok'),B('Close',()=>sc.remove()))));
+    if(focus)add.focus();
+  };
+  draw();document.body.append(sc);
+}
+
+/* kanban board */
+let dragId=null,bsx=0,bcf='';
+const mkBoard=name=>{const b={id:uid(),name,cols:DEF_COLS()};S.boards.push(b);S.curBoard=b.id;return b};
+function addCard(b,c){modal('Add card',tf_(),{pri:'normal',board:b.id,client:bcf},v=>{const t={id:uid(),done:false};applyTask(t,v);if(t.board===b.id){t.col=c.id;if(b.cols.length>1)t.done=c.id===lastCol(b).id}S.tasks.push(t)})}
+function delCol(b,c){if(b.cols.length<2)return;if(!confirm('Delete the column "'+c.name+'"? Its cards move to another column.'))return;
+  const target=b.cols[0]===c?b.cols[1]:b.cols[0];b.cols=b.cols.filter(x=>x!==c);
+  S.tasks.forEach(t=>{if(t.board===b.id&&t.col===c.id){t.col=target.id;t.done=b.cols.length>1&&target===lastCol(b)}});save();render()}
+function kcard(t,b,ci){
+  const od=!t.done&&t.due&&t.due<today(),p=prog(t),pv=b.cols[ci-1],nx=b.cols[ci+1];
+  const el=h('div',{class:'kcard',draggable:'true'},
+    h('div',{class:'t',role:'button',tabindex:'0',text:t.title,onclick:()=>openCard(t),onkeydown:e=>{if(e.key==='Enter')openCard(t)}}),
+    h('div',{class:'meta'},t.pri==='high'?h('span',{class:'pill high',text:'High'}):null,t.client?h('span',{text:cn(t.client)}):null,t.due?h('span',{class:od?'over':'',text:'Due '+fd(t.due)}):null,p?h('span',{text:'\u2611 '+p}):null,t.recur?h('span',{class:'pill rec',title:'Recurring task',text:'\u21bb'}):null),
+    h('div',{class:'mv'},h('button',{type:'button',disabled:!pv,title:pv?'Move to '+pv.name:'',text:'\u2039','aria-label':'Move to previous column',onclick:()=>pv&&moveTask(t,pv.id,null)}),h('button',{type:'button',disabled:!nx,title:nx?'Move to '+nx.name:'',text:'\u203a','aria-label':'Move to next column',onclick:()=>nx&&moveTask(t,nx.id,null)})));
+  el.addEventListener('dragstart',e=>{dragId=t.id;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',t.id);el.classList.add('drag')});
+  el.addEventListener('dragend',()=>{dragId=null;el.classList.remove('drag')});
+  el.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();const d=S.tasks.find(x=>x.id===dragId);dragId=null;if(d&&d!==t)moveTask(d,t.col,t.id);else render()});
+  return el;
+}
+function boardsV(){
+  if(!S.boards.length)return[bar('Boards'),h('div',{class:'card empty'},h('b',{text:'Create your first board'}),'Boards show your tasks as columns you can drag between: To do, In progress, Waiting on client, Done.'+(S.tasks.length?' Your '+S.tasks.length+' existing task'+(S.tasks.length>1?'s':'')+' will be added to it.':''),
+    h('div',{style:'margin-top:14px'},h('button',{class:'btn blue',text:'Create board',onclick:()=>{const b=mkBoard('My board');S.tasks.forEach(t=>{if(!t.board){t.board=b.id;t.col=null;placeTask(t)}});save();render()}})))];
+  let b=boardOf(S.curBoard);if(!b){b=S.boards[0];S.curBoard=b.id}
+  const sel=h('select',{'aria-label':'Board',onchange:e=>{S.curBoard=e.target.value;save();render()}},S.boards.map(x=>h('option',{value:x.id,text:x.name})));sel.value=b.id;
+  const cf=h('select',{'aria-label':'Filter by client',onchange:e=>{bcf=e.target.value;render()}},[['','All clients'],...co(false)].map(o=>h('option',{value:o[0],text:o[1]})));cf.value=bcf;
+  const loose=S.tasks.filter(t=>!t.board).length;
+  const cards=S.tasks.filter(t=>t.board===b.id&&(!bcf||t.client===bcf));
+  const cols=b.cols.map((c,i)=>{
+    const items=cards.filter(t=>t.col===c.id);
+    const colEl=h('div',{class:'kcol',style:'--cc:'+COLORS[i%COLORS.length]},
+      h('div',{class:'kh'},h('span',{text:c.name}),h('span',{class:'cnt',text:String(items.length)}),h('span',{class:'sp'}),
+        h('button',{class:'ib',type:'button',title:'Rename column','aria-label':'Rename column '+c.name,text:'\u270e',onclick:()=>modal('Rename column',[{k:'name',l:'Column name',req:1}],c,v=>{c.name=v.name})}),
+        b.cols.length>1?h('button',{class:'ib',type:'button',title:'Delete column','aria-label':'Delete column '+c.name,text:'\u2715',onclick:()=>delCol(b,c)}):null),
+      items.map(t=>kcard(t,b,i)),
+      h('button',{class:'kadd',type:'button',text:'+ Add card',onclick:()=>addCard(b,c)}));
+    colEl.addEventListener('dragover',e=>{if(dragId){e.preventDefault();colEl.classList.add('over')}});
+    colEl.addEventListener('dragleave',e=>{if(!colEl.contains(e.relatedTarget))colEl.classList.remove('over')});
+    colEl.addEventListener('drop',e=>{e.preventDefault();colEl.classList.remove('over');const d=S.tasks.find(x=>x.id===dragId);dragId=null;if(d)moveTask(d,c.id,null)});
+    return colEl;
+  });
+  const wrap=h('div',{class:'kb',onscroll:e=>{bsx=e.target.scrollLeft}},cols);requestAnimationFrame(()=>{wrap.scrollLeft=bsx});
+  return[bar('Boards'),
+    h('div',{class:'kb-top'},sel,cf,loose?B('Add '+loose+' list task'+(loose>1?'s':'')+' to this board',()=>{S.tasks.forEach(t=>{if(!t.board){t.board=b.id;t.col=null;placeTask(t)}});save();render()}):null,h('span',{class:'sp'}),
+      B('Add column',()=>modal('Add column',[{k:'name',l:'Column name',req:1}],{},v=>{const nc={id:uid(),name:v.name};if(b.cols.length>1)b.cols.splice(b.cols.length-1,0,nc);else b.cols.push(nc)})),
+      B('Rename board',()=>modal('Rename board',[{k:'name',l:'Board name',req:1}],b,v=>{b.name=v.name})),
+      B('Delete board',()=>{if(!confirm('Delete the board "'+b.name+'"? Its tasks stay in your Tasks list.'))return;S.tasks.forEach(t=>{if(t.board===b.id){t.board=null;t.col=null}});S.recur.forEach(r=>{if(r.board===b.id)r.board=''});S.boards=S.boards.filter(x=>x!==b);S.curBoard=S.boards[0]?S.boards[0].id:'';save();render()},'ghost danger'),
+      B('New board',()=>modal('New board',[{k:'name',l:'Board name',req:1}],{},v=>{mkBoard(v.name)}),'blue')),
+    h('div',{class:'s muted',style:'margin:6px 0 0',text:'Drag cards between columns, or use the \u2039 \u203a buttons. Cards in the last column count as done.'}),
+    wrap];
+}
+
+/* recurring tasks */
+const FREQ=[['daily','Every day'],['weekdays','Every weekday (Mon\u2013Fri)'],['weekly','Every week'],['biweekly','Every 2 weeks'],['monthly','Every month'],['quarterly','Every 3 months']];
+const fl=k=>(FREQ.find(f=>f[0]===k)||[0,k])[1];
+const pd=x=>new Date(x+'T00:00:00'),addD=(x,n)=>{const d=pd(x);d.setDate(d.getDate()+n);return dstr(d)};
+function addM(x,n,dom){const d=pd(x);d.setDate(1);d.setMonth(d.getMonth()+n);const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(dom||1,last));return dstr(d)}
+const weekend=x=>[0,6].includes(pd(x).getDay());
+function advance(r){const f=r.freq;
+  if(f==='daily')return addD(r.next,1);
+  if(f==='weekdays'){let n=addD(r.next,1);while(weekend(n))n=addD(n,1);return n}
+  if(f==='weekly')return addD(r.next,7);
+  if(f==='biweekly')return addD(r.next,14);
+  if(f==='monthly')return addM(r.next,1,r.dom);
+  return addM(r.next,3,r.dom)}
+function mkRecurTask(r,due){const t={id:uid(),done:false,title:r.title,client:r.client||'',due,pri:r.pri||'normal',board:r.board||null,col:null,check:parseCheck(r.check),recur:r.id};placeTask(t);S.tasks.push(t);r.last=today();r.made=(r.made||0)+1}
+function runRecurring(){
+  let n=0,changed=false;const t0=today();
+  S.recur.forEach(r=>{
+    if(!r.on||!r.next)return;
+    let hit=null,guard=0;
+    while(addD(r.next,-(+r.lead||0))<=t0&&guard++<400){hit=r.next;r.next=advance(r)}
+    if(hit){changed=true;if(!S.tasks.some(t=>t.recur===r.id&&t.due===hit)){mkRecurTask(r,hit);n++}}
+  });
+  if(changed){save();render()}
+  if(n)toast(n+' recurring task'+(n>1?'s':'')+' created');
+  return n}
+const recF=()=>[{k:'title',l:'Task title',req:1},{k:'client',l:'Client',t:'sel',o:co()},{k:'board',l:'Board',t:'sel',o:boardOpts()},{k:'pri',l:'Priority',t:'sel',o:PRI},{k:'freq',l:'Repeats',t:'sel',o:FREQ},{k:'next',l:'First due date',t:'date'},{k:'lead',l:'Create it this many days before it is due',t:'number'},{k:'check',l:'Checklist (one item per line)',t:'area'}];
+function recurSave(r,v){
+  if(!v.next){toast('Pick the first due date');return false}
+  let nx=v.next;if(v.freq==='weekdays')while(weekend(nx))nx=addD(nx,1);
+  Object.assign(r,{title:v.title,client:v.client,board:v.board,pri:v.pri,freq:v.freq,next:nx,dom:pd(nx).getDate(),lead:Math.max(0,Math.min(60,+v.lead||0)),check:v.check});
+  if(!S.recur.includes(r))S.recur.push(r);
+  runRecurring()}
+const newRecur=vals=>modal('Add recurring task',recF(),{pri:'normal',freq:'weekly',next:today(),lead:0,board:defBoard(),...vals},v=>recurSave({id:uid(),on:true},v));
+function recV(){
+  return[bar('Recurring tasks',B('Add recurring task',()=>newRecur(),'blue')),
+    h('div',{class:'s muted',style:'margin:-6px 0 14px',text:'Ally creates each task on schedule, whether or not the last one is finished. Missed runs are skipped, so you only get the latest one.'}),
+    S.recur.length?h('div',{class:'list'},S.recur.map(r=>{const b=r.board&&boardOf(r.board);
+      return h('div',{class:'card item'},h('div',{class:'body'},
+        h('div',{class:'t'},r.title,h('span',{class:'pill rec',text:fl(r.freq)}),r.on?null:h('span',{class:'pill off',text:'Paused'})),
+        h('div',{class:'s',text:[cn(r.client),r.on?'Next due '+fd(r.next):'',b?'Board: '+b.name:'',r.made?r.made+' created so far':''].filter(Boolean).join(' \u00b7 ')}),
+        r.check?h('div',{class:'s',text:parseCheck(r.check).length+' checklist item'+(parseCheck(r.check).length===1?'':'s')}):null),
+        h('div',{class:'acts'},
+          B('Create now',()=>{if(S.tasks.some(t=>t.recur===r.id&&t.due===r.next)){toast('That one already exists');return}mkRecurTask(r,r.next);r.next=advance(r);save();render();toast('Task created')}),
+          B(r.on?'Pause':'Resume',()=>{r.on=!r.on;save();render();if(r.on)runRecurring()}),
+          B('Edit',()=>modal('Edit recurring task',recF(),r,v=>recurSave(r,v))),
+          B('Delete',()=>{if(confirm('Delete this recurring task? Tasks already created stay.')){S.recur=S.recur.filter(x=>x!==r);save();render()}},'ghost danger')))})):empty('No recurring tasks yet','Set up weekly reports, social posts or monthly invoicing once and Ally adds them for you.')]}
+
+/* task templates */
+const ttF=()=>[{k:'name',l:'Template name',req:1},{k:'pri',l:'Priority',t:'sel',o:PRI},{k:'check',l:'Checklist (one item per line)',t:'area'}];
+function useTpl(tp){modal('Create task from template',[{k:'title',l:'Task title',req:1},{k:'client',l:'Client',t:'sel',o:co()},{k:'due',l:'Due date',t:'date'},{k:'board',l:'Board',t:'sel',o:boardOpts()}],{title:tp.name,due:today(),board:defBoard()},
+  v=>{const t={id:uid(),done:false,title:v.title,client:v.client,due:v.due,pri:tp.pri||'normal',board:v.board||null,col:null,check:parseCheck(tp.check)};placeTask(t);S.tasks.push(t);toast('Task created')})}
+function ttV(){
+  return[bar('Task templates',B('Add template',()=>modal('Add task template',ttF(),{pri:'normal'},v=>{S.ttpl.push({id:uid(),...v})}),'blue')),
+    h('div',{class:'s muted',style:'margin:-6px 0 14px',text:'Reusable task blueprints with a checklist. Use one for a one-off task, or turn it into a recurring task.'}),
+    S.ttpl.length?h('div',{class:'list'},S.ttpl.map(tp=>h('div',{class:'card item'},h('div',{class:'body'},
+      h('div',{class:'t'},tp.name,tp.pri==='high'?h('span',{class:'pill high',text:'High'}):null),
+      h('pre',{class:'body',text:tp.check||'No checklist'})),
+      h('div',{class:'acts'},B('Use template',()=>useTpl(tp),'blue'),B('Make recurring',()=>newRecur({title:tp.name,pri:tp.pri,check:tp.check})),B('Edit',()=>modal('Edit task template',ttF(),tp,v=>{Object.assign(tp,v)})),B('Delete',()=>{if(confirm('Delete this template?')){S.ttpl=S.ttpl.filter(x=>x!==tp);save();render()}},'ghost danger'))))):empty('No templates yet','Save the steps of work you repeat, like a weekly report or client onboarding.')]}
+
 const sorted=()=>S.tasks.filter(t=>!t.done).sort((a,b)=>(a.due||'9')>(b.due||'9')?1:-1);
-function taskRow(t){return h('div',{class:'card item'+(t.done?' done':'')},h('input',{type:'checkbox',class:'chk',checked:t.done,'aria-label':'Done',onchange:()=>{t.done=!t.done;save();render()}}),
- h('div',{class:'body'},h('div',{class:'t'},t.title,t.pri==='high'?h('span',{class:'pill high',text:'High'}):null),h('div',{class:'s'+(!t.done&&t.due&&t.due<today()?' over':''),text:[cn(t.client),t.due?'Due '+fd(t.due):''].filter(Boolean).join(' · ')})),
- h('div',{class:'acts'},B('Edit',()=>modal('Edit task',tf_(),t,v=>Object.assign(t,v))),B('Delete',()=>{S.tasks=S.tasks.filter(x=>x!==t);save();render()},'ghost danger')))}
+function taskRow(t){const p=prog(t);return h('div',{class:'card item'+(t.done?' done':'')},h('input',{type:'checkbox',class:'chk',checked:t.done,'aria-label':'Done',onchange:()=>setDone(t,!t.done)}),
+ h('div',{class:'body'},h('div',{class:'t'},t.title,t.pri==='high'?h('span',{class:'pill high',text:'High'}):null,t.recur?h('span',{class:'pill rec',title:'Recurring task',text:'\u21bb'}):null),h('div',{class:'s'+(!t.done&&t.due&&t.due<today()?' over':''),text:[cn(t.client),t.due?'Due '+fd(t.due):'',p?'\u2611 '+p:''].filter(Boolean).join(' \u00b7 ')})),
+ h('div',{class:'acts'},B('Open',()=>openCard(t)),B('Edit',()=>editTask(t)),B('Delete',()=>{S.tasks=S.tasks.filter(x=>x!==t);save();render()},'ghost danger')))}
 function todayV(){const op=sorted(),nx=op[0],ev=S.events.filter(e=>e.date===today()).sort((a,b)=>(a.time||'')>(b.time||'')?1:-1);
  const hr=new Date().getHours(),g=hr<12?'morning':hr<18?'afternoon':'evening';
  return[h('div',{class:'bar'},h('h3',{text:'Good '+g+', '+S.user})),
@@ -103,7 +313,7 @@ function clientsV(){const f=[{k:'name',l:'Name',req:1},{k:'email',l:'Email',t:'e
  S.clients.length?h('div',{class:'list'},S.clients.map(c=>h('div',{class:'card item'},h('div',{class:'body'},h('div',{class:'t',text:c.name}),h('div',{class:'s',text:[c.email,c.phone,c.rate?money(c.rate)+'/h':''].filter(Boolean).join(' · ')}),h('div',{class:'s',text:hrs(S.logs.filter(l=>l.client===c.id).reduce((a,l)=>a+l.mins,0))+' logged · '+money(unbAmt(c.id))+' not yet invoiced'}),c.notes?h('pre',{class:'body',text:c.notes}):null),
  h('div',{class:'acts'},B('Edit',()=>modal('Edit client',f,c,v=>Object.assign(c,v))),B('Delete',()=>{if(confirm('Delete '+c.name+'?')){S.clients=S.clients.filter(x=>x!==c);save();render()}},'ghost danger'))))):empty('No clients yet','Add the people and businesses you support.')]}
 function tasksV(){const l=S.tasks.filter(t=>tf==='all'||(tf==='done')===t.done).sort((a,b)=>(a.due||'9')>(b.due||'9')?1:-1);
- return[bar('Tasks',h('div',{class:'chips'},['open','done','all'].map(k=>h('button',{class:'chip','aria-pressed':String(tf===k),text:k[0].toUpperCase()+k.slice(1),onclick:()=>{tf=k;render()}}))),B('Add task',()=>modal('Add task',tf_(),{pri:'normal'},v=>S.tasks.push({id:uid(),done:false,...v})),'blue')),
+ return[bar('Tasks',h('div',{class:'chips'},['open','done','all'].map(k=>h('button',{class:'chip','aria-pressed':String(tf===k),text:k[0].toUpperCase()+k.slice(1),onclick:()=>{tf=k;render()}}))),B('Add task',newTask,'blue')),
  l.length?h('div',{class:'list'},l.map(taskRow)):empty('No tasks here','Tasks you add will show up in this list.')]}
 function timeV(){const t=S.timer,d=h('input',{placeholder:'What are you working on?',value:t?t.desc:''}),c=h('select',{},co().map(o=>h('option',{value:o[0],text:o[1]})));if(t)c.value=t.client;
  const f=[{k:'desc',l:'What was done',req:1},{k:'client',l:'Client',t:'sel',o:co()},{k:'mins',l:'Minutes',t:'number'},{k:'date',l:'Date',t:'date'}];
@@ -123,17 +333,20 @@ function schedV(){const f=[{k:'title',l:'Appointment',req:1},{k:'date',l:'Date',
 function tplV(){const f=[{k:'title',l:'Title',req:1},{k:'body',l:'Message',t:'area'}];
  return[bar('Reply templates',B('Add template',()=>modal('Add template',f,{},v=>S.templates.push({id:uid(),...v})),'blue')),
  h('div',{class:'list'},S.templates.map(t=>h('div',{class:'card item'},h('div',{class:'body'},h('div',{class:'t',text:t.title}),h('pre',{class:'body',text:t.body})),h('div',{class:'acts'},B('Copy',()=>copy(t.body),'blue'),B('Edit',()=>modal('Edit template',f,t,v=>Object.assign(t,v))),B('Delete',()=>{S.templates=S.templates.filter(x=>x!==t);save();render()},'ghost danger')))))]}
-const NAV=[['today','Today'],['clients','Clients'],['tasks','Tasks'],['time','Time tracker'],['invoices','Invoices'],['schedule','Schedule'],['templates','Reply templates']];
-const V={today:todayV,clients:clientsV,tasks:tasksV,time:timeV,invoices:invV,schedule:schedV,templates:tplV};
+const NAV=[['today','Today'],['clients','Clients'],['tasks','Tasks'],['boards','Boards'],['recur','Recurring'],['ttpl','Task templates'],['time','Time tracker'],['invoices','Invoices'],['schedule','Schedule'],['templates','Reply templates']];
+const V={boards:boardsV,recur:recV,ttpl:ttV,today:todayV,clients:clientsV,tasks:tasksV,time:timeV,invoices:invV,schedule:schedV,templates:tplV};
 const badge=k=>k==='tasks'?sorted().length:k==='invoices'?S.invoices.filter(i=>!i.paid).length:0;
 function shell(){return h('div',{},h('header',{class:'top'},wm(),h('span',{class:'sp'}),
  S.timer?h('button',{class:'btn ghost sm',onclick:stopTimer,title:'Stop timer'},h('span',{class:'tm',text:clk(Date.now()-S.timer.start),style:'font-variant-numeric:tabular-nums'}),' Stop'):null,
- h('span',{class:'muted',style:'font-size:.85rem',text:S.user}),h('a',{class:'btn ghost sm',href:'index.html',text:'\u2190 Orchid apps'}),B('Log out',()=>{S.user='';save();render()})),
- h('div',{class:'shell'},h('aside',{class:'side'},h('nav',{class:'tabs'},NAV.map(([k,t])=>h('button',{class:'tab','aria-selected':String(view===k),onclick:()=>{view=k;render();scrollTo(0,0)}},ico(k),t,badge(k)?h('span',{class:'n',text:String(badge(k))}):null)))),h('main',{},V[view]())))}
+ h('span',{class:'sync',id:'sy',text:syncTxt}),h('span',{class:'muted',style:'font-size:.85rem',text:S.user}),h('a',{class:'btn ghost sm',href:'index.html',text:'\u2190 Orchid apps'}),B('Log out',()=>{S.user='';save();render()})),
+ h('div',{class:'shell'},h('aside',{class:'side'},h('nav',{class:'tabs'},NAV.map(([k,t])=>h('button',{class:'tab','aria-selected':String(view===k),onclick:()=>{view=k;render();scrollTo(0,0)}},ico(k),t,badge(k)?h('span',{class:'n',text:String(badge(k))}):null)))),h('main',{class:view==='boards'?'wide':null},V[view]())))}
 function login(){const n=h('input',{placeholder:'Your name',autofocus:true,value:(()=>{try{const e=localStorage.getItem('orchid_ally_hint')||'';return e.split('@')[0].replace(/[._-]+/g,' ').replace(/\d+/g,'').trim().replace(/\b\w/g,c=>c.toUpperCase())}catch(x){return ''}})()}),go=()=>{if(!n.value.trim())return n.focus();S.user=n.value.trim();save();render()};n.addEventListener('keydown',e=>e.key==='Enter'&&go());
  const lg=h('div',{class:'wm'});lg.innerHTML=LOGO+'<span><em>Ally</em></span>';
  return h('div',{class:'login'},h('div',{class:'card'},lg,h('h1',{text:'Your virtual assistant workspace',style:'font-size:1.3rem;margin:18px 0 6px'}),h('p',{text:'Clients, tasks, time, invoices and replies in one calm place.'}),h('label',{class:'f',style:'text-align:left',text:'What should we call you?'},n),h('button',{class:'btn blue',style:'width:100%;margin-top:16px',text:'Open workspace',onclick:go}),h('a',{href:'index.html',class:'muted',style:'display:block;margin-top:14px;font-size:.85rem',text:'\u2190 Back to Orchid apps'})))}
 function render(){const y=scrollY;$('#app').replaceChildren(S.user?shell():login());scrollTo(0,y)}
 render();
+pull().finally(runRecurring);
+setInterval(runRecurring,600000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull().finally(runRecurring)});
 })();
 </script></body></html>
