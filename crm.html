@@ -2498,6 +2498,26 @@ function aiPlan(a){
       await loadProd();schedDraft=null;schedEditing=false;render();toast('Schedule saved');return 'Schedule saved.';
     }};
   }
+  if(a.type==='create_lead'){
+    const name=String(a.name||'').trim().slice(0,200);
+    if(!name)return{error:'I need the lead\'s name.'};
+    const email=String(a.email||'').trim().slice(0,320);
+    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return{error:'That email address does not look valid. Please check it and try again.'};
+    const phone=String(a.phone||'').trim().slice(0,40);
+    const source=String(a.source||'').trim().slice(0,120)||'AI assistant';
+    const message=String(a.message||'').trim().slice(0,2000);
+    const status=STATUSES.includes(a.status)?a.status:'new';
+    const dup=email?inquiries.find(x=>lc(x.email)===lc(email)):null;
+    const lines=['Name: '+name,'Email: '+(email||'not given'),'Phone: '+(phone||'not given'),'Source: '+source,'Status: '+cap(status)];
+    if(message)lines.push('Request: '+(message.length>140?message.slice(0,140)+'…':message));
+    if(dup)lines.push('Heads up: an inquiry from '+dup.name+' with this email already exists ('+cap(dup.status)+'). Confirm only if you want a second one.');
+    return{title:'Add lead',lines,confirm:'Add lead',exec:async()=>{
+      const row={name,email:email||null,phone:phone||null,source,status,message:message||null};
+      const r=await sb.from('crm_inquiries').insert(row);
+      if(r.error){console.error(r.error);throw new Error('Could not add the lead.')}
+      await loadAll();render();toast('Lead added.');return 'Lead added: '+name+'.';
+    }};
+  }
   return{error:'I cannot do that kind of action.'};
 }
 window.__orchidCrm={plan:aiPlan};
@@ -2569,7 +2589,7 @@ init().catch(e=>{console.error(e);home()});
   </div>
   <div class="oai-body" id="oai-body" aria-live="polite"></div>
   <div class="oai-ft">
-    <textarea id="oai-in" rows="1" placeholder="Ask a question, or say add task / set schedule…" aria-label="Message"></textarea>
+    <textarea id="oai-in" rows="1" placeholder="Ask a question, or say add lead / add task…" aria-label="Message"></textarea>
     <button class="oai-send" id="oai-send" type="button" aria-label="Send"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg></button>
   </div>
   <div class="oai-note">AI can make mistakes. Check important details.</div>
@@ -2583,7 +2603,7 @@ init().catch(e=>{console.error(e);home()});
   const sb=window.__orchidSb||(window.__orchidSb=window.supabase.createClient(SB_URL,SB_KEY)); // shared with the CRM so only one auth client exists
   const $=id=>document.getElementById(id);
   const fab=$('oai-fab'),panel=$('oai-panel'),body=$('oai-body'),inp=$('oai-in'),send=$('oai-send');
-  const SUGGEST=['Who needs a follow-up?','What tasks are due soon?','Add a task for tomorrow','Draft a follow-up email'];
+  const SUGGEST=['Add a new lead','Who needs a follow-up?','What tasks are due soon?','Add a task for tomorrow'];
   let msgs=[],busy=false;
 
   // show the button only while someone is logged in
@@ -2595,7 +2615,7 @@ init().catch(e=>{console.error(e);home()});
   function welcome(){
     body.replaceChildren();
     const hi=el('oai-hi');const b=document.createElement('b');b.textContent='Hi, how can I help?';
-    hi.append(b,document.createTextNode('I can look through your CRM, draft emails, add tasks and set schedules. I always ask you to confirm first.'));
+    hi.append(b,document.createTextNode('I can look through your CRM, add leads, draft emails, add tasks and set schedules. I always ask you to confirm first.'));
     const sg=el('oai-sg');
     SUGGEST.forEach(t=>{const x=document.createElement('button');x.type='button';x.textContent=t;x.onclick=()=>ask(t);sg.append(x)});
     hi.append(sg);body.append(hi);
