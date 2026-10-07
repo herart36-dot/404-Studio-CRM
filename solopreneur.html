@@ -87,6 +87,12 @@ pre{text-align:left;background:#f1f5f9;border-radius:12px;padding:10px;font-size
 .oai-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#f8fafc;overscroll-behavior:contain}
 .oai-m{max-width:88%;padding:9px 12px;border-radius:14px;font-size:.875rem;white-space:pre-wrap;overflow-wrap:anywhere}
 .oai-m.u{align-self:flex-end;background:var(--brand);color:#fff}.oai-m.a{align-self:flex-start;background:#fff;border:1px solid #e2e8f0}.oai-m.e{align-self:flex-start;background:#fff1f2;color:var(--danger);border:1px solid #fecdd3}
+.oai-act{align-self:stretch;background:#fff;border:1px solid #a7f3d0;border-left:4px solid var(--brand);border-radius:12px;padding:10px 12px;font-size:.85rem}
+.oai-act.err{border-color:#fecdd3;border-left-color:var(--danger);color:var(--danger)}
+.oai-act .at{font-weight:800;margin-bottom:4px}.oai-act .al{color:#334155;overflow-wrap:anywhere}
+.oai-act .ab{display:flex;gap:8px;margin-top:10px}
+.oai-act .ab button{border:0;cursor:pointer;border-radius:999px;padding:6px 14px;font-weight:700;font-size:.8rem}
+.oai-act .ab .ok{background:var(--grad);color:#fff}.oai-act .ab .no{background:#fff;border:1px solid #e2e8f0}.oai-act .ab button:disabled{opacity:.6}
 .oai-ft{display:flex;gap:8px;align-items:flex-end;padding:10px;border-top:1px solid #e2e8f0}.oai-ft textarea{min-height:40px;max-height:110px;resize:none;padding:9px 12px}
 </style>
 </head>
@@ -372,17 +378,86 @@ async function logout(){
   out();
 }
 
-/* ---- AI assistant (Groq via Supabase Edge Function "solo-ai") ---- */
+
+/* ---- bridge for the AI assistant: adds records through the same rules as the forms ---- */
+const aiTxt=(v,n)=>{v=String(v==null?'':v).trim().slice(0,n||200);return v||null};
+const aiNum=v=>{const n=parseFloat(String(v==null?'':v).replace(/[^0-9.\-]/g,''));return isFinite(n)&&n>=0?n:null};
+const aiDate=v=>{v=String(v||'');return /^\d{4}-\d{2}-\d{2}$/.test(v)&&!isNaN(new Date(v+'T00:00:00'))?v:null};
+const aiEmail=v=>{v=aiTxt(v,120);return v&&/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)?v:null};
+const aiCust=q=>{q=String(q||'').toLowerCase().trim();if(!q)return null;return D.customers.find(c=>c.name.toLowerCase()===q)||(()=>{const f=D.customers.filter(c=>c.name.toLowerCase().includes(q));return f.length===1?f[0]:null})()};
+function aiPlan(a){
+  a=a||{};
+  const add=(table,values,msg,title)=>async()=>{
+    const r=await sb.from(table).insert(values);
+    if(r.error){console.error(r.error);throw new Error('Could not save it. Please try again.')}
+    try{await load()}catch(e){console.error(e)}render();toast(msg);return msg;
+  };
+  if(a.type==='add_customer'){
+    const name=aiTxt(a.name,120);if(!name)return{error:'I need the customer\u2019s name.'};
+    const v={name,phone:aiTxt(a.phone,40),email:aiEmail(a.email),address:aiTxt(a.address,200),notes:aiTxt(a.notes,500)};
+    const lines=['Name: '+name];if(v.phone)lines.push('Phone: '+v.phone);if(v.email)lines.push('Email: '+v.email);if(v.address)lines.push('Address: '+v.address);if(v.notes)lines.push('Notes: '+v.notes);
+    if(D.customers.some(c=>c.name.toLowerCase()===name.toLowerCase()))lines.push('Heads up: a customer with this name already exists.');
+    return{title:'Add customer',lines,confirm:'Add customer',exec:add(TB.customers,v,'Customer added.')};
+  }
+  if(a.type==='add_lead'){
+    const name=aiTxt(a.name,120);if(!name)return{error:'I need the lead\u2019s name.'};
+    const stage=STAGES.includes(a.stage)?a.stage:'new',val=aiNum(a.value);
+    const v={name,phone:aiTxt(a.phone,40),email:aiEmail(a.email),source:aiTxt(a.source,100),value:val,stage,notes:aiTxt(a.notes,500)};
+    const lines=['Name: '+name];if(v.phone)lines.push('Phone: '+v.phone);if(v.email)lines.push('Email: '+v.email);if(v.source)lines.push('Source: '+v.source);if(val!=null)lines.push('Estimated value: '+money(val));lines.push('Stage: '+cap(stage));if(v.notes)lines.push('Needs: '+v.notes);
+    return{title:'Add lead',lines,confirm:'Add lead',exec:add(TB.leads,v,'Lead added.')};
+  }
+  if(a.type==='add_job'){
+    const title=aiTxt(a.title,200);if(!title)return{error:'I need a job title.'};
+    const date=aiDate(a.date)||today(),price=aiNum(a.price),status=JOBST.includes(a.status)?a.status:'scheduled';
+    const lines=['Job: '+title,'Date: '+fmtDate(date),'Status: '+cap(status)];
+    let cid=null;
+    if(a.customer){const c=aiCust(a.customer);if(c){cid=c.id;lines.push('Customer: '+c.name)}else lines.push('Customer: \"'+String(a.customer).slice(0,60)+'\" not found, left blank')}
+    if(price!=null)lines.push('Price: '+money(price));
+    const v={title,customer_id:cid,scheduled_on:date,price,status,notes:aiTxt(a.notes,500)};
+    if(v.notes)lines.push('Notes: '+v.notes);
+    return{title:'Add job',lines,confirm:'Add job',exec:add(TB.jobs,v,'Job added.')};
+  }
+  if(a.type==='add_expense'){
+    const title=aiTxt(a.title,200);if(!title)return{error:'I need to know what the expense was for.'};
+    const amount=aiNum(a.amount);if(amount==null||amount<=0)return{error:'I need a valid amount for the expense.'};
+    const cat=CATS.find(c=>c.toLowerCase()===String(a.category||'').toLowerCase())||'Other',date=aiDate(a.date)||today();
+    const v={title,category:cat,amount,spent_on:date,notes:aiTxt(a.notes,500)};
+    const lines=['For: '+title,'Amount: '+money(amount),'Category: '+cat,'Date: '+fmtDate(date)];if(v.notes)lines.push('Notes: '+v.notes);
+    return{title:'Add expense',lines,confirm:'Add expense',exec:add(TB.expenses,v,'Expense added.')};
+  }
+  if(a.type==='add_task'){
+    const title=aiTxt(a.title,200);if(!title)return{error:'I need a task title.'};
+    const due=aiDate(a.due_date);
+    const lines=['Task: '+title,'Due: '+(due?fmtDate(due):'no date')];
+    return{title:'Add task',lines,confirm:'Add task',exec:add(TB.tasks,{title,due_date:due},'Task added.')};
+  }
+  return{error:'I cannot do that kind of action.'};
+}
+
+/* ---- AI assistant (via Supabase Edge Function "solo-ai") ---- */
 function mountAI(){
   if($('#oai-fab'))return;
   const msgs=[];let busy=false;
   const fab=h('button',{id:'oai-fab',type:'button','aria-label':'Open AI assistant',text:'✨'});
   const body=h('div',{class:'oai-body'}),inp=h('textarea',{rows:'1',placeholder:'Ask about your business…','aria-label':'Message'}),send=h('button',{class:'btn go sm',type:'button',text:'Send'});
   const panel=h('section',{id:'oai-panel',role:'dialog','aria-label':'AI assistant',hidden:true},
-    h('div',{class:'oai-hd'},h('div',{},h('b',{text:'Orchid Assistant'}),h('div',{class:'s',text:'Powered by Groq · read-only'})),h('span',{class:'sp'}),h('button',{class:'oai-x',type:'button',text:'✕','aria-label':'Close',onclick:()=>panel.hidden=true})),
+    h('div',{class:'oai-hd'},h('div',{},h('b',{text:'Orchid Assistant'}),h('div',{class:'s',text:'Powered by AI'})),h('span',{class:'sp'}),h('button',{class:'oai-x',type:'button',text:'✕','aria-label':'Close',onclick:()=>panel.hidden=true})),
     body,h('div',{class:'oai-ft'},inp,send));
   const add=(c,t)=>{const m=h('div',{class:'oai-m '+c,text:t});body.append(m);body.scrollTop=body.scrollHeight;return m};
-  const hi=()=>{body.replaceChildren(h('div',{class:'empty'},h('b',{text:'Hi, how can I help?'}),'I can read your data, draft messages and suggest what to do next.',h('div',{class:'chips',style:'justify-content:center;margin-top:10px'},['Who should I follow up with?','Who still owes me money?','Draft a quote follow-up','How is my month going?'].map(t=>h('button',{class:'chip',type:'button',text:t,onclick:()=>ask(t)})))))};
+  const hi=()=>{body.replaceChildren(h('div',{class:'empty'},h('b',{text:'Hi, how can I help?'}),'I can read your data, draft messages, and add customers, jobs, expenses, leads and tasks. I always ask you to confirm first.',h('div',{class:'chips',style:'justify-content:center;margin-top:10px'},['Who should I follow up with?','Who still owes me money?','Add a task for tomorrow','Log an expense'].map(t=>h('button',{class:'chip',type:'button',text:t,onclick:()=>ask(t)})))))};
+  function actionCard(a,at){
+    const p=aiPlan(a),card=h('div',{class:'oai-act'});
+    if(!p||p.error){card.classList.add('err');card.textContent=(p&&p.error)||'I could not prepare that action.';body.append(card);body.scrollTop=body.scrollHeight;return}
+    const note=t=>{if(msgs[at]&&msgs[at].role==='model')msgs[at].text+='\n['+t+']'};
+    const ok=h('button',{type:'button',class:'ok',text:p.confirm||'Confirm'}),no=h('button',{type:'button',class:'no',text:'Cancel'});
+    ok.onclick=async()=>{ok.disabled=no.disabled=true;ok.textContent='Working…';
+      try{const m=await p.exec();card.classList.remove('err');card.replaceChildren(h('div',{class:'at',text:'✓ '+m}));note('The user confirmed. '+m)}
+      catch(e){card.classList.add('err');card.replaceChildren(h('div',{class:'at',text:e.message||'Something went wrong.'}));note('The action failed.')}
+      body.scrollTop=body.scrollHeight};
+    no.onclick=()=>{card.replaceChildren(h('div',{class:'al',text:'Cancelled.'}));note('The user cancelled this action.')};
+    card.append(h('div',{class:'at',text:p.title}),...p.lines.map(l=>h('div',{class:'al',text:l})),h('div',{class:'ab'},ok,no));
+    body.append(card);body.scrollTop=body.scrollHeight;
+  }
   async function ask(text){
     text=(text||'').trim();if(!text||busy)return;
     if(!msgs.length)body.replaceChildren();
@@ -390,11 +465,11 @@ function mountAI(){
     const w=add('a','…');
     try{
       const {data:{session}}=await sb.auth.getSession();if(!session)throw new Error('Your session ended. Please log in again.');
-      const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:SB_KEY},body:JSON.stringify({messages:msgs})});
+      const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:SB_KEY},body:JSON.stringify({messages:msgs,today:today(),tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC')})});
       let d={};try{d=await r.json()}catch(e){}
       w.remove();
       if(!r.ok||!d.reply){msgs.pop();add('e',r.status===404?'The AI is not deployed yet.':(d.error||'Something went wrong. Please try again.'))}
-      else{msgs.push({role:'model',text:d.reply});add('a',d.reply)}
+      else{msgs.push({role:'model',text:d.reply});add('a',d.reply);const at=msgs.length-1;(Array.isArray(d.actions)?d.actions:[]).slice(0,3).forEach(a=>actionCard(a,at))}
     }catch(e){w.remove();msgs.pop();add('e',e.message&&e.message.includes('log in')?e.message:'Could not reach the assistant.')}
     busy=false;send.disabled=false;inp.focus();
   }
