@@ -55,6 +55,30 @@ main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
 .modal h2{margin:0 0 4px;font-size:1.25rem}.modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
 .toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;padding:10px 18px;border-radius:999px;z-index:99;font-size:.88rem;max-width:90%}
 pre{text-align:left;background:#f1f5f9;border-radius:12px;padding:10px;font-size:.8rem;overflow:auto}
+/* CRM-style layout: top bar + left sidebar */
+.top-in{max-width:none;padding:12px 24px}
+.shell{display:flex;align-items:flex-start;min-height:calc(100vh - var(--topH,57px))}
+.side{width:248px;flex:none;position:sticky;top:var(--topH,57px);height:calc(100vh - var(--topH,57px));overflow-y:auto;padding:16px 12px;background:rgba(255,255,255,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-right:1px solid rgba(229,233,242,.9)}
+.side:before{content:"WORKSPACE";display:block;padding:4px 12px 10px;color:#9aa2b3;font-size:.66rem;font-weight:800;letter-spacing:.12em}
+.side .tabs{display:flex;flex-direction:column;gap:4px;overflow:visible;padding:0}
+.side .tab{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 12px;min-height:43px;border-radius:11px;font-weight:600;font-size:.94rem;color:#596276;background:none;transition:background .18s,color .18s}
+.side .tab:hover{background:#f2f4fa;color:#263149}
+.side .tab[aria-selected=true]{background:linear-gradient(90deg,rgba(5,150,105,.14),rgba(5,150,105,.05));color:#047857;box-shadow:inset 3px 0 0 var(--brand)}
+.side .tab .ico{display:inline-flex;flex:none;color:#7a8295}.side .tab[aria-selected=true] .ico{color:var(--brand)}
+.side .tab .ico svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.side .tab .n{margin-left:auto;background:#e2e8f0;color:#334155;border-radius:999px;padding:0 8px;font-size:.72rem;opacity:1}
+.side .tab[aria-selected=true] .n{background:var(--brand);color:#fff}
+.shell>main{flex:1;min-width:0;max-width:1060px;margin:0 auto;width:100%;padding:24px 28px 80px}
+@media(max-width:760px){
+  .top-in{padding:10px 12px;flex-wrap:nowrap;gap:8px}.top-in .em{display:none}.top-in .wm{font-size:1.15rem}
+  .shell{display:block;min-height:0}
+  .side{width:100%;height:auto;position:sticky;top:var(--topH,53px);z-index:15;padding:6px 10px;border-right:0;border-bottom:1px solid var(--line);overflow:visible}
+  .side:before{display:none}
+  .side .tabs{flex-direction:row;overflow-x:auto;gap:4px;scrollbar-width:none}.side .tabs::-webkit-scrollbar{display:none}
+  .side .tab{width:auto;flex:0 0 auto;min-height:0;padding:7px 12px;font-size:.82rem;gap:7px;white-space:nowrap}
+  .side .tab .ico svg{width:16px;height:16px}
+  .shell>main{padding:14px 12px 80px}
+}
 #oai-fab{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:40;width:56px;height:56px;border-radius:50%;border:0;cursor:pointer;color:#fff;font-size:1.5rem;background:var(--grad);box-shadow:0 8px 24px rgba(5,150,105,.35)}
 #oai-panel{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:41;width:min(400px,calc(100vw - 24px));height:min(560px,calc(100dvh - 120px));display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 60px rgba(15,23,42,.22);overflow:hidden}
 #oai-panel[hidden]{display:none!important}
@@ -312,11 +336,16 @@ function tasksView(){
 function appView(){
   const tabs=[['today','Today'],['leads','Leads',D.leads.filter(l=>l.stage==='new').length],['customers','Customers'],['jobs','Jobs',D.jobs.filter(owed).length],['money','Money'],['tasks','Tasks',D.tasks.filter(t=>!t.done).length]];
   const body={leads:leadsView,customers:customersView,jobs:jobsView,money:moneyView,tasks:tasksView}[view]||todayView;
-  return h('div',{},h('header',{class:'top'},h('div',{class:'top-in'},
-    h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'Solopreneur'})),
-    h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0)}},t,n?h('span',{class:'n',text:String(n)}):null))),
-    h('span',{class:'sp'}),h('span',{class:'muted',style:'font-size:.82rem',text:me.email}),
-    h('a',{class:'btn ghost sm',href:'index.html',text:'Apps'}),h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),h('main',{},body()));
+  const ICONS={today:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',leads:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',customers:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',jobs:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',money:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>'};
+  const ico=k=>{const e=h('span',{class:'ico','aria-hidden':'true'});e.innerHTML='<svg viewBox="0 0 24 24">'+(ICONS[k]||'')+'</svg>';return e};
+  return h('div',{},
+    h('header',{class:'top'},h('div',{class:'top-in'},
+      h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'Solopreneur'})),
+      h('span',{class:'sp'}),h('span',{class:'muted em',style:'font-size:.82rem',text:me.email}),
+      h('a',{class:'btn ghost sm',href:'index.html',text:'Apps'}),h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
+    h('div',{class:'shell'},
+      h('aside',{class:'side'},h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0)}},ico(k),t,n?h('span',{class:'n',text:String(n)}):null)))),
+      h('main',{},body())));
 }
 
 /* ---- setup screen ---- */
@@ -324,10 +353,13 @@ const setupView=()=>h('div',{class:'center'},h('div',{class:'panel'},h('h1',{tex
   h('p',{class:'sub',text:'The Solopreneur tables are not in this Supabase project yet. Open Supabase, go to SQL Editor, run solopreneur_setup.sql, then reload.'}),
   h('button',{class:'btn primary wide',text:'Reload',onclick:()=>location.reload()}),h('a',{class:'btn ghost wide',style:'margin-top:10px',href:'index.html',text:'Back to apps'})));
 
+function setTopH(){const t=document.querySelector('.top');if(t)document.documentElement.style.setProperty('--topH',t.offsetHeight+'px')}
+window.addEventListener('resize',setTopH);
 function render(){
   if(leaving)return;
   const y=window.scrollY;
   $('#app').replaceChildren(state==='loading'?h('div',{class:'center'},h('p',{class:'muted',text:'Loading…'})):state==='setup'?setupView():appView());
+  setTopH();
   window.scrollTo(0,y);
 }
 const home=()=>location.replace('index.html');
