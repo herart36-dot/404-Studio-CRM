@@ -1163,6 +1163,16 @@ input[type=range]{width:100%;accent-color:var(--brand);margin:6px 0 0}
 .prodbig{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.76rem;color:var(--muted);padding:2px 4px 10px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* ---- manual ---- */
+.man-toc{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px}
+.man-sec{border-top:1px solid var(--line);padding:14px 0 4px}
+.man-sec h3{margin:0 0 4px;font-size:1.02rem}
+.man-sec .lead{color:var(--muted);font-size:.86rem;margin:0 0 8px}
+.man-sec dl{margin:0}.man-sec dt{font-weight:700;font-size:.88rem;margin-top:10px}
+.man-sec dd{margin:2px 0 0;font-size:.86rem;color:#334155;line-height:1.5}
+.man-tag{display:inline-block;font-size:.66rem;font-weight:700;padding:1px 7px;border-radius:6px;margin-left:6px;vertical-align:middle;background:#ede9fe;color:#5b21b6}
+.man-empty{padding:18px 4px;color:var(--muted);font-size:.9rem}
 </style>
 
 </head>
@@ -2182,6 +2192,94 @@ function productivityView(){
   );
 }
 
+/* ---- user manual (opened from the top bar, not a tab) ---- */
+const MANUAL=[
+ {id:'start',t:'Getting started',lead:'What you see after signing in.',items:[
+  ['Signing in and access levels','You sign in with the email an admin added to the Members list. There are three levels: Admin (full access, approves requests, manages members and the pass mark), Executive (works like Staff for now) and Staff (can use the CRM, but changes to inquiries and adding or deleting tasks need admin approval). If your email is not on the list you will see a "No access" screen.'],
+  ['Top bar','Shows your email and access level. Manual opens this guide. Apps takes you back to the app picker. Log out signs you out.'],
+  ['Tabs','Overview, Inquiries, Approvals (called My requests for staff), Cases, Chat, Clients, Tasks, Productivity, Team (admin only) and Members. A number on a tab is a count of things that need attention, such as new inquiries, open tasks, unread chat messages or pending approvals.'],
+  ['My status bar','Shown at the top of every tab except Chat. Press Active, Lunch, Meeting or Out of office to tell the team what you are doing. Your time in each status is added up for today, and your admin can see it. Press Active when you start work, because Active time is part of your productivity score. One stretch counts for at most 12 hours.'],
+  ['Search and filters','Most lists have a search box and filter chips above them. Search looks across names, emails, phone numbers and notes.'],
+  ['Live updates','Chat and approvals update on their own. The rest of the CRM refreshes every minute, and your status totals every 30 seconds. The page will not refresh while you are typing in a box.']]},
+ {id:'overview',t:'Overview',lead:'Your day at a glance.',items:[
+  ['Do this next','One suggested action, picked in this order: an overdue task, a case that has missed its SLA, the new inquiry that has waited longest, then an active inquiry that has gone quiet for 5 days or more. The button beside it does the action in one click. If nothing is waiting, it says so.'],
+  ['The numbers','New inquiries; Avg first reply (average time from an inquiry arriving to its first contact); Open tasks; Overdue tasks; Open cases; SLA breached; and Clients. Overdue and SLA breached turn red when above zero.'],
+  ['Latest inquiries and Next tasks','The five newest inquiries and the first six open tasks. You can add an inquiry or task from here and use the same buttons as on the full tabs.']]},
+ {id:'inquiries',t:'Inquiries',lead:'People who have asked about your services.',items:[
+  ['Statuses','New, Contacted, Quoted, Won and Lost. Change a status with the dropdown on the card. Moving off New records when you first made contact, which feeds the Avg first reply number.'],
+  ['Warning labels','A New inquiry shows how long it has waited (amber after 4 hours, red after 24). A Contacted or Quoted inquiry shows "Going cold" after 5 days without contact, and red after 10. A Lost inquiry quiet for 30 days shows "Worth revisiting".'],
+  ['Log a touch','On Contacted and Quoted inquiries. Use it when you have been in contact again, which restarts the going-cold clock.'],
+  ['Make client','Turns the inquiry into a client. If a client with the same email already exists, it links to that one instead of making a duplicate.'],
+  ['Open case / View case','Creates a support case from the inquiry, or opens the one already linked.'],
+  ['Add, Edit and Delete','Add inquiry opens a form (name is required). Staff edits, deletes, status changes, touches, Make client and Open case are sent to the admin as requests, and the card shows "Awaiting approval" until they decide. Admin changes apply immediately.']]},
+ {id:'approvals',t:'Approvals and My requests',lead:'How staff changes get approved.',items:[
+  ['For staff (My requests)','Whenever you do something that needs approval, a request is sent and nothing changes until the admin approves. You see it as Waiting, then Approved or Declined, with the reason if the admin gave one. You get a pop-up when they decide. You can cancel a request while it is still waiting.'],
+  ['For admins (Approvals)','Pending requests from staff wait here, with a badge on the tab and in the browser title. Approve applies the change straight away. Decline asks for an optional reason. Recent decisions are listed below.'],
+  ['What needs approval','Changing an inquiry\'s status, editing it, deleting it, logging a touch, making it a client, opening a case from it, and adding or deleting a task.']]},
+ {id:'cases',t:'Cases',lead:'Emails, chats and calls tracked as tickets with deadlines.',items:[
+  ['Creating a case','New case asks for the issue, where it came from (email, chat, call, website or other), priority, customer details, who to assign it to and the client. Each case gets a number like CS-0001. Leave Assign to empty and the routing rules will pick an owner.'],
+  ['Statuses and filters','Open, In progress, Waiting, Resolved and Closed. Filters: Active, SLA breached, Mine, Unassigned, Resolved and All. Active cases are sorted with breached ones first, then by priority, then oldest first.'],
+  ['SLA label','Each active case shows how long until a reply is due, then until it must be resolved, or how overdue it is. Waiting pauses the clock, because you are waiting on the customer. Resolved cases show whether they met the deadline.'],
+  ['Card buttons','Take it assigns the case to you. Assign sets someone by email. Escalate raises the priority one step and moves it to the escalation contact (up to two levels). Details opens the full case. Edit and Delete do what they say.'],
+  ['Details window','Shows the customer, owner, the routing rule used and the full history. Log reply sent records your first response and stops the reply timer, but it does not send an email. Add internal note saves a note for the team. Replies and notes also count toward productivity.'],
+  ['Rules & SLA','Opens from the Cases tab. Set the reply, resolve and re-escalate times for each priority and who gets escalations. Routing rules run when a case is created: the first matching rule from the top sets the priority and owner. A rule matches on channel and keywords, can be moved up, paused, edited or deleted. A rule only raises priority if you left it on Normal, and only assigns if nobody was chosen. New times apply to new cases.'],
+  ['Automatic escalation','While anyone has the CRM open, overdue cases are checked every minute and escalated automatically.']]},
+ {id:'chat',t:'Chat',lead:'Messaging for everyone with CRM access.',items:[
+  ['Team chat and direct messages','Team chat is seen by everyone with access. Direct messages are private between you and one teammate. Pick someone from the list on the left (or Message on the Members tab). On a phone, Back returns to the list.'],
+  ['Sending','Press Enter to send on a computer, Shift+Enter for a new line. Drafts are kept per conversation. You can delete your own messages. Email opens your mail app for that teammate.'],
+  ['Unread','A badge on the tab and a count beside each person show unread messages. New messages arrive live without refreshing.']]},
+ {id:'clients',t:'Clients',lead:'The people and companies you work with.',items:[
+  ['Client cards','Name, company, contact details, notes, and counts of linked inquiries and open tasks.'],
+  ['Actions','Add client, Edit, Delete and Add task (creates a task already linked to that client). Deleting a client keeps their inquiries and tasks but unlinks them.']]},
+ {id:'tasks',t:'Tasks',lead:'Follow-ups and to-dos.',items:[
+  ['Working with tasks','Tick the box to mark a task done. Filters: Open, Done, My tasks and All. Tasks have a title, due date, priority (low, normal, high) and an optional client. Due dates show "Due today" or "Overdue" in colour.'],
+  ['Assigning','Admins can assign a task to any member. Staff can only assign to themselves. Assignments are remembered in the browser you are using, so they may not appear on another computer.'],
+  ['Approval','For staff, adding and deleting tasks go to the admin as requests. Ticking a task done and editing do not need approval. Tasks you complete count toward productivity.']]},
+ {id:'productivity',t:'Productivity',lead:'Your daily percentage score and graph.',items:[
+  ['The graph','Bars show your score for each day over 7 or 30 days. Green means at or above the pass mark, red means below. The dashed line is the pass mark. Hover a bar to see hours and actions. A lighter bar is today, still in progress.'],
+  ['How the score works','Each day is 60% active time (hours on Active status against the daily hours target) plus 40% output (tasks done, cases resolved, replies and notes, and chat messages against the daily actions target). Weekends only count if you worked. The average leaves out today until it finishes.'],
+  ['Passing','You are Passing when your average is at or above the pass mark.'],
+  ['Admins only','A person picker and "View graph" buttons show anyone\'s graph. The Team results table ranks everyone. The Pass mark card sets the passing percentage, the daily hours target and the daily actions target for everybody.']]},
+ {id:'team',t:'Team',admin:true,lead:'Live view of what everyone is doing.',items:[
+  ['Right now','Counts of who is Active, in a meeting, on lunch, out of office or not checked in, and a card for each person with their status, how long they have been in it and today\'s totals.'],
+  ['Productivity table','Choose Today, 7 days or 30 days to see each person\'s time per status, tasks done, cases resolved, replies and notes, and chat messages sent. Status times are self-reported.']]},
+ {id:'members',t:'Members and access',lead:'Who can sign in.',items:[
+  ['Everyone','See who has access, their level and whether they are active, and send a message.'],
+  ['Admins','Add member needs a name and the exact email they will sign in with. Change access switches between Admin, Executive and Staff. Pause access blocks someone without deleting them, Restore access brings them back, and Remove deletes them. The owner account cannot be changed or removed.']]}
+];
+function openManual(){
+  const adm=isAdmin;
+  const secs=MANUAL.filter(x=>!x.admin||adm);
+  const body=h('div'),toc=h('div',{class:'man-toc'});
+  const srch=h('input',{type:'text',placeholder:'Search the manual…','aria-label':'Search the manual'});
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)};
+  const esc=e=>{if(e.key==='Escape')close()};
+  const goTo=id=>{const el=body.querySelector('#man_'+id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})};
+  function paint(){
+    const t=srch.value.trim().toLowerCase();
+    const out=[];
+    secs.forEach(sec=>{
+      const items=sec.items.filter(([a,b])=>!t||(sec.t+' '+a+' '+b).toLowerCase().includes(t));
+      if(!items.length)return;
+      const dl=h('dl');items.forEach(([a,b])=>{dl.append(h('dt',{text:a}),h('dd',{text:b}))});
+      const sc=h('section',{class:'man-sec',id:'man_'+sec.id},
+        h('h3',{},sec.t,sec.admin?h('span',{class:'man-tag',text:'Admin only'}):null),
+        h('p',{class:'lead',text:sec.lead}),dl);
+      out.push(sc);
+    });
+    body.replaceChildren(...(out.length?out:[h('div',{class:'man-empty',text:'Nothing matches "'+srch.value.trim()+'".'})]));
+  }
+  secs.forEach(sec=>toc.append(h('button',{class:'chip',type:'button',text:sec.t,onclick:()=>{srch.value='';paint();goTo(sec.id)}})));
+  srch.addEventListener('input',paint);
+  const scrim=h('div',{class:'scrim',onclick:e=>{if(e.target===scrim)close()}},
+    h('div',{class:'modal wide',role:'dialog','aria-modal':'true','aria-label':'Orchid CRM manual'},
+      h('h2',{text:'Orchid CRM manual'}),
+      h('p',{class:'hint',text:'Everything the CRM can do, by tab. '+(adm?'You are an admin, so admin-only parts are included.':'Parts that only admins can use are left out.')}),
+      srch,toc,body,
+      h('div',{class:'row'},h('button',{class:'btn ghost',text:'Close',onclick:close}))));
+  document.body.append(scrim);document.addEventListener('keydown',esc);paint();srch.focus();
+}
+
 function appView(){
   const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['approvals',isAdmin?'Approvals':'My requests',isAdmin?pendingCount():0],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['tasks','Tasks',tasks.filter(t=>!t.done).length],['productivity','Productivity'],...(isAdmin?[['team','Team']]:[]),['members','Members',members.length]];
   const body=view==='chat'?chatView():view==='approvals'?approvalsView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():view==='team'&&isAdmin?teamView():view==='productivity'?productivityView():overview();
@@ -2192,7 +2290,7 @@ function appView(){
       h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'CRM'})),
       h('span',{class:'sp'}),
       h('span',{class:'muted',style:'font-size:.82rem',text:me.email}),h('span',{class:'pill role-'+myRole,style:'margin-left:0',text:ROLES[myRole].l}),
-      h('button',{class:'btn ghost sm',text:'Apps',onclick:home}),
+      h('button',{class:'btn ghost sm',text:'Manual',onclick:openManual}),h('button',{class:'btn ghost sm',text:'Apps',onclick:home}),
       h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
     h('div',{class:'shell'},
       h('aside',{class:'side'},h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',id:'tab_'+k,role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0);if(k==='chat')pollChat();if(k==='approvals')syncApprovals()}},ico(k),t,n?h('span',{class:'n',text:String(n)}):null)))),
