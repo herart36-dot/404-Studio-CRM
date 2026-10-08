@@ -96,6 +96,36 @@ audio{width:100%;height:38px;margin-top:10px}
 .cmin{display:flex;gap:8px;align-items:center}.cmin .av{width:32px;height:32px;font-size:.7rem}.cmin input{flex:1;border-radius:999px}.cmin .btn{padding:8px 16px}
 @media(min-width:1100px){body.fb .tabs,body.fb main{width:min(1180px,calc(100% - 32px))}}
 @media(max-width:999px){.fbgrid{display:block}.fbside{display:none}}
+
+/* ---- v3 design: sticky glass header, centred tabs, Instagram/Facebook feel, motion ---- */
+.top{position:sticky;top:0;z-index:30;background:rgba(244,246,253,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line);transition:box-shadow .25s}
+.srlbl{display:none;font-weight:700}
+@media(min-width:1100px){
+  .srlbl{display:inline}
+  .tabs{position:fixed;top:calc(9px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:40;width:420px;height:54px;margin:0;padding:6px;border-radius:22px}
+  .tab{height:42px;border-radius:17px}
+  body.fb .tabs{width:420px}
+  .fbside{top:84px}
+}
+.card{transition:transform .22s ease,box-shadow .22s ease}
+.fbfeed>.card:hover,.fbside .card:hover{transform:translateY(-2px);box-shadow:0 16px 48px rgba(60,70,140,.16)}
+.ringcard{display:flex;gap:16px;overflow-x:auto;padding:14px 16px;scrollbar-width:none}.ringcard::-webkit-scrollbar{display:none}
+.ringbtn{border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;flex:none;width:68px;transition:transform .18s}.ringbtn:hover{transform:scale(1.07)}.ringbtn:active{transform:scale(.95)}
+.ringav{padding:3px;border-radius:50%;background:#d6dbe8}.ringav.has{background:conic-gradient(from 200deg,#f97316,#ec4899,#8b5cf6,#f97316)}.ringav .av{width:54px;height:54px;font-size:.95rem;border:3px solid #fff}
+.ringname{font-size:.74rem;font-weight:600;max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fbnav{position:relative;transition:background .18s,padding-left .18s}.fbnav:hover{padding-left:18px}.fbnav.on{background:rgba(124,58,237,.12);color:var(--brand)}.fbnav.on:before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:4px;background:var(--grad)}
+.rx{transition:transform .15s,background .15s}.rx:active{transform:scale(.9)}
+.storyimg{cursor:pointer;transition:transform .35s ease}.storyimg:hover{transform:scale(1.01)}
+.cmbox{animation:slidedn .28s ease}@keyframes slidedn{from{opacity:0;transform:translateY(-8px)}}
+.cm{animation:slidedn .3s ease both}
+.av{transition:transform .18s}.row[onclick]:hover .av,.fbmem:hover .av{transform:scale(1.08)}
+@keyframes rise{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+body.enter main>div>*,body.enter .fbfeed>.card{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+body.enter .fbfeed>.card:nth-child(2){animation-delay:.05s}body.enter .fbfeed>.card:nth-child(3){animation-delay:.1s}body.enter .fbfeed>.card:nth-child(4){animation-delay:.15s}body.enter .fbfeed>.card:nth-child(n+5){animation-delay:.2s}
+body.enter .fbside .card{animation:fadein .6s .1s both}
+body.enter .top{animation:fadein .5s both}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -251,8 +281,13 @@ function commentBox(p){
     h('div',{class:'cmin'},avEl(me.id),input,h('button',{class:'btn primary',text:'Send',onclick:()=>addComment(p,input)})));
 }
 const goView=k=>{view=k;editing=false;window.scrollTo(0,0);render()};
+function ringStrip(){
+  const ids=[me.id,...Object.values(profs).filter(x=>x.id!==me.id).map(x=>x.id)].slice(0,16);
+  return h('div',{class:'card ringcard'},ids.map(id=>h('button',{class:'ringbtn',onclick:()=>openProfile(id),'aria-label':'Open '+(id===me.id?'your':nm(id)+"'s")+' profile'},
+    h('div',{class:'ringav'+(posts.some(p=>p.author_id===id)?' has':'')},avEl(id)),h('span',{class:'ringname',text:id===me.id?'You':nm(id).split(' ')[0]}))));
+}
 function leftNav(){
-  const it=(label,fn)=>h('button',{class:'fbnav',text:label,onclick:fn});
+  const cur={Feed:'posts',Chat:'messages',Notifications:'notif',Pals:'pals'};const it=(label,fn)=>h('button',{class:'fbnav'+(cur[label]===view?' on':''),text:label,onclick:fn});
   return h('aside',{class:'fbside'},h('div',{class:'card'},
     h('div',{class:'row',style:'cursor:pointer;margin-bottom:8px',onclick:()=>openProfile(me.id)},avEl(me.id),h('b',{text:me.name})),
     it('Feed',()=>goView('posts')),it('Chat',()=>goView('messages')),it('Notifications',()=>goView('notif')),it('Pals',()=>goView('pals')),it('Search people',openSearch),it('My profile',()=>openProfile(me.id))));
@@ -269,7 +304,7 @@ function postCard(p){
   return h('div',{class:'card'},
     h('div',{class:'row'},h('div',{class:'row sp',style:'cursor:pointer',onclick:()=>openProfile(p.author_id)},avEl(p.author_id),h('div',{},h('b',{text:mine?me.name:nm(p.author_id)}),h('div',{class:'muted',text:ago(p.created_at)}))),mine?h('button',{class:'btn ghost',title:'Delete story','aria-label':'Delete story',onclick:()=>delPost(p)},ic('trash')):null),
     p.body?h('p',{text:p.body,style:'margin:12px 0 0;white-space:pre-wrap'}):null,
-    p.image_path?(urls[p.image_path]?h('img',{class:'storyimg',src:urls[p.image_path],alt:'Story photo',loading:'lazy'}):h('div',{class:'muted',text:'Photo unavailable.'})):null,
+    p.image_path?(urls[p.image_path]?h('img',{class:'storyimg',src:urls[p.image_path],alt:'Story photo',loading:'lazy',title:'Double-click to love',ondblclick:ev=>{if(!rx.some(x=>x.post_id===p.id&&x.user_id===me.id&&x.kind==='heart'))react(p,'heart',ev.target,'heart')}}):h('div',{class:'muted',text:'Photo unavailable.'})):null,
     p.audio_path?(urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):h('div',{class:'muted',text:'Voice recording unavailable.'})):null,
     h('div',{class:'post-actions'},actions,h('span',{class:'sp'}),h('button',{class:'rx'+(openCm.has(p.id)?' on':''),onclick:()=>{openCm.has(p.id)?openCm.delete(p.id):openCm.add(p.id);render()}},'Comment'+(cms.some(c=>c.post_id===p.id)?' ('+cms.filter(c=>c.post_id===p.id).length+')':''))),
     openCm.has(p.id)?commentBox(p):null
@@ -281,7 +316,7 @@ function postsView(){
   const preview=draft.imageUrl?h('div',{class:'preview'},h('img',{src:draft.imageUrl,alt:'Selected photo'}),h('button',{class:'btn ghost',text:'Remove photo',onclick:()=>{clearDraftImage();render()}})):null;
   const voice=h('div',{class:'attach'},rec?h('div',{class:'rec'},h('span',{class:'dot'}),h('span',{text:'Recording…'}),h('button',{class:'btn ghost',text:'Stop',onclick:stopRec})):h('button',{class:'socialopt',onclick:startRec},ic('mic'),' Voice'),draft.blob?h('button',{class:'btn ghost',text:'Remove voice',onclick:()=>{clearDraftAudio();render()}}):null);
   const composer=h('div',{class:'card composer'},h('div',{class:'row'},avEl(me.id),h('b',{text:'Post your journal'}),h('span',{class:'muted',text:'· Shared with all Orchid members'})),h('div',{style:'margin-top:12px'},ta),preview,h('div',{class:'socialbar'},h('label',{class:'socialopt filebtn'},ic('photo'),' Photo',file),voice,h('button',{class:'socialopt',disabled:busy,onclick:publish},ic('send'),busy?' Posting…':' Post')));
-  return h('div',{class:'fbgrid'},leftNav(),h('div',{class:'fbfeed'},composer,posts.length?posts.map(postCard):h('div',{class:'empty',text:'No stories yet. Share the first one!'})),rightMembers());
+  return h('div',{class:'fbgrid'},leftNav(),h('div',{class:'fbfeed'},ringStrip(),composer,posts.length?posts.map(postCard):h('div',{class:'empty',text:'No stories yet. Share the first one!'})),rightMembers());
 }
 function messagesView(){
   const ids=acceptedIds();
@@ -442,9 +477,10 @@ function tabButton(k,label,inc){
 function appView(){
   const tabs=[['posts','Story'],['messages','Chat'],['notif','Notifications'],['pals','Pals'],['profile','Profile']];
   document.body.classList.toggle('fb',view==='posts');
+  if(window.__lastView!==view){window.__lastView=view;document.body.classList.add('enter');clearTimeout(window.__enterT);window.__enterT=setTimeout(()=>document.body.classList.remove('enter'),1100)}
   const v={posts:postsView,messages:messagesView,notif:notifView,pals:palsView,profile:profileView,search:searchView}[view]();
   return h('div',{},
-    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat'})),h('span',{class:'sp'}),h('button',{class:'btn ghost',title:'Search people','aria-label':'Search people',style:'padding:8px 12px;display:inline-flex',onclick:openSearch},ic('search',20)),h('div',{style:'cursor:pointer;display:flex;align-items:center;gap:8px',onclick:()=>openProfile(me.id)},avEl(me.id),h('span',{class:'muted',text:me.name})),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
+    h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat'})),h('span',{class:'sp'}),h('button',{class:'btn ghost',title:'Search people','aria-label':'Search people',style:'padding:8px 14px;display:inline-flex;gap:8px;align-items:center',onclick:openSearch},ic('search',20),h('span',{class:'srlbl',text:'Search'})),h('div',{style:'cursor:pointer;display:flex;align-items:center;gap:8px',onclick:()=>openProfile(me.id)},avEl(me.id),h('span',{class:'muted',text:me.name})),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
     h('nav',{class:'tabs'},tabs.map(([k,l])=>tabButton(k,l,unread(k)))),
     h('main',{},v));
 }
