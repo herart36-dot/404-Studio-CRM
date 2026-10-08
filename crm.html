@@ -68,6 +68,8 @@ main{max-width:1000px;margin:0 auto;padding:22px 18px 80px}
 .item .t{font-weight:600;overflow-wrap:anywhere}
 .item .s{color:var(--muted);font-size:.84rem;overflow-wrap:anywhere}
 .item .m{font-size:.9rem;margin-top:4px;overflow-wrap:anywhere;white-space:pre-wrap}
+.pill.gs{background:#e0f2fe;color:#075985}.gsq{margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);background:#f8fafc;font-size:.88rem}.gsq-h{font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}.gsq-r{display:flex;gap:10px;padding:3px 0;border-top:1px solid var(--line)}.gsq-r:first-of-type{border-top:0}.gsq-k{flex:0 0 110px;color:var(--muted)}.gsq-v{flex:1;font-weight:500;overflow-wrap:anywhere}
+
 .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .pill{display:inline-block;font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:6px;background:#e2e8f0;vertical-align:middle;margin-left:6px}
 .pill.new{background:#dbeafe;color:#1d4ed8}.pill.contacted{background:#fef3c7;color:#92400e}.pill.quoted{background:#ede9fe;color:#5b21b6}.pill.won{background:#d1fae5;color:#065f46}.pill.lost{background:#fee2e2;color:#991b1b}
@@ -1503,13 +1505,30 @@ function signal(i){
   if(i.status==='lost'&&idleDays(i)>=30)return h('span',{class:'pill cool',text:'Worth revisiting'});
   return null;
 }
+// Inquiries from the website Get started form carry their answers as "Label: value" lines; show them as labelled rows.
+function prefBlock(i){
+  const m=String(i.message||'');
+  if(!m)return null;
+  if(i.source!=='Get started form'||m.indexOf('Get started form')!==0)return h('div',{class:'m',text:m});
+  const rows=[],notes=[];let inNotes=false;
+  m.split('\n').slice(1).forEach(l=>{
+    if(inNotes){notes.push(l);return}
+    const k=l.indexOf(': ');
+    if(l.startsWith('Notes: ')){inNotes=true;notes.push(l.slice(7));return}
+    if(k>0)rows.push([l.slice(0,k),l.slice(k+2)]);
+  });
+  return h('div',{class:'gsq'},
+    h('div',{class:'gsq-h',text:'Get started answers'}),
+    rows.map(r=>h('div',{class:'gsq-r'},h('span',{class:'gsq-k',text:r[0]}),h('span',{class:'gsq-v',text:r[1]}))),
+    notes.join('\n').trim()?h('div',{class:'m',style:'margin-top:6px',text:notes.join('\n').trim()}):null);
+}
 function inquiryRow(i){
   const sel=h('select',{'aria-label':'Status for '+i.name,class:'sel-sm',onchange:e=>setStatus(i,e.target.value)},STATUSES.map(s=>h('option',{value:s,text:cap(s)})));
   sel.value=i.status;
   return h('div',{class:'card item acc c-'+(INQ_C[i.status]||'slate')},h('div',{class:'body'},
-    h('div',{class:'t'},i.name,h('span',{class:'pill '+i.status,text:cap(i.status)}),signal(i),pendingFor(i.id).length?h('span',{class:'pill contacted',text:'Awaiting approval'}):null),
+    h('div',{class:'t'},i.name,h('span',{class:'pill '+i.status,text:cap(i.status)}),i.source==='Get started form'?h('span',{class:'pill gs',text:'Get started'}):null,signal(i),pendingFor(i.id).length?h('span',{class:'pill contacted',text:'Awaiting approval'}):null),
     h('div',{class:'s',text:[i.email,i.phone,i.source,ago(i.created_at)].filter(Boolean).join(' · ')}),
-    i.message?h('div',{class:'m',text:i.message}):null,
+    prefBlock(i),
     i.client_id?h('div',{class:'s',style:'margin-top:4px',text:'Client: '+clientName(i.client_id)}):null,
     h('div',{class:'acts'},sel,
       isActive(i)?h('button',{class:'btn ghost sm',text:'Log a touch',onclick:()=>logTouch(i)}):null,
