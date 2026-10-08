@@ -59,15 +59,22 @@ main.wide{max-width:none;margin:0}
 .ck{display:flex;gap:8px;align-items:flex-start;padding:4px 0;cursor:pointer}.ck input{width:18px;height:18px;margin:3px 0 0;padding:0;flex:none;accent-color:var(--brand)}.ck.d span{text-decoration:line-through;color:var(--muted)}
 .pill.rec{background:#ede9fe;color:#5b21b6}.pill.off{background:#f1f5f9;color:#475569}
 .sync{font-size:.78rem;color:var(--muted);white-space:nowrap}
-.aibox{display:flex;flex-direction:column;gap:12px}
-.ailog{min-height:300px;max-height:56vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:2px}
-.aim{max-width:86%;padding:10px 14px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.92rem}
-.aim.user{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}
-.aim.assistant{align-self:flex-start;background:#f5f6f8;border-bottom-left-radius:4px}
-.aim.err{background:#fee2e2;color:#991b1b}.aim.think{color:var(--muted);font-style:italic}.aim .acts{margin-top:8px}
-.aisug{display:flex;gap:6px;flex-wrap:wrap}.aiin{display:flex;gap:8px;align-items:flex-end}.aiin textarea{min-height:44px;height:44px;flex:1}
-.pill.ai{background:linear-gradient(135deg,#0073ea,#7c4dff);color:#fff;margin-left:0}
-.aifoot{text-align:center;font-size:.76rem;color:var(--muted)}
+.fab{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:50%;border:0;cursor:pointer;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#0073ea,#7c4dff);box-shadow:0 8px 22px rgba(124,77,255,.42);z-index:40;transition:transform .15s}
+.fab:hover{transform:scale(1.07)}.fab svg{width:26px;height:26px;fill:#fff}
+.aipanel{position:fixed;right:20px;bottom:calc(88px + env(safe-area-inset-bottom,0px));width:380px;max-width:calc(100vw - 24px);height:min(580px,calc(100vh - 120px));background:#fff;border:1.5px solid #7c4dff;border-radius:18px;box-shadow:0 18px 50px rgba(50,51,56,.28);z-index:45;display:flex;flex-direction:column;overflow:hidden}
+.aihd{display:flex;align-items:center;gap:10px;padding:12px 14px;color:#fff;background:linear-gradient(135deg,#0073ea,#7c4dff)}
+.aihd .ic{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.2);display:grid;place-items:center;flex:none}.aihd .ic svg{width:20px;height:20px;fill:#fff}
+.aihd b{display:block;line-height:1.2}.aihd small{opacity:.9;font-size:.74rem;font-weight:500}
+.aihd button{border:0;background:rgba(255,255,255,.18);color:#fff;border-radius:8px;padding:5px 10px;font-size:.78rem;font-weight:500;cursor:pointer}.aihd button:hover{background:rgba(255,255,255,.3)}
+.ailog{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:14px;background:#faf9ff}
+.aim{max-width:88%;padding:9px 13px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.9rem}
+.aim.user{align-self:flex-end;background:linear-gradient(135deg,#0073ea,#7c4dff);color:#fff;border-bottom-right-radius:4px}
+.aim.assistant{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.aim.err{background:#fee2e2;color:#991b1b;border-color:#fecaca}.aim.think{color:var(--muted);font-style:italic}.aim .acts{margin-top:8px}
+.aisug{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 10px;background:#faf9ff}.aisug .chip{font-size:.76rem;padding:4px 10px;border-color:#d9ccff;color:#5b3fd1}
+.aiin{display:flex;gap:8px;align-items:flex-end;padding:10px 12px;border-top:1px solid var(--line);background:#fff}.aiin textarea{min-height:42px;height:42px;max-height:100px;flex:1;border-radius:10px}
+.aiin .btn{background:linear-gradient(135deg,#0073ea,#7c4dff);color:#fff}.aiin .btn:disabled{opacity:.5;cursor:default}
+@media(max-width:600px){.aipanel{right:12px;left:12px;width:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px))}.fab{right:14px}}
 @media(max-width:900px){.kcol{flex-basis:80vw;max-width:80vw}}
 </style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><div id="app"></div>
 <script>
@@ -369,19 +376,24 @@ async function askAI(text){text=String(text||'').trim();if(AI.busy||!text)return
   AI.msgs.push({role:'assistant',text:r.data.reply});
  }catch(e){AI.msgs.push({role:'assistant',text:e.message||'Something went wrong.',err:true})}
  AI.busy=false;paintAI()}
-function aiV(){
- const inp=h('textarea',{placeholder:'Ask about your clients, tasks or invoices, or ask for a draft\u2026','aria-label':'Message'});
+function mountAI(){
+ const SP='<svg viewBox="0 0 24 24"><path d="M12 2l2.2 6.3L20.5 10.5l-6.3 2.2L12 19l-2.2-6.3L3.5 10.5l6.3-2.2z"/><path d="M19 15l.9 2.5 2.5.9-2.5.9-.9 2.5-.9-2.5-2.5-.9 2.5-.9z"/></svg>';
+ const ic=()=>{const e=h('span',{class:'ic'});e.innerHTML=SP;return e};
+ const inp=h('textarea',{placeholder:'Ask about your work or request a draft\u2026','aria-label':'Message'});
  const go=()=>{const v=inp.value;if(!v.trim())return;inp.value='';askAI(v)};
  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();go()}});
- const sug=['What should I do first today?','Which invoices are unpaid? Draft a polite reminder.','Summarize my hours this week','Draft a weekly update for a client'];
- const out=[bar('Ask AI',h('span',{class:'pill ai',text:'Powered by AI'}),AI.msgs.length?B('New chat',()=>{AI.msgs=[];paintAI()}):null),
-  h('div',{class:'card aibox'},h('div',{id:'ailog',class:'ailog',role:'log','aria-live':'polite'}),
-   h('div',{class:'aisug'},sug.map(x=>h('button',{class:'chip',text:x,onclick:()=>askAI(x)}))),
-   h('div',{class:'aiin'},inp,h('button',{class:'btn blue',id:'aisend',text:'Send',onclick:go}))),
-  h('div',{class:'aifoot',text:'Powered by AI \u00b7 It can make mistakes, so check drafts before sending.'})];
- setTimeout(paintAI);return out}
-const NAV=[['today','Today'],['clients','Clients'],['tasks','Tasks'],['boards','Boards'],['recur','Recurring'],['ttpl','Task templates'],['time','Time tracker'],['invoices','Invoices'],['schedule','Schedule'],['templates','Reply templates'],['ai','Ask AI']];
-const V={ai:aiV,boards:boardsV,recur:recV,ttpl:ttV,today:todayV,clients:clientsV,tasks:tasksV,time:timeV,invoices:invV,schedule:schedV,templates:tplV};
+ const sug=['What should I do first today?','Draft a reminder for unpaid invoices','Summarize my hours this week','Draft a weekly client update'];
+ const panel=h('div',{class:'aipanel',id:'aipanel',hidden:true,role:'dialog','aria-label':'Ask AI'},
+  h('div',{class:'aihd'},ic(),h('div',{class:'sp'},h('b',{text:'Ask Ally'}),h('small',{text:'Powered by AI'})),
+   h('button',{text:'New chat',onclick:()=>{AI.msgs=[];paintAI()}}),h('button',{text:'\u2715','aria-label':'Close',onclick:()=>{panel.hidden=true}})),
+  h('div',{id:'ailog',class:'ailog',role:'log','aria-live':'polite'}),
+  h('div',{class:'aisug'},sug.map(x=>h('button',{class:'chip',text:x,onclick:()=>askAI(x)}))),
+  h('div',{class:'aiin'},inp,h('button',{class:'btn',id:'aisend',text:'Send',onclick:go})));
+ const fab=h('button',{class:'fab',id:'aifab',title:'Ask AI','aria-label':'Ask AI',hidden:true,onclick:()=>{panel.hidden=!panel.hidden;if(!panel.hidden){paintAI();inp.focus()}}});
+ fab.innerHTML=SP;document.body.append(panel,fab)}
+const syncAI=()=>{const f=$('#aifab'),p=$('#aipanel');if(f)f.hidden=!S.user;if(!S.user&&p)p.hidden=true};
+const NAV=[['today','Today'],['clients','Clients'],['tasks','Tasks'],['boards','Boards'],['recur','Recurring'],['ttpl','Task templates'],['time','Time tracker'],['invoices','Invoices'],['schedule','Schedule'],['templates','Reply templates']];
+const V={boards:boardsV,recur:recV,ttpl:ttV,today:todayV,clients:clientsV,tasks:tasksV,time:timeV,invoices:invV,schedule:schedV,templates:tplV};
 const badge=k=>k==='tasks'?sorted().length:k==='invoices'?S.invoices.filter(i=>!i.paid).length:0;
 function shell(){return h('div',{},h('header',{class:'top'},wm(),h('span',{class:'sp'}),
  S.timer?h('button',{class:'btn ghost sm',onclick:stopTimer,title:'Stop timer'},h('span',{class:'tm',text:clk(Date.now()-S.timer.start),style:'font-variant-numeric:tabular-nums'}),' Stop'):null,
@@ -390,8 +402,8 @@ function shell(){return h('div',{},h('header',{class:'top'},wm(),h('span',{class
 function login(){const n=h('input',{placeholder:'Your name',autofocus:true,value:(()=>{try{const e=localStorage.getItem('orchid_ally_hint')||'';return e.split('@')[0].replace(/[._-]+/g,' ').replace(/\d+/g,'').trim().replace(/\b\w/g,c=>c.toUpperCase())}catch(x){return ''}})()}),go=()=>{if(!n.value.trim())return n.focus();S.user=n.value.trim();save();render()};n.addEventListener('keydown',e=>e.key==='Enter'&&go());
  const lg=h('div',{class:'wm'});lg.innerHTML=LOGO+'<span><em>Ally</em></span>';
  return h('div',{class:'login'},h('div',{class:'card'},lg,h('h1',{text:'Your virtual assistant workspace',style:'font-size:1.3rem;margin:18px 0 6px'}),h('p',{text:'Clients, tasks, time, invoices and replies in one calm place.'}),h('label',{class:'f',style:'text-align:left',text:'What should we call you?'},n),h('button',{class:'btn blue',style:'width:100%;margin-top:16px',text:'Open workspace',onclick:go}),h('a',{href:'index.html',class:'muted',style:'display:block;margin-top:14px;font-size:.85rem',text:'\u2190 Back to Orchid apps'})))}
-function render(){const y=scrollY;$('#app').replaceChildren(S.user?shell():login());scrollTo(0,y)}
-render();
+function render(){const y=scrollY;$('#app').replaceChildren(S.user?shell():login());scrollTo(0,y);syncAI()}
+mountAI();render();
 pull().finally(runRecurring);
 setInterval(runRecurring,600000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull().finally(runRecurring)});
