@@ -1215,7 +1215,7 @@ const out=()=>{if(out.done)return;out.done=true;leaving=true;const f=location.pa
 const STATUSES=['new','contacted','quoted','won','lost'];
 const PRIORITIES=['low','normal','high'];
 
-let me=null,clients=[],inquiries=[],tasks=[],members=[],staff=[],isAdmin=false,myRole='staff',staffErr=false;
+let me=null,clients=[],inquiries=[],tasks=[],members=[],staff=[],isAdmin=false,myRole='staff',staffErr=false,appAccess={};
 const ADMIN_EMAIL='keandonato@404studio.click';
 /* ---- access levels (stored in crm_staff.role; enforced in Supabase by crm_role()/crm_is_admin()/crm_is_executive()) ---- */
 const ROLES={
@@ -1263,6 +1263,7 @@ async function loadAll(){
   try{
     const [st,ad,rl]=await Promise.all([sb.from('crm_staff').select('*').order('created_at',{ascending:true}),sb.rpc('crm_is_admin'),sb.rpc('crm_role')]);
     staffErr=!!st.error;staff=(st.data||[]).map(x=>({...x,role:roleOf(x.role)}));isAdmin=ad.data===true;myRole=roleOf(rl.data||(isAdmin?'admin':'staff'));
+    appAccess={};if(isAdmin){const al=await sb.rpc('orchid_access_list');(al.data||[]).forEach(r=>{appAccess[String(r.email||'').toLowerCase()]=r.apps||[]})}
   }catch(e){console.error(e);staffErr=true;staff=[];isAdmin=false}
   members=[{name:'Admin',email:ADMIN_EMAIL,role:'admin'},...staff.filter(x=>x.active).map(x=>({name:x.name||x.email,email:x.email,role:x.role}))];
 }
@@ -1930,10 +1931,37 @@ function clientsView(){
     h('div',{class:'bar'},searchBar('Search clients'),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'Add client',onclick:addClient})),
     list.length?h('div',{class:'list'},list.map(row)):empty(clients.length?'No matches':'No clients yet',clients.length?'Try a different search.':'Add a client, or turn an inquiry into one.',clients.length?null:h('button',{class:'btn blue',text:'Add client',onclick:addClient})));
 }
+/* ---- which Orchid apps each person can open after login (stored in orchid_app_access; Pals is always on) ---- */
+const ORCHID_APPS=[['crm','CRM'],['solo','Solopreneur'],['ally','Ally'],['uni','University']];
+const appPills=email=>{const a=appAccess[String(email||'').toLowerCase()]||[];return h('div',{style:'display:flex;gap:6px;flex-wrap:wrap;margin-top:8px'},
+  ...ORCHID_APPS.filter(x=>a.includes(x[0])).map(x=>h('span',{class:'pill role-staff',text:x[1]})),h('span',{class:'pill closed',text:'Pals'}))};
+function editApps(m){
+  const email=String(m.email||'').toLowerCase(),have=appAccess[email]||[],boxes={};
+  const rows=[['solo','Orchid Solopreneur','Leads, customers and jobs for small business'],['ally','Orchid Ally','Clients, time and invoices for virtual assistants'],['uni','Orchid University','Courses, modules and grades']].map(a=>{
+    const cb=h('input',{type:'checkbox',class:'chk',id:'oa_'+a[0]});cb.checked=have.includes(a[0]);boxes[a[0]]=cb;
+    return h('label',{class:'f',for:'oa_'+a[0],style:'display:flex;gap:12px;align-items:flex-start;cursor:pointer'},cb,h('span',{},h('b',{text:a[1]}),h('div',{class:'muted',style:'font-weight:400;font-size:.82rem',text:a[2]})))});
+  const err=h('div',{class:'err',role:'alert'});
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)};
+  const esc=e=>{if(e.key==='Escape')close()};
+  const save=h('button',{class:'btn blue',text:'Save apps',onclick:async()=>{
+    save.disabled=true;let changed=0;
+    try{for(const k of Object.keys(boxes)){if(boxes[k].checked===have.includes(k))continue;
+      const r=await sb.rpc('orchid_access_set',{p_email:email,p_app:k,p_on:boxes[k].checked});
+      if(r.error){err.textContent=r.error.message;await run(Promise.resolve({}));return}changed++}
+      close();await run(Promise.resolve({}),changed?'Apps updated for '+(m.name||m.email)+'. They see the change next time they log in.':'No change.')}
+    finally{save.disabled=false}}});
+  const scrim=h('div',{class:'scrim',onclick:e=>{if(e.target===scrim)close()}},
+    h('div',{class:'modal',role:'dialog','aria-modal':'true','aria-label':'Orchid apps for '+(m.name||m.email)},
+      h('h2',{text:'Orchid apps for '+(m.name||m.email)}),
+      h('div',{class:'muted',style:'font-size:.85rem;margin-top:2px',text:'CRM comes from being a member here. Orchid Pals is always on. Tick any other app this person may open.'}),
+      ...rows,err,h('div',{class:'row'},h('button',{class:'btn ghost',text:'Cancel',onclick:close}),save)));
+  document.body.append(scrim);document.addEventListener('keydown',esc);
+}
 function membersView(){
   const ownerRow=h('div',{class:'card item acc c-violet'},h('div',{class:'body'},
     h('div',{class:'t'},document.createTextNode('Admin'),h('span',{class:'pill role-admin',text:'Admin'}),h('span',{class:'pill closed',text:'Owner'})),
     h('div',{class:'s',text:ADMIN_EMAIL}),
+    h('div',{class:'row',style:'display:flex;gap:6px;flex-wrap:wrap;margin-top:8px'},ORCHID_APPS.map(a=>h('span',{class:'pill role-staff',text:a[1]}))),
     h('div',{class:'muted',style:'font-size:.78rem;margin-top:4px',text:'Owner account. Always has full access and cannot be changed or removed.'}),
     isMe(ADMIN_EMAIL)?null:h('div',{class:'acts'},msgBtn(ADMIN_EMAIL))
   ));
@@ -1943,9 +1971,11 @@ function membersView(){
       h('div',{class:'t'},document.createTextNode(m.name||m.email),h('span',{class:'pill role-'+r,text:ROLES[r].l}),h('span',{class:'pill '+(m.active?'won':'closed'),text:m.active?'Active':'Paused'})),
       h('div',{class:'s',text:m.email}),
       h('div',{class:'muted',style:'font-size:.78rem;margin-top:4px',text:ROLES[r].d+(m.created_at?' · added '+fmtDate(String(m.created_at).slice(0,10)):'')}),
+      isAdmin?appPills(m.email):null,
       (isAdmin||(m.active&&!self))?h('div',{class:'acts'},
         m.active&&!self?msgBtn(m.email):null,
         isAdmin&&!self?h('button',{class:'btn ghost sm',text:'Change access',onclick:()=>changeAccess(m)}):null,
+        isAdmin&&!self?h('button',{class:'btn ghost sm',text:'Orchid apps',onclick:()=>editApps(m)}):null,
         isAdmin&&!self?h('button',{class:'btn ghost sm',text:m.active?'Pause access':'Restore access',onclick:()=>toggleStaff(m)}):null,
         isAdmin&&!self?h('button',{class:'btn ghost sm danger',text:'Remove',onclick:()=>removeStaff(m)}):null
       ):null
