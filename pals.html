@@ -126,6 +126,30 @@ body.enter .fbfeed>.card:nth-child(2){animation-delay:.05s}body.enter .fbfeed>.c
 body.enter .fbside .card{animation:fadein .6s .1s both}
 body.enter .top{animation:fadein .5s both}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+.ringwrap{position:relative;flex:none;width:68px}.ringwrap .ringbtn{width:68px}.ringav.seen{background:#b8b4d6}
+.ringplus{position:absolute;top:38px;left:42px;width:24px;height:24px;border-radius:50%;border:2px solid #fff;background:var(--brand);color:#fff;font-weight:800;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;font-size:1rem}
+.stscrim{position:fixed;inset:0;z-index:150;background:rgba(15,12,35,.55);display:grid;place-items:center;padding:16px;overflow:auto}
+.stcomp{background:#fff;border-radius:24px;padding:22px;width:min(440px,100%);box-shadow:0 30px 80px rgba(0,0,0,.35)}
+.stcomp h2{margin:0 0 2px;font-size:1.2rem}.stcomp .tabsm{display:flex;gap:8px;margin:14px 0}
+.stcomp .tabsm .btn{flex:1}.stcomp .tabsm .btn[aria-pressed=true]{background:var(--dark);color:#fff;border-color:var(--dark)}
+.stpick{display:grid;place-items:center;min-height:240px;border:2px dashed #cbd5e1;border-radius:18px;background:#f8fafc;cursor:pointer;width:100%;color:var(--muted);font-weight:700}
+.stprev{width:100%;max-height:340px;object-fit:contain;border-radius:18px;background:#0b0a16;display:block}
+.sttextbox{border-radius:18px;padding:18px;min-height:240px;display:grid;place-items:center}.sttextbox textarea{background:transparent;border:0;color:#fff;text-align:center;font-weight:800;font-size:1.35rem;min-height:200px;resize:none}.sttextbox textarea::placeholder{color:rgba(255,255,255,.7)}
+.swatches{display:flex;gap:10px;margin:12px 0}.sw{width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #cbd5e1;cursor:pointer;padding:0}.sw[aria-pressed=true]{box-shadow:0 0 0 3px var(--brand)}
+.stov{position:fixed;inset:0;z-index:200;background:#0b0a16;display:flex;justify-content:center}
+.stbox{position:relative;width:min(460px,100%);height:100%;max-height:960px;background:#000;overflow:hidden;display:grid;place-items:center}
+.stimg{width:100%;height:100%;object-fit:contain}.sttxt{width:100%;height:100%;display:grid;place-items:center;padding:36px;text-align:center;color:#fff;font-weight:800;font-size:clamp(1.4rem,5vw,2rem);overflow-wrap:anywhere;white-space:pre-wrap}
+.stbars{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:12px;right:12px;display:flex;gap:4px;z-index:3}
+.stbar{flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.35);overflow:hidden}.stbar i{display:block;height:100%;width:0;background:#fff}
+.stbar.done i{width:100%}.stbar.cur i{animation:stfill 5s linear forwards}.stbar.pause i{animation-play-state:paused}@keyframes stfill{to{width:100%}}
+.sthead{position:absolute;top:calc(22px + env(safe-area-inset-top,0px));left:12px;right:12px;z-index:4;display:flex;align-items:center;gap:10px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.sthead .av{width:36px;height:36px}.sthead small{display:block;opacity:.85;font-size:.75rem}
+.stx{background:rgba(0,0,0,.35);border:0;color:#fff;width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer}
+.sttap{position:absolute;top:70px;bottom:90px;width:40%;border:0;background:transparent;z-index:2;cursor:pointer}.sttap.l{left:0}.sttap.r{right:0}
+.stfoot{position:absolute;left:0;right:0;bottom:0;z-index:4;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff}
+.stcap{margin:0 0 10px;font-weight:600;overflow-wrap:anywhere;white-space:pre-wrap;text-align:center}
+.stacts{display:flex;gap:10px;justify-content:center}.stacts .btn{background:rgba(255,255,255,.18);color:#fff;border:0}
+.stviews{background:#fff;color:var(--ink);border-radius:16px;padding:12px;margin-bottom:10px;max-height:34vh;overflow:auto}.stviews .row{margin:6px 0;font-weight:600;font-size:.9rem}.stviews .av{width:30px;height:30px;font-size:.7rem}
 </style>
 </head>
 <body>
@@ -196,7 +220,7 @@ async function loadPosts(){
 }
 async function loadMsgs(){const {data,error}=await sb.from('messages').select('*').order('created_at',{ascending:true}).limit(500);if(error)throw error;const ch=data.length!==msgs.length;msgs=data;return ch}
 async function loadInvites(){if(!isAdmin)return;const {data}=await sb.from('approved_emails').select('email,is_admin').order('created_at');invites=data||[]}
-async function loadAll(){await loadPeople();await Promise.all([loadPosts(),loadMsgs(),loadInvites()])}
+async function loadAll(){await loadPeople();await Promise.all([loadPosts(),loadMsgs(),loadInvites(),loadStories()])}
 
 /* ---------- voice ---------- */
 async function startRec(){
@@ -281,10 +305,100 @@ function commentBox(p){
     h('div',{class:'cmin'},avEl(me.id),input,h('button',{class:'btn primary',text:'Send',onclick:()=>addComment(p,input)})));
 }
 const goView=k=>{view=k;editing=false;window.scrollTo(0,0);render()};
+/* ---------- stories: photo or text, gone after 24 hours ---------- */
+let stories=[],sviews=[];
+const BGS=['#7c3aed','#db2777','#ea580c','#059669','#0284c7','#1b1a2e'];
+async function loadStories(){
+  try{
+    const [a,v]=await Promise.all([sb.from('stories').select('*').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:true}),sb.from('story_views').select('story_id,viewer_id')]);
+    if(a.error)throw a.error;
+    const ip=(a.data||[]).filter(x=>x.image_path&&!urls[x.image_path]).map(x=>x.image_path);
+    if(ip.length){const {data,error}=await sb.storage.from('images').createSignedUrls(ip,3600);if(!error)(data||[]).forEach(d=>{if(d.signedUrl)urls[d.path]=d.signedUrl})}
+    stories=a.data||[];sviews=v.error?[]:(v.data||[]);
+  }catch(e){console.error(e)}
+}
+const storiesOf=id=>stories.filter(x=>x.author_id===id&&new Date(x.expires_at)>Date.now());
+const seenStory=x=>x.author_id===me.id||sviews.some(v=>v.story_id===x.id&&v.viewer_id===me.id);
+const storyState=id=>{const l=storiesOf(id);return !l.length?'':l.every(seenStory)?'seen':'new'};
+const leftH=x=>{const m=Math.max(0,new Date(x.expires_at)-Date.now()),hh=Math.floor(m/36e5);return hh>=1?hh+'h left':Math.max(1,Math.floor(m/6e4))+'m left'};
+
+function openStoryComposer(){
+  if(document.getElementById('stcomp'))return;
+  let mode='photo',file=null,prev=null,bg=BGS[0],tv='',cv='',working=false;
+  const scrim=h('div',{class:'stscrim',id:'stcomp',onclick:e=>{if(e.target===scrim)close()}});
+  const esc=e=>{if(e.key==='Escape')close()};
+  function close(){if(working)return;if(prev)URL.revokeObjectURL(prev);scrim.remove();document.removeEventListener('keydown',esc)}
+  const fi=h('input',{type:'file',accept:'image/*',hidden:true,onchange:e=>{const f=e.target.files&&e.target.files[0];if(!f)return;
+    if(!f.type.startsWith('image/'))return toast('Please choose an image.');if(f.size>8*1024*1024)return toast('Image must be 8MB or smaller.');
+    if(prev)URL.revokeObjectURL(prev);file=f;prev=URL.createObjectURL(f);draw()}});
+  function draw(){
+    const err=h('div',{class:'err',role:'alert'});
+    const body=mode==='photo'
+      ?[prev?h('img',{class:'stprev',src:prev,alt:'Story preview',onclick:()=>fi.click()}):h('button',{class:'stpick',type:'button',onclick:()=>fi.click(),text:'Tap to choose a photo'}),
+        h('input',{type:'text',maxlength:'280',placeholder:'Add a caption (optional)','aria-label':'Caption',value:cv,style:'margin-top:10px',oninput:e=>{cv=e.target.value}})]
+      :[h('div',{class:'sttextbox',style:'background:'+bg},h('textarea',{maxlength:'280',placeholder:'Type your story…','aria-label':'Story text',oninput:e=>{tv=e.target.value}},tv)),
+        h('div',{class:'swatches'},BGS.map(c=>h('button',{class:'sw',type:'button',style:'background:'+c,'aria-label':'Background '+c,'aria-pressed':String(bg===c),onclick:()=>{bg=c;draw()}})))];
+    const share=h('button',{class:'btn primary',text:working?'Sharing…':'Share story',disabled:working||null,onclick:async()=>{
+      const t=(mode==='text'?tv:cv).trim();
+      if(mode==='photo'&&!file){err.textContent='Choose a photo first.';return}
+      if(mode==='text'&&!t){err.textContent='Type something first.';return}
+      working=true;draw();let path=null;
+      try{
+        if(mode==='photo'){const ext=((file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,5))||'jpg';
+          path=me.id+'/story-'+crypto.randomUUID()+'.'+ext;const up=await sb.storage.from('images').upload(path,file,{contentType:file.type,upsert:false});if(up.error)throw up.error}
+        const ins=await sb.from('stories').insert(mode==='photo'?{image_path:path,body:t||null}:{body:t,bg});
+        if(ins.error){if(path)await sb.storage.from('images').remove([path]);throw ins.error}
+        working=false;close();await loadStories();render();toast('Story shared. It disappears in 24 hours.');
+      }catch(e){console.error(e);working=false;draw();const n=scrim.querySelector('.err');if(n)n.textContent='Could not share your story. Please try again.'}
+    }});
+    scrim.replaceChildren(h('div',{class:'stcomp',role:'dialog','aria-modal':'true','aria-label':'Add to your story'},
+      h('h2',{text:'Add to your story'}),h('div',{class:'muted',text:'Everyone in Orchid Pals can see it for 24 hours, then it disappears.'}),
+      h('div',{class:'tabsm'},h('button',{class:'btn ghost',type:'button',text:'Photo','aria-pressed':String(mode==='photo'),onclick:()=>{mode='photo';draw()}}),h('button',{class:'btn ghost',type:'button',text:'Text','aria-pressed':String(mode==='text'),onclick:()=>{mode='text';draw()}})),
+      ...body,fi,err,h('div',{class:'row',style:'margin-top:14px;justify-content:flex-end'},h('button',{class:'btn ghost',type:'button',text:'Cancel',disabled:working||null,onclick:close}),share)));
+  }
+  document.body.append(scrim);document.addEventListener('keydown',esc);draw();
+}
+
+function openStory(authorId){
+  const first=storiesOf(authorId);if(!first.length)return;
+  let i=Math.max(0,first.findIndex(x=>!seenStory(x))),showViews=false;
+  const ov=h('div',{class:'stov',role:'dialog','aria-modal':'true','aria-label':(authorId===me.id?'Your':nm(authorId)+"'s")+' story'});
+  const key=e=>{if(e.key==='Escape')close();else if(e.key==='ArrowRight')go(1);else if(e.key==='ArrowLeft')go(-1)};
+  function close(){ov.remove();document.removeEventListener('keydown',key);document.body.style.overflow='';render()}
+  function go(d){const l=storiesOf(authorId);showViews=false;const n=i+d;if(n>=l.length)return close();i=Math.max(0,n);draw()}
+  async function recordView(x){if(seenStory(x))return;sviews.push({story_id:x.id,viewer_id:me.id});const r=await sb.from('story_views').insert({story_id:x.id});if(r.error&&r.error.code!=='23505')console.error(r.error)}
+  async function del(x){if(!confirm('Delete this story?'))return;const r=await sb.from('stories').delete().eq('id',x.id);if(r.error)return fail(r.error);
+    if(x.image_path)await sb.storage.from('images').remove([x.image_path]);stories=stories.filter(y=>y.id!==x.id);draw()}
+  function draw(){
+    const l=storiesOf(authorId);if(!l.length)return close();if(i>=l.length)i=l.length-1;
+    const x=l[i],mine=x.author_id===me.id;recordView(x);
+    const bars=h('div',{class:'stbars'},l.map((_,k)=>{const a={class:'stbar'+(k<i?' done':k===i?' cur'+(showViews?' pause':''):'')};if(k===i)a.onanimationend=()=>go(1);return h('div',a,h('i'))}));
+    const media=x.image_path?h('img',{class:'stimg',src:urls[x.image_path]||'',alt:x.body||'Story photo'}):h('div',{class:'sttxt',style:'background:'+(x.bg||BGS[0])},h('div',{text:x.body||''}));
+    const xb=h('button',{class:'stx',type:'button','aria-label':'Close story',text:'✕',onclick:close});
+    const head=h('div',{class:'sthead'},avEl(authorId),h('div',{class:'sp'},h('b',{text:mine?'Your story':nm(authorId)}),h('small',{text:ago(x.created_at)+' · '+leftH(x)})),xb);
+    const viewers=sviews.filter(v=>v.story_id===x.id);
+    const foot=h('div',{class:'stfoot'},
+      x.image_path&&x.body?h('p',{class:'stcap',text:x.body}):null,
+      mine&&showViews?h('div',{class:'stviews'},viewers.length?viewers.map(v=>h('div',{class:'row'},avEl(v.viewer_id),h('span',{text:nm(v.viewer_id)}))):h('div',{class:'muted',text:'No views yet.'})):null,
+      mine?h('div',{class:'stacts'},h('button',{class:'btn',type:'button',text:viewers.length+(viewers.length===1?' view':' views'),'aria-expanded':String(showViews),onclick:()=>{showViews=!showViews;draw()}}),h('button',{class:'btn',type:'button',text:'Delete',onclick:()=>del(x)})):null);
+    ov.replaceChildren(h('div',{class:'stbox'},media,bars,head,
+      h('button',{class:'sttap l',type:'button','aria-label':'Previous story',onclick:()=>go(-1)}),h('button',{class:'sttap r',type:'button','aria-label':'Next story',onclick:()=>go(1)}),foot));
+    xb.focus({preventScroll:true});
+  }
+  document.body.append(ov);document.body.style.overflow='hidden';document.addEventListener('keydown',key);draw();
+}
+
 function ringStrip(){
-  const ids=[me.id,...Object.values(profs).filter(x=>x.id!==me.id).map(x=>x.id)].slice(0,16);
-  return h('div',{class:'card ringcard'},ids.map(id=>h('button',{class:'ringbtn',onclick:()=>openProfile(id),'aria-label':'Open '+(id===me.id?'your':nm(id)+"'s")+' profile'},
-    h('div',{class:'ringav'+(posts.some(p=>p.author_id===id)?' has':'')},avEl(id)),h('span',{class:'ringname',text:id===me.id?'You':nm(id).split(' ')[0]}))));
+  const rank=id=>({new:0,seen:1,'':2}[storyState(id)]);
+  const others=Object.values(profs).filter(x=>x.id!==me.id).map(x=>x.id).sort((a,b)=>rank(a)-rank(b));
+  const ids=[me.id,...others].slice(0,16);
+  return h('div',{class:'card ringcard'},ids.map(id=>{
+    const mine=id===me.id,st=mine?(storiesOf(id).length?'new':''):storyState(id);
+    const btn=h('button',{class:'ringbtn',onclick:()=>st?openStory(id):(mine?openStoryComposer():openProfile(id)),
+      'aria-label':st?'View '+(mine?'your':nm(id)+"'s")+' story':mine?'Add to your story':'Open '+nm(id)+"'s profile"},
+      h('div',{class:'ringav'+(st==='new'?' has':st==='seen'?' seen':'')},avEl(id)),h('span',{class:'ringname',text:mine?'Your story':nm(id).split(' ')[0]}));
+    return h('div',{class:'ringwrap'},btn,mine?h('button',{class:'ringplus',type:'button','aria-label':'Add to your story',text:'+',onclick:openStoryComposer}):null);
+  }));
 }
 function leftNav(){
   const cur={Feed:'posts',Chat:'messages',Notifications:'notif',Pals:'pals'};const it=(label,fn)=>h('button',{class:'fbnav'+(cur[label]===view?' on':''),text:label,onclick:fn});
@@ -316,7 +430,7 @@ function postsView(){
   const preview=draft.imageUrl?h('div',{class:'preview'},h('img',{src:draft.imageUrl,alt:'Selected photo'}),h('button',{class:'btn ghost',text:'Remove photo',onclick:()=>{clearDraftImage();render()}})):null;
   const voice=h('div',{class:'attach'},rec?h('div',{class:'rec'},h('span',{class:'dot'}),h('span',{text:'Recording…'}),h('button',{class:'btn ghost',text:'Stop',onclick:stopRec})):h('button',{class:'socialopt',onclick:startRec},ic('mic'),' Voice'),draft.blob?h('button',{class:'btn ghost',text:'Remove voice',onclick:()=>{clearDraftAudio();render()}}):null);
   const composer=h('div',{class:'card composer'},h('div',{class:'row'},avEl(me.id),h('b',{text:'Post your journal'}),h('span',{class:'muted',text:'· Shared with all Orchid members'})),h('div',{style:'margin-top:12px'},ta),preview,h('div',{class:'socialbar'},h('label',{class:'socialopt filebtn'},ic('photo'),' Photo',file),voice,h('button',{class:'socialopt',disabled:busy,onclick:publish},ic('send'),busy?' Posting…':' Post')));
-  return h('div',{class:'fbgrid'},leftNav(),h('div',{class:'fbfeed'},ringStrip(),composer,posts.length?posts.map(postCard):h('div',{class:'empty',text:'No stories yet. Share the first one!'})),rightMembers());
+  return h('div',{class:'fbgrid'},leftNav(),h('div',{class:'fbfeed'},ringStrip(),composer,posts.length?posts.map(postCard):h('div',{class:'empty',text:'No posts yet. Share the first one!'})),rightMembers());
 }
 function messagesView(){
   const ids=acceptedIds();
@@ -335,7 +449,7 @@ function notifView(){
   const react=RXRE;
   const list=[
     ...msgs.filter(m=>m.recipient_id===me.id).map(m=>({t:T(m),at:m.created_at,who:m.sender_id,kind:'msg',icon:rxKey(m.body)||'chat',text:nm(m.sender_id)+(react.test(m.body)?' reacted to your post':' sent you a message'),snip:react.test(m.body)?'':m.body})),
-    ...posts.filter(p=>p.author_id!==me.id).map(p=>({t:T(p),at:p.created_at,who:p.author_id,kind:'post',icon:p.audio_path?'mic':p.image_path?'photo':'note',text:nm(p.author_id)+(p.audio_path?' shared a voice story':' shared a new story'),snip:p.body||''})),
+    ...posts.filter(p=>p.author_id!==me.id).map(p=>({t:T(p),at:p.created_at,who:p.author_id,kind:'post',icon:p.audio_path?'mic':p.image_path?'photo':'note',text:nm(p.author_id)+(p.audio_path?' shared a voice post':' shared a new post'),snip:p.body||''})),
     ...pals.filter(p=>p.status==='pending'&&p.addressee_id===me.id).map(p=>({t:p.created_at?new Date(p.created_at).getTime():0,at:p.created_at,who:p.requester_id,kind:'req',icon:'userplus',text:nm(p.requester_id)+' sent you a Pal request',snip:''}))
   ].sort((a,b)=>b.t-a.t).slice(0,40);
   const prev=notifPrev==null?Infinity:notifPrev;
@@ -499,15 +613,16 @@ async function logout(){clearInterval(poll);if(rt)sb.removeChannel(rt);try{await
 
 /* ---------- realtime sync ---------- */
 let rt=null,rtTimer=null;const rtDirty=new Set();
-const VIEWS_FOR={post_comments:['posts'],posts:['posts','notif'],reactions:['posts'],messages:['messages','notif'],pals:['pals','messages','notif'],profiles:['posts','messages','pals','profile','search','notif']};
-const dataSig=()=>JSON.stringify([posts.length,posts[0]&&posts[0].id,rx.length,cms.length,msgs.length,msgs[msgs.length-1]&&msgs[msgs.length-1].id,pals.map(p=>p.id+p.status).join()]);
+const VIEWS_FOR={stories:['posts'],post_comments:['posts'],posts:['posts','notif'],reactions:['posts'],messages:['messages','notif'],pals:['pals','messages','notif'],profiles:['posts','messages','pals','profile','search','notif']};
+const dataSig=()=>JSON.stringify([posts.length,posts[0]&&posts[0].id,rx.length,cms.length,msgs.length,msgs[msgs.length-1]&&msgs[msgs.length-1].id,pals.map(p=>p.id+p.status).join(),stories.map(x=>x.id).join()]);
 function onChange(payload){
   const t=payload.table,n=payload.new||{};rtDirty.add(t);
   if(payload.eventType==='INSERT'){
     if(t==='messages'&&n.recipient_id===me.id&&n.sender_id!==me.id){
       if(rxKey(n.body))toast(nm(n.sender_id)+' reacted to your post ('+RN[rxKey(n.body)]+')');
       else if(!(view==='messages'&&chat===n.sender_id))toast('New message from '+nm(n.sender_id));
-    }else if(t==='posts'&&n.author_id!==me.id&&view!=='posts')toast(nm(n.author_id)+' shared a new story');
+    }else if(t==='posts'&&n.author_id!==me.id&&view!=='posts')toast(nm(n.author_id)+' shared a new post');
+    else if(t==='stories'&&n.author_id!==me.id)toast(nm(n.author_id)+' added to their story');
     else if(t==='pals'&&n.addressee_id===me.id)toast('New Pal request');
     else if(t==='post_comments'&&n.author_id!==me.id){const pp=posts.find(x=>x.id===n.post_id);if(pp&&pp.author_id===me.id)toast(nm(n.author_id)+' commented on your post')}
   }
@@ -517,13 +632,13 @@ async function sync(){
   if(!me)return;
   if(rec||busy){clearTimeout(rtTimer);rtTimer=setTimeout(sync,1500);return}
   const dirty=[...rtDirty];rtDirty.clear();const before=dataSig();
-  try{await loadPeople();await Promise.all([loadPosts(),loadMsgs()])}catch(e){return}
+  try{await loadPeople();await Promise.all([loadPosts(),loadMsgs(),loadStories()])}catch(e){return}
   const changed=dirty.length?dirty.some(t=>(VIEWS_FOR[t]||[]).includes(view)):dataSig()!==before;
   if(changed&&!editing)render();else refreshBadges();
 }
 function startRealtime(){
   rt=sb.channel('orchid-live-'+me.id);
-  ['posts','reactions','post_comments','messages','pals','profiles'].forEach(t=>rt.on('postgres_changes',{event:'*',schema:'public',table:t},onChange));
+  ['posts','stories','reactions','post_comments','messages','pals','profiles'].forEach(t=>rt.on('postgres_changes',{event:'*',schema:'public',table:t},onChange));
   rt.subscribe(st=>{if(st==='SUBSCRIBED')sync()});
 }
 
@@ -541,7 +656,7 @@ async function init(){
   initSeen();
   render();
   startRealtime();
-  poll=setInterval(()=>{if(!document.hidden)sync()},30000); // safety net only
+  poll=setInterval(()=>{if(document.hidden)return;if(stories.some(x=>new Date(x.expires_at)<=Date.now())&&!document.querySelector('.stov')){stories=stories.filter(x=>new Date(x.expires_at)>Date.now());render()}sync()},30000); // safety net only
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
 }
 init().catch(e=>{console.error(e);home()});
