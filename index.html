@@ -97,6 +97,10 @@ p.sub{color:var(--muted);margin:0 0 20px;font-size:.98rem}
 .iq textarea{min-height:90px;resize:vertical}.iq .r2{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}.iq .e{color:#be123c;font-size:.88rem;min-height:1.3em;margin-top:8px}
 .iq .b{border:0;cursor:pointer;border-radius:999px;padding:10px 20px;font:inherit;font-weight:700;text-decoration:none;display:inline-block}.iq .b.go{background:#0176d3;color:#fff}.iq .b.go:hover{background:#014486}.iq .b.gh{background:#fff;border:1px solid #e2e8f0;color:var(--ink)}
 .iq .hp{position:absolute;left:-9999px;height:0;overflow:hidden}.iq .dn{text-align:center}
+.iq.gs{max-width:560px}.iq .gs-step{font-size:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#0176d3;margin-top:20px}.iq .gs-q{font-size:.95rem;font-weight:700;margin:2px 0 0}
+.iq .gs-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.iq .ch{display:flex;align-items:center;gap:9px;margin:0;padding:10px 12px;border:1px solid var(--line);border-radius:14px;font-weight:500;font-size:.88rem;cursor:pointer;background:#fff}
+.iq .ch input{width:auto;margin:0;accent-color:#0176d3}.iq .ch:has(input:checked){border-color:#0176d3;background:#eaf5fe}.iq .gs-bar{height:5px;border-radius:9px;background:#e1e8f1;margin:12px 0 0;overflow:hidden}.iq .gs-bar i{display:block;height:100%;width:0;background:#0176d3;transition:width .25s}
+@media(max-width:480px){.iq .gs-grid{grid-template-columns:1fr}}
 
 /* ===== landing page (Salesforce-style) ===== */
 :root{--brand:#0176d3;--grad:linear-gradient(135deg,#0176d3,#0b5cab);--nv:#032d60;--bl:#0176d3;--bl2:#014486;--sky:#eaf5fe;--tx:#3e4d63;--ln:#e1e8f1}
@@ -380,7 +384,7 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
       <div class="lp-ctas">
         <button class="lp-lnk hm js-inq" type="button">Contact us</button>
         <button class="lp-lnk js-login" type="button">Log in</button>
-        <button class="lp-btn sm js-login" type="button">Get started</button>
+        <button class="lp-btn sm js-start" type="button">Get started</button>
       </div>
       <button class="lp-burger" id="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu"><span></span><span></span><span></span></button>
     </div>
@@ -393,7 +397,7 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
           <h1 class="lp-h1">Work that feels <em>calm</em>.<br>Connection that feels <em>real</em>.</h1>
           <p class="lp-sub">Five focused apps behind one login: a CRM for teams, a social network for everyone with an Orchid account, a simple business manager for small and local shops, a workspace for virtual assistants, and a university where teachers build courses and students learn.</p>
           <div class="lp-act">
-            <button class="lp-btn lg js-login" type="button">Get started</button>
+            <button class="lp-btn lg js-start" type="button">Get started</button>
             <button class="lp-btn lg alt js-inq" type="button">Send an inquiry</button>
           </div>
           <p class="lp-note">Already have a password? <button class="lp-lnk inl js-login" type="button">Log in</button></p>
@@ -974,7 +978,57 @@ function openInquiry(){
   const scrim=f('div',{class:'iq-scrim'},box);scrim.addEventListener('click',e=>{if(e.target===scrim)close()});
   document.body.append(scrim);document.addEventListener('keydown',esc);name.focus();
 }
+// ---- Get started form: asks what the person needs from the CRM; email is required. Saves into CRM inquiries ----
+function openStart(){
+  const f=(t,a={},...c)=>{const e=document.createElement(t);for(const k in a)k==='text'?e.textContent=a[k]:typeof a[k]==='function'?e.addEventListener(k.replace(/^on/,''),a[k]):e.setAttribute(k,a[k]);c.forEach(x=>e.append(x));return e};
+  const sel=(opts)=>{const s=f('select');s.append(f('option',{value:'',text:'Choose one'}));opts.forEach(o=>s.append(f('option',{text:o})));return s};
+  const name=f('input',{type:'text',maxlength:'120',autocomplete:'name'}),email=f('input',{type:'email',maxlength:'200',autocomplete:'email',required:'required'}),
+    biz=f('input',{type:'text',maxlength:'120',placeholder:'e.g. bakery, consulting, real estate'}),
+    team=sel(['Just me','2 to 5 people','6 to 20 people','More than 20']),
+    tool=sel(['Spreadsheets','Another CRM','Pen and paper','Nothing yet']),
+    goal=sel(['Win more clients','Never miss a follow-up','Stay organised','Work better as a team','See how we are doing']),
+    when=sel(['Right away','This month','In a few months','Just looking']),
+    msg=f('textarea',{maxlength:'800',placeholder:'Anything else we should know?'}),
+    hp=f('input',{type:'text',tabindex:'-1',autocomplete:'off','aria-hidden':'true'}),err=f('div',{class:'e',role:'alert'});
+  const NEEDS=['Track leads and inquiries','Manage clients','Tasks and follow-ups','Team chat','Staff schedules and time','Cases and projects','Reports and productivity','Email drafting with AI'];
+  const boxes=NEEDS.map(n=>{const i=f('input',{type:'checkbox',value:n});return{n,i,el:f('label',{class:'ch'},i,f('span',{text:n}))}});
+  const bar=f('i'),lab=(t,el)=>f('label',{},t,el);
+  const upd=()=>{const done=[email.value.trim(),team.value,boxes.some(b=>b.i.checked)?'1':'',goal.value,tool.value,when.value].filter(Boolean).length;bar.style.width=Math.round(done/6*100)+'%'};
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape')close()};
+  const send=f('button',{class:'b go',type:'button',text:'Get started'});
+  send.onclick=async()=>{
+    err.textContent='';if(hp.value)return close();
+    const em=email.value.trim(),picks=boxes.filter(b=>b.i.checked).map(b=>b.n);
+    if(!em)return err.textContent='Please enter your email address to continue.';
+    if(!/^\S+@\S+\.\S+$/.test(em))return err.textContent='Enter a valid email address.';
+    if(!picks.length)return err.textContent='Pick at least one thing you need your CRM for.';
+    const lines=['Get started form','Team size: '+(team.value||'not given'),'Business: '+(biz.value.trim()||'not given'),'Needs: '+picks.join(', '),'Main goal: '+(goal.value||'not given'),'Using now: '+(tool.value||'not given'),'Wants to start: '+(when.value||'not given')];
+    if(msg.value.trim())lines.push('','Notes: '+msg.value.trim());
+    const message=lines.join('\n'),nm=name.value.trim()||em.split('@')[0];
+    send.disabled=true;send.textContent='Sending…';
+    try{
+      const c=clients.crm;if(!c)throw new Error('loading');
+      const r=await c.from('crm_inquiries').insert({name:nm,email:em,phone:null,source:'Get started form',status:'new',message});
+      if(r.error)throw r.error;
+      box.replaceChildren(f('div',{class:'dn'},f('h2',{text:'You are all set!'}),f('p',{class:'sub',text:'Thanks, we saved your preferences and will email you at '+em+' to set up your CRM.'}),f('div',{class:'r2',style:'justify-content:center'},f('button',{class:'b go',type:'button',text:'Close',onclick:close}))));
+    }catch(e){
+      const href='mailto:'+INQUIRY_EMAIL+'?subject='+encodeURIComponent('Orchid CRM get started: '+nm)+'&body='+encodeURIComponent('Email: '+em+'\n'+message);
+      box.replaceChildren(f('div',{class:'dn'},f('h2',{text:'One more step'}),f('p',{class:'sub',text:'Tap the button to open your email app with your answers ready, then press Send.'}),f('div',{class:'r2',style:'justify-content:center'},f('a',{class:'b go',href,text:'Open my email'}),f('button',{class:'b gh',type:'button',text:'Close',onclick:close}))));
+    }
+  };
+  const grid=f('div',{class:'gs-grid'});boxes.forEach(b=>grid.append(b.el));
+  const box=f('div',{class:'iq gs',role:'dialog','aria-modal':'true','aria-label':'Get started with Orchid CRM'},
+    f('h2',{text:'Let us set up your CRM'}),f('p',{class:'sub',text:'A few quick questions so your CRM fits the way you work. Takes about a minute.'}),f('div',{class:'gs-bar'},bar),
+    f('div',{class:'gs-step',text:'1. About you'}),lab('Your name (optional)',name),lab('Email address (required)',email),lab('Your business (optional)',biz),lab('Who will use the CRM?',team),
+    f('div',{class:'gs-step',text:'2. What you need'}),f('p',{class:'gs-q',text:'What do you need your CRM for? Pick all that apply.'}),grid,lab('Your main goal',goal),
+    f('div',{class:'gs-step',text:'3. Where you are now'}),lab('What do you use today?',tool),lab('When do you want to start?',when),lab('Anything else? (optional)',msg),
+    f('div',{class:'hp'},lab('Leave empty',hp)),err,f('div',{class:'r2'},f('button',{class:'b gh',type:'button',text:'Cancel',onclick:close}),send));
+  box.addEventListener('input',upd);box.addEventListener('change',upd);
+  const scrim=f('div',{class:'iq-scrim'},box);scrim.addEventListener('click',e=>{if(e.target===scrim)close()});
+  document.body.append(scrim);document.addEventListener('keydown',esc);email.focus();
+}
 document.querySelectorAll('.js-login,#loginBtn').forEach(b=>b.addEventListener('click',()=>{closeMenus();showLogin()}));
+document.querySelectorAll('.js-start').forEach(b=>b.addEventListener('click',()=>{closeMenus();openStart()}));
 document.querySelectorAll('.js-inq,#inqBtn').forEach(b=>b.addEventListener('click',()=>{closeMenus();openInquiry()}));
 
 // ---- landing page: menus, sticky header shadow, scroll reveal ----
