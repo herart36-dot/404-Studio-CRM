@@ -825,8 +825,20 @@ function renderForm(){
   $('swap').textContent=up?'Already have a password? Log in':'New here? Create your password';
   $('pass').autocomplete=up?'new-password':'current-password';say('');
 }
+// Pals is open to every Orchid account. CRM, Solopreneur, Ally and University only show if the admin granted them
+// in the Supabase table public.orchid_app_access (email + app). If the lookup fails, only Pals is shown.
+async function applyAccess(email){
+  const k=routeFor(email),cards=[...document.querySelectorAll('.card[data-p]')];
+  cards.forEach(b=>{if(b.dataset.p!=='pals')b.hidden=true});
+  if(k==='legal'){const c=document.querySelector('.card[data-p=crm]');if(c)c.hidden=false;return}
+  let apps=[];
+  try{const r=await clients[k].from('orchid_app_access').select('app');if(!r.error&&r.data)apps=r.data.map(x=>x.app)}catch(e){}
+  if(String(email).trim().toLowerCase()!==who.toLowerCase())return;   // user changed meanwhile
+  cards.forEach(b=>{const p=b.dataset.p;if(p!=='pals')b.hidden=!apps.includes(p)});
+  if(!apps.length)say('You have Orchid Pals. Ask your admin if you need access to other Orchid apps.',true,'pmsg');
+}
 function showPick(email){
-  document.body.dataset.v='pick';clearTimeout(timer);tiles.forEach(t=>t.classList.remove('dim'));who=email;$('land').hidden=true;document.querySelectorAll('[data-p=solo],[data-p=ally]').forEach(sc=>sc.hidden=routeFor(email)==='legal');document.querySelectorAll('[data-p=uni]').forEach(sc=>sc.hidden=!UNI_USERS.includes(String(email).trim().toLowerCase()));
+  document.body.dataset.v='pick';clearTimeout(timer);tiles.forEach(t=>t.classList.remove('dim'));who=email;$('land').hidden=true;applyAccess(email);
   $('who').textContent='Signed in as '+email;$('story').hidden=true;$('form').hidden=true;$('pick').hidden=false;$('fix').hidden=true;say('',0,'pmsg');
 }
 // Link Pals silently using the same email + password (creates the Pals account on first use).
