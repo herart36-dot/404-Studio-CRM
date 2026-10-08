@@ -390,7 +390,8 @@ function openStory(authorId){
 
 function ringStrip(){
   const rank=id=>({new:0,seen:1,'':2}[storyState(id)]);
-  const others=Object.values(profs).filter(x=>x.id!==me.id).map(x=>x.id).sort((a,b)=>rank(a)-rank(b));
+  // only people with a live story appear next to your own circle (unseen first)
+  const others=Object.values(profs).filter(x=>x.id!==me.id&&storiesOf(x.id).length).map(x=>x.id).sort((a,b)=>rank(a)-rank(b));
   const ids=[me.id,...others].slice(0,16);
   return h('div',{class:'card ringcard'},ids.map(id=>{
     const mine=id===me.id,st=mine?(storiesOf(id).length?'new':''):storyState(id);
