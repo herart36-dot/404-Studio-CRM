@@ -51,6 +51,7 @@ main{max-width:1000px;margin:0 auto;padding:24px 18px 80px}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--dark);color:#fff;padding:10px 18px;border-radius:999px;font-size:.88rem;z-index:80}
 @media(max-width:600px){.hd h1{font-size:1.3rem}.top-in{padding:9px 12px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.chip.ai-hi{background:#fee2e2;color:#991b1b}.chip.ai-mid{background:#fef3c7;color:#92400e}.chip.ai-lo{background:#d1fae5;color:#065f46}
 </style>
 </head>
 <body>
@@ -131,6 +132,27 @@ const setScore=(email,it)=>{const cur=subs.find(s=>s.item_id===it.id&&s.student_
   const n=x.trim()===''?null:Number(x);if(n!==null&&isNaN(n))return toast('Enter a number.');
   run(sb.from('ou_submissions').upsert({course_id:course.id,item_id:it.id,student_email:email,score:n},{onConflict:'item_id,student_email'}),'Score saved.')};
 
+/* ---------- AI check (teacher only; a signal, never proof) ---------- */
+const AIL={likely_ai:['Likely AI','ai-hi'],unclear:['Unclear','ai-mid'],likely_human:['Likely human','ai-lo']};
+async function aiCall(payload){const r=await sb.functions.invoke('ou-ai-check',{body:payload});
+  if(r.error){let m='The AI check failed. Try again.';try{const j=await r.error.context.json();if(j&&j.error)m=j.error}catch(e){}throw new Error(m)}return r.data}
+const aiBadge=s=>s.ai_verdict&&AIL[s.ai_verdict]?h('span',{class:'chip '+AIL[s.ai_verdict][1],title:s.ai_reasons||'',text:AIL[s.ai_verdict][0]+' · '+s.ai_score+'%'}):h('span',{class:'chip',text:'Not checked'});
+const showAi=r=>{const l=AIL[r.verdict]||AIL.unclear,close=()=>ov.remove();
+  const ov=h('div',{class:'ov',onclick:e=>{if(e.target===ov)close()}},h('div',{class:'md',role:'dialog','aria-modal':'true'},h('h2',{text:'AI check result'}),
+    h('p',{},h('span',{class:'chip '+l[1],text:l[0]+' · '+r.score+'%'})),h('ul',{},(r.reasons||[]).map(x=>h('li',{text:x}))),
+    h('p',{class:'muted',style:'font-size:.82rem',text:'This is a signal, not proof. AI detectors can be wrong, especially for students who write in a second language. Talk with the student before drawing any conclusion.'}),
+    h('div',{class:'acts'},h('button',{class:'btn hot',text:'Close',onclick:close}))));document.body.append(ov)};
+const checkSub=async s=>{toast('Checking…');try{await aiCall({submission_id:s.id});await run(Promise.resolve({}),'AI check saved.')}catch(e){fail(e)}};
+const checkPasted=()=>form({title:'Check text for AI',fields:[{k:'text',l:'Paste the student\'s text (at least 80 words)',t:'textarea',req:1}],save:'Run check',onSave:async v=>{try{toast('Checking…');showAi(await aiCall({text:v.text}))}catch(e){fail(e)}}});
+function vSubs(){const list=subs.filter(s=>s.body&&s.body.trim()).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  const head=h('div',{class:'hd'},h('div',{class:'sp'}),h('button',{class:'btn hot',text:'Check pasted text',onclick:checkPasted}));
+  if(!list.length)return h('div',{},head,empty('No submissions yet','Written submissions from students will show up here with an AI check. You can already check any text by pasting it.'));
+  return h('div',{},head,h('div',{class:'card'},list.map(s=>{const it=items.find(i=>i.id===s.item_id);
+    return h('div',{class:'row',style:'align-items:flex-start'},h('div',{style:'flex:1;min-width:220px'},h('b',{text:s.student_email}),
+      h('div',{class:'muted',style:'font-size:.82rem',text:(it?it.title+' · ':'')+new Date(s.created_at).toLocaleDateString()}),
+      h('details',{style:'margin-top:6px'},h('summary',{text:'Read submission'}),h('p',{style:'white-space:pre-wrap',text:s.body}),s.ai_reasons?h('p',{class:'muted',style:'font-size:.85rem',text:'Why: '+s.ai_reasons}):null)),
+      aiBadge(s),h('button',{class:'btn ghost sm',text:s.ai_verdict?'Re-check':'Check for AI',onclick:()=>checkSub(s)}))})))}
+
 /* ---------- views ---------- */
 const itemRow=(i,idx,arr)=>{const [n,c]=TYPES[i.type]||TYPES.page;
   return h('div',{class:'it'},h('span',{class:'ty',style:'background:'+c,text:n[0],title:n}),
@@ -166,7 +188,7 @@ function vGrades(){const g=items.filter(i=>i.type==='assignment'||i.type==='quiz
       return h('td',{class:'g',title:'Click to grade',onclick:()=>setScore(e.email,i),text:s&&s.score!=null?s.score:'–'})}),h('td',{text:p?Math.round(t/p*100)+'%':'–'}))}))))}
 function vSyl(){const ta=h('textarea',{style:'min-height:220px'});ta.value=course.syllabus||'';
   return h('div',{class:'card',style:'padding:18px'},h('label',{class:'f',style:'margin-top:0'},'Syllabus',ta),h('div',{class:'acts'},h('button',{class:'btn hot',text:'Save syllabus',onclick:()=>run(sb.from('ou_courses').update({syllabus:ta.value}).eq('id',course.id),'Syllabus saved.')})))}
-const TABS=[['modules','Modules',vModules],['work','Assignments',vWork],['ann','Announcements',vAnn],['people','People',vPeople],['grades','Grades',vGrades],['syl','Syllabus',vSyl]];
+const TABS=[['modules','Modules',vModules],['work','Assignments',vWork],['ann','Announcements',vAnn],['people','People',vPeople],['subs','Submissions',vSubs],['grades','Grades',vGrades],['syl','Syllabus',vSyl]];
 
 function vDash(){
   const name=(me.email||'').split('@')[0],hr=new Date().getHours();
