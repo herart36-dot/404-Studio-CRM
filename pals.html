@@ -87,6 +87,15 @@ audio{width:100%;height:38px;margin-top:10px}
 .cover{height:190px;background:var(--grad)}.pcard{padding:0;overflow:hidden}.phead{display:flex;align-items:flex-end;gap:14px;padding:0 18px 16px;margin-top:-52px;flex-wrap:wrap}.phead h2{margin:0;font-size:1.4rem}.av.big{width:108px;height:108px;font-size:1.7rem;border:4px solid #fff;box-shadow:var(--sh)}.pacts{display:flex;gap:8px;flex-wrap:wrap}.irow{display:flex;gap:8px;margin-top:10px;color:#334155;font-size:.92rem}.lbl{font-size:.8rem;font-weight:700;color:var(--muted);margin:12px 0 4px;display:block}
 .ico{display:inline-flex;vertical-align:-4px;flex:none}.ico svg{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.rx.on .ico svg{fill:currentColor;fill-opacity:.9}.btn .ico,.socialopt .ico{margin-right:3px}.irow .ico{color:var(--brand)}.rc-heart{color:#ef4444}.rc-like{color:#2563eb}.rc-laugh{color:#f59e0b}.rc-chat,.rc-userplus,.rc-mic,.rc-photo,.rc-note{color:var(--brand)}.fly .ico svg{fill:currentColor;fill-opacity:.9}
 @media(max-width:600px){.wm .lg{display:none}.top{gap:8px}.top .btn{white-space:nowrap;padding:8px 14px}.top .muted{white-space:nowrap;max-width:64px;overflow:hidden;text-overflow:ellipsis}}
+
+.fbgrid{display:grid;grid-template-columns:230px minmax(0,1fr) 260px;gap:18px;align-items:start}.fbside{position:sticky;top:12px}.fbfeed{min-width:0}
+.fbnav{display:block;width:100%;text-align:left;border:0;background:transparent;border-radius:12px;padding:10px 12px;font-weight:700;cursor:pointer}.fbnav:hover{background:rgba(124,58,237,.08)}
+.fbmem{padding:6px 4px;border-radius:12px;cursor:pointer}.fbmem:hover{background:rgba(124,58,237,.08)}
+.cmbox{border-top:1px solid var(--line);margin-top:8px;padding-top:10px}.cm{display:flex;gap:10px;margin-bottom:10px}.cm .av{width:32px;height:32px;font-size:.7rem}
+.cmb{background:#f1f3f9;border-radius:16px;padding:8px 12px;font-size:.9rem;min-width:0}.cmdel{border:0;background:none;color:var(--danger);cursor:pointer;font-size:.8rem;margin-left:10px;padding:0}
+.cmin{display:flex;gap:8px;align-items:center}.cmin .av{width:32px;height:32px;font-size:.7rem}.cmin input{flex:1;border-radius:999px}.cmin .btn{padding:8px 16px}
+@media(min-width:1100px){body.fb .tabs,body.fb main{width:min(1180px,calc(100% - 32px))}}
+@media(max-width:999px){.fbgrid{display:block}.fbside{display:none}}
 </style>
 </head>
 <body>
@@ -100,7 +109,7 @@ window.addEventListener('error',e=>{try{toast('Error: '+e.message)}catch(_){}});
 const $=s=>document.querySelector(s);
 const REACTS=[{k:'heart',n:'Heart'},{k:'like',n:'Like'},{k:'laugh',n:'Laugh'}];
 const home=()=>location.replace('index.html');
-let me=null,isAdmin=false,names={},emails={},pals=[],posts=[],rx=[],msgs=[],urls={},invites=[];
+let me=null,isAdmin=false,names={},emails={},pals=[],posts=[],rx=[],cms=[],openCm=new Set(),msgs=[],urls={},invites=[];
 let searchQ='',profs={},profId=null,editing=false,pdraft={};
 let view='posts',chat=null,chatDraft='',draft={text:'',blob:null,url:null,secs:0,mime:'',image:null,imageUrl:null},rec=null,busy=false,poll=null;
 const h=(t,a={},...c)=>{const el=document.createElement(t);for(const k in a){if(k==='text')el.textContent=a[k];else if(k.startsWith('on'))el.addEventListener(k.slice(2),a[k]);else if(a[k]!==false&&a[k]!=null)el.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&el.append(x.nodeType?x:document.createTextNode(x)));return el};
@@ -147,9 +156,9 @@ async function loadPeople(){
   if(ap.length){const {data}=await sb.storage.from('avatars').createSignedUrls(ap,3600);(data||[]).forEach(d=>{if(d.signedUrl)urls[d.path]=d.signedUrl})}
 }
 async function loadPosts(){
-  const [po,re]=await Promise.all([sb.from('posts').select('*').order('created_at',{ascending:false}).limit(100),sb.from('reactions').select('post_id,user_id,kind')]);
+  const [po,re,cm]=await Promise.all([sb.from('posts').select('*').order('created_at',{ascending:false}).limit(100),sb.from('reactions').select('post_id,user_id,kind'),sb.from('post_comments').select('*').order('created_at',{ascending:true})]);
   if(po.error)throw po.error;if(re.error)throw re.error;
-  posts=po.data;rx=re.data;
+  posts=po.data;rx=re.data;cms=cm.error?[]:cm.data;
   const paths=posts.filter(p=>p.audio_path&&!urls[p.audio_path]).map(p=>p.audio_path);
   if(paths.length){const {data}=await sb.storage.from('voice').createSignedUrls(paths,3600);(data||[]).forEach(d=>{if(d.signedUrl)urls[d.path]=d.signedUrl})}
   const imagePaths=posts.filter(p=>p.image_path&&!urls[p.image_path]).map(p=>p.image_path);
@@ -226,6 +235,33 @@ function storyStrip(){
     return h('button',{class:'storychip',onclick:()=>window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})},bg,h('div',{class:'storyav',text:ini(nm(p.author_id))}),h('div',{class:'storyname',text:label}));
   }));
 }
+async function addComment(p,input){
+  const body=input.value.trim();if(!body)return;input.disabled=true;
+  const r=await sb.from('post_comments').insert({post_id:p.id,body});
+  if(r.error){input.disabled=false;return fail(r.error,'Could not post your comment.')}
+  input.value='';await loadPosts();render();
+  if(p.author_id!==me.id){const snip=p.body?p.body.slice(0,40)+(p.body.length>40?'…':''):'your post';await sb.from('messages').insert({recipient_id:p.author_id,body:'💬 commented on '+snip+': “'+body.slice(0,120)+'”'})}
+}
+async function delComment(c){const r=await sb.from('post_comments').delete().eq('id',c.id);if(r.error)return fail(r.error);cms=cms.filter(x=>x.id!==c.id);render()}
+function commentBox(p){
+  const list=cms.filter(c=>c.post_id===p.id);
+  const input=h('input',{type:'text',maxlength:'1000',placeholder:'Write a comment…','aria-label':'Write a comment',onkeydown:e=>{if(e.key==='Enter')addComment(p,input)}});
+  return h('div',{class:'cmbox'},
+    list.map(c=>h('div',{class:'cm'},avEl(c.author_id),h('div',{class:'cmb'},h('b',{text:c.author_id===me.id?me.name:nm(c.author_id)}),h('div',{text:c.body,style:'white-space:pre-wrap;overflow-wrap:anywhere'}),h('div',{class:'muted'},ago(c.created_at),(c.author_id===me.id||p.author_id===me.id)?h('button',{class:'cmdel',text:'Delete',onclick:()=>delComment(c)}):null)))),
+    h('div',{class:'cmin'},avEl(me.id),input,h('button',{class:'btn primary',text:'Send',onclick:()=>addComment(p,input)})));
+}
+const goView=k=>{view=k;editing=false;window.scrollTo(0,0);render()};
+function leftNav(){
+  const it=(label,fn)=>h('button',{class:'fbnav',text:label,onclick:fn});
+  return h('aside',{class:'fbside'},h('div',{class:'card'},
+    h('div',{class:'row',style:'cursor:pointer;margin-bottom:8px',onclick:()=>openProfile(me.id)},avEl(me.id),h('b',{text:me.name})),
+    it('Feed',()=>goView('posts')),it('Chat',()=>goView('messages')),it('Notifications',()=>goView('notif')),it('Pals',()=>goView('pals')),it('Search people',openSearch),it('My profile',()=>openProfile(me.id))));
+}
+function rightMembers(){
+  const list=Object.values(profs).filter(x=>x.id!==me.id).sort((a,b)=>String(a.display_name||'').localeCompare(String(b.display_name||''))).slice(0,14);
+  return h('aside',{class:'fbside'},h('div',{class:'card'},h('b',{text:'Orchid members'}),h('div',{class:'muted',text:list.length+' people can see your posts',style:'margin:2px 0 8px'}),
+    list.map(x=>h('div',{class:'row fbmem',onclick:()=>openProfile(x.id)},avEl(x.id),h('span',{text:nm(x.id),style:'font-weight:600;font-size:.9rem'})))));
+}
 function postCard(p){
   const mine=p.author_id===me.id;
   const actions=REACTS.map(r=>{const n=rx.filter(x=>x.post_id===p.id&&x.kind===r.k).length;const on=rx.some(x=>x.post_id===p.id&&x.kind===r.k&&x.user_id===me.id);
@@ -235,7 +271,8 @@ function postCard(p){
     p.body?h('p',{text:p.body,style:'margin:12px 0 0;white-space:pre-wrap'}):null,
     p.image_path?(urls[p.image_path]?h('img',{class:'storyimg',src:urls[p.image_path],alt:'Story photo',loading:'lazy'}):h('div',{class:'muted',text:'Photo unavailable.'})):null,
     p.audio_path?(urls[p.audio_path]?h('audio',{controls:'',preload:'none',src:urls[p.audio_path]}):h('div',{class:'muted',text:'Voice recording unavailable.'})):null,
-    h('div',{class:'post-actions'},actions)
+    h('div',{class:'post-actions'},actions,h('span',{class:'sp'}),h('button',{class:'rx'+(openCm.has(p.id)?' on':''),onclick:()=>{openCm.has(p.id)?openCm.delete(p.id):openCm.add(p.id);render()}},'Comment'+(cms.some(c=>c.post_id===p.id)?' ('+cms.filter(c=>c.post_id===p.id).length+')':''))),
+    openCm.has(p.id)?commentBox(p):null
   );
 }
 function postsView(){
@@ -243,8 +280,8 @@ function postsView(){
   const file=h('input',{type:'file',accept:'image/*',onchange:chooseImage});
   const preview=draft.imageUrl?h('div',{class:'preview'},h('img',{src:draft.imageUrl,alt:'Selected photo'}),h('button',{class:'btn ghost',text:'Remove photo',onclick:()=>{clearDraftImage();render()}})):null;
   const voice=h('div',{class:'attach'},rec?h('div',{class:'rec'},h('span',{class:'dot'}),h('span',{text:'Recording…'}),h('button',{class:'btn ghost',text:'Stop',onclick:stopRec})):h('button',{class:'socialopt',onclick:startRec},ic('mic'),' Voice'),draft.blob?h('button',{class:'btn ghost',text:'Remove voice',onclick:()=>{clearDraftAudio();render()}}):null);
-  const composer=h('div',{class:'card composer'},h('div',{class:'row'},avEl(me.id),h('b',{text:'Post your journal'})),h('div',{style:'margin-top:12px'},ta),preview,h('div',{class:'socialbar'},h('label',{class:'socialopt filebtn'},ic('photo'),' Photo',file),voice,h('button',{class:'socialopt',disabled:busy,onclick:publish},ic('send'),busy?' Posting…':' Post')));
-  return h('div',{},composer,posts.length?posts.map(postCard):h('div',{class:'empty',text:'No stories yet. Share the first one!'}));
+  const composer=h('div',{class:'card composer'},h('div',{class:'row'},avEl(me.id),h('b',{text:'Post your journal'}),h('span',{class:'muted',text:'· Shared with all Orchid members'})),h('div',{style:'margin-top:12px'},ta),preview,h('div',{class:'socialbar'},h('label',{class:'socialopt filebtn'},ic('photo'),' Photo',file),voice,h('button',{class:'socialopt',disabled:busy,onclick:publish},ic('send'),busy?' Posting…':' Post')));
+  return h('div',{class:'fbgrid'},leftNav(),h('div',{class:'fbfeed'},composer,posts.length?posts.map(postCard):h('div',{class:'empty',text:'No stories yet. Share the first one!'})),rightMembers());
 }
 function messagesView(){
   const ids=acceptedIds();
@@ -404,6 +441,7 @@ function tabButton(k,label,inc){
 }
 function appView(){
   const tabs=[['posts','Story'],['messages','Chat'],['notif','Notifications'],['pals','Pals'],['profile','Profile']];
+  document.body.classList.toggle('fb',view==='posts');
   const v={posts:postsView,messages:messagesView,notif:notifView,pals:palsView,profile:profileView,search:searchView}[view]();
   return h('div',{},
     h('div',{class:'top'},h('div',{class:'wm'},h('b',{text:'O'}),'rchid\u00a0',h('span',{class:'lg',text:'Pals · Story & Chat'})),h('span',{class:'sp'}),h('button',{class:'btn ghost',title:'Search people','aria-label':'Search people',style:'padding:8px 12px;display:inline-flex',onclick:openSearch},ic('search',20)),h('div',{style:'cursor:pointer;display:flex;align-items:center;gap:8px',onclick:()=>openProfile(me.id)},avEl(me.id),h('span',{class:'muted',text:me.name})),h('button',{class:'btn ghost',text:'Log out',onclick:logout})),
@@ -425,8 +463,8 @@ async function logout(){clearInterval(poll);if(rt)sb.removeChannel(rt);try{await
 
 /* ---------- realtime sync ---------- */
 let rt=null,rtTimer=null;const rtDirty=new Set();
-const VIEWS_FOR={posts:['posts','notif'],reactions:['posts'],messages:['messages','notif'],pals:['pals','messages','notif'],profiles:['posts','messages','pals','profile','search','notif']};
-const dataSig=()=>JSON.stringify([posts.length,posts[0]&&posts[0].id,rx.length,msgs.length,msgs[msgs.length-1]&&msgs[msgs.length-1].id,pals.map(p=>p.id+p.status).join()]);
+const VIEWS_FOR={post_comments:['posts'],posts:['posts','notif'],reactions:['posts'],messages:['messages','notif'],pals:['pals','messages','notif'],profiles:['posts','messages','pals','profile','search','notif']};
+const dataSig=()=>JSON.stringify([posts.length,posts[0]&&posts[0].id,rx.length,cms.length,msgs.length,msgs[msgs.length-1]&&msgs[msgs.length-1].id,pals.map(p=>p.id+p.status).join()]);
 function onChange(payload){
   const t=payload.table,n=payload.new||{};rtDirty.add(t);
   if(payload.eventType==='INSERT'){
@@ -435,6 +473,7 @@ function onChange(payload){
       else if(!(view==='messages'&&chat===n.sender_id))toast('New message from '+nm(n.sender_id));
     }else if(t==='posts'&&n.author_id!==me.id&&view!=='posts')toast(nm(n.author_id)+' shared a new story');
     else if(t==='pals'&&n.addressee_id===me.id)toast('New Pal request');
+    else if(t==='post_comments'&&n.author_id!==me.id){const pp=posts.find(x=>x.id===n.post_id);if(pp&&pp.author_id===me.id)toast(nm(n.author_id)+' commented on your post')}
   }
   clearTimeout(rtTimer);rtTimer=setTimeout(sync,250);
 }
@@ -448,7 +487,7 @@ async function sync(){
 }
 function startRealtime(){
   rt=sb.channel('orchid-live-'+me.id);
-  ['posts','reactions','messages','pals','profiles'].forEach(t=>rt.on('postgres_changes',{event:'*',schema:'public',table:t},onChange));
+  ['posts','reactions','post_comments','messages','pals','profiles'].forEach(t=>rt.on('postgres_changes',{event:'*',schema:'public',table:t},onChange));
   rt.subscribe(st=>{if(st==='SUBSCRIBED')sync()});
 }
 
