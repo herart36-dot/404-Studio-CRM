@@ -1223,7 +1223,7 @@ const ADMIN_EMAIL='keandonato@404studio.click';
 /* ---- access levels (stored in crm_staff.role; enforced in Supabase by crm_role()/crm_is_admin()/crm_is_executive()) ---- */
 const ROLES={
   admin:{l:'Admin',c:'violet',d:'Full access. Can add, change, pause or remove members and approve requests.'},
-  executive:{l:'Executive',c:'amber',d:'Store owner access. Only the Kloze store tools: add products, track sales and orders. No CRM access.'},
+  executive:{l:'Executive',c:'amber',d:'Store owner access. Only the Kloze store tools: add products with photos and sizes, track sales and orders, and SEO. No CRM access.'},
   staff:{l:'Staff',c:'blue',d:'Can use the CRM. Changes to inquiries need admin approval.'}
 };
 const roleOf=r=>ROLES[r]?r:'staff';
@@ -2453,7 +2453,7 @@ const KLOZE_LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAggAAACrCAYAAAAD
    Executives see only this workspace, never the CRM. Enforced in Supabase by RLS (crm_is_executive()
    for kloze_* tables; crm_is_staff() no longer includes executives). */
 const isExec=()=>myRole==='executive';
-let kzOrders=[],kzProducts=[],kzErr=false,execMode=false,kzTab='sales',kzStatus='all',kzRange='30';
+let kzOrders=[],kzProducts=[],kzSeo={},kzErr=false,execMode=false,kzTab='sales',kzStatus='all',kzRange='30';
 const KZ_STATUS=['Awaiting payment','Processing','Paid','Shipped','Delivered','Cancelled'];
 const KZ_COUNTS=['Processing','Paid','Shipped','Delivered'];            /* these count as real sales */
 const KZ_ICONS=['bag','shirt','shoe','watch','phone','home','gift','tag','sparkle','bolt','box','star'];
@@ -2461,12 +2461,13 @@ const KZ_COLORS=[['#fde7d6','Peach'],['#e0f2fe','Sky'],['#dcfce7','Mint'],['#fef
 const peso=n=>'₱'+Number(n||0).toLocaleString('en-PH',{maximumFractionDigits:2});
 const kzSlug=s=>String(s).toLowerCase().replace(/[^a-z]+/g,'-');
 async function loadKloze(){
-  const [o,p]=await Promise.all([
+  const [o,p,st]=await Promise.all([
     sb.from('kloze_orders').select('*').order('created_at',{ascending:false}).limit(2000),
-    sb.from('kloze_products').select('*').order('id',{ascending:true})
+    sb.from('kloze_products').select('*').order('id',{ascending:true}),
+    sb.from('kloze_settings').select('*').eq('id',1).maybeSingle()
   ]);
   kzErr=!!(o.error||p.error);if(kzErr)console.error(o.error||p.error);
-  kzOrders=o.data||[];kzProducts=p.data||[];
+  kzOrders=o.data||[];kzProducts=p.data||[];if(!st.error)kzSeo=st.data||{};
 }
 async function syncKloze(){try{await loadKloze()}catch(e){kzErr=true;console.error(e)}render()}
 async function runK(p,okMsg){
@@ -2478,44 +2479,108 @@ const kzDate=t=>new Date(t).toLocaleString(undefined,{month:'short',day:'numeric
 const kzDay=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 
 /* ---- products ---- */
-const kzProductFields=()=>[
-  {k:'name',label:'Product name',req:true},
-  {k:'price',label:'Selling price (₱)',type:'number',req:true,placeholder:'e.g. 499'},
-  {k:'old_price',label:'Original price (₱), optional. Shows a discount badge if higher',type:'number'},
-  {k:'category',label:'Category (Fashion, Beauty, Gadgets, Home, Gifts…)',req:true},
-  {k:'icon',label:'Icon',type:'select',options:KZ_ICONS.map(v=>({v,t:cap(v)})),def:'bag'},
-  {k:'bg',label:'Card colour',type:'select',options:KZ_COLORS.map(([v,t])=>({v,t})),def:'#fde7d6'},
-  {k:'stock',label:'Stock on hand. Leave empty for unlimited',type:'number'},
-  {k:'description',label:'Description',type:'textarea'}
-];
-function kzParse(v){
-  const price=Number(v.price),old=v.old_price==null?null:Number(v.old_price),stock=v.stock==null?null:Math.floor(Number(v.stock));
-  if(!(price>=0)){toast('Enter a valid price.');return null}
-  if(old!==null&&!(old>=0)){toast('Enter a valid original price.');return null}
-  if(stock!==null&&!(stock>=0)){toast('Stock must be 0 or more.');return null}
-  return {name:v.name,price,old_price:old,category:v.category,icon:v.icon||'bag',bg:v.bg||'#fde7d6',stock,description:v.description||null};
+const KZ_BUCKET='kloze-products';
+const kzPath=u=>{const i=String(u).indexOf('/'+KZ_BUCKET+'/');return i<0?null:decodeURIComponent(String(u).slice(i+KZ_BUCKET.length+2).split('?')[0])};
+const kzRemoveFiles=urls=>{const ps=urls.map(kzPath).filter(Boolean);if(ps.length)sb.storage.from(KZ_BUCKET).remove(ps).catch(e=>console.error(e))};
+/* shrink a photo in the browser (max 1200px, JPEG) so uploads are small and the shop stays fast */
+function kzShrink(file,max=1200){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);
+  img.onload=()=>{URL.revokeObjectURL(u);const r=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);
+    const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);c.toBlob(b=>b?res(b):rej(new Error('Could not read that image.')),'image/jpeg',.85)};
+  img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('That file is not a picture.'))};img.src=u})}
+async function kzUpload(file,folder){
+  const blob=await kzShrink(file),path=folder+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.jpg';
+  const r=await sb.storage.from(KZ_BUCKET).upload(path,blob,{contentType:'image/jpeg',cacheControl:'31536000'});
+  if(r.error)throw r.error;return sb.storage.from(KZ_BUCKET).getPublicUrl(path).data.publicUrl;
 }
-const addKzProduct=()=>openForm({title:'Add Kloze product',fields:kzProductFields(),values:{icon:'bag',bg:'#fde7d6'},saveText:'Add product',onSave:async v=>{
-  const row=kzParse(v);if(!row)throw new Error('invalid');
-  return runK(sb.from('kloze_products').insert({...row,created_by:me.email}),'Product added. It is live on Kloze now.');
-}});
-const editKzProduct=p=>openForm({title:'Edit product',fields:kzProductFields(),values:{...p,old_price:p.old_price??'',stock:p.stock??'',description:p.description||''},onSave:async v=>{
-  const row=kzParse(v);if(!row)throw new Error('invalid');
-  return runK(sb.from('kloze_products').update(row).eq('id',p.id),'Product updated.');
-}});
+const KZ_PRESETS=[['S, M, L, XL',['S','M','L','XL']],['XS to XXL',['XS','S','M','L','XL','XXL']],['Shoes 36 to 43',['36','37','38','39','40','41','42','43']]];
+function kzProductModal(p){
+  const isNew=!p;let images=[...(p?.images||[])],sizes=(p?.sizes||[]).map(x=>({name:x.name,stock:x.stock??''}));
+  const added=[],removed=[];
+  const lab=(t,el)=>h('label',{class:'f'},t,el);
+  const name=h('input',{type:'text',value:p?.name||''}),price=h('input',{type:'number',value:p?.price??'',placeholder:'e.g. 499'}),old=h('input',{type:'number',value:p?.old_price??''}),
+    cat=h('input',{type:'text',value:p?.category||'',placeholder:'Fashion, Beauty, Gadgets, Home, Gifts…'}),
+    icon=h('select',{},KZ_ICONS.map(v=>h('option',{value:v,text:cap(v)}))),bg=h('select',{},KZ_COLORS.map(([v,t])=>h('option',{value:v,text:t}))),
+    stock=h('input',{type:'number',value:p?.stock??'',placeholder:'Empty = unlimited'}),desc=h('textarea',{});
+  icon.value=p?.icon||'bag';bg.value=p?.bg||'#fde7d6';desc.value=p?.description||'';
+  const err=h('div',{class:'err',role:'alert'}),photos=h('div',{style:'display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px'}),sizeBox=h('div');
+  const fileIn=h('input',{type:'file',accept:'image/*',multiple:true,style:'display:none'});
+  const paintPhotos=()=>{photos.replaceChildren(...images.map((u,i)=>h('div',{style:'width:92px'},
+    h('div',{style:'width:92px;height:92px;border-radius:10px;overflow:hidden;border:2px solid '+(i===0?'var(--brand)':'var(--bd)')},h('img',{src:u,alt:'',style:'width:100%;height:100%;object-fit:cover'})),
+    h('div',{style:'display:flex;gap:4px;margin-top:4px'},
+      i===0?h('span',{class:'muted',style:'font-size:.72rem;font-weight:600',text:'Main photo'}):h('button',{class:'btn ghost sm',type:'button',text:'Main',onclick:()=>{images.unshift(images.splice(i,1)[0]);paintPhotos()}}),
+      h('button',{class:'btn ghost sm danger',type:'button',text:'×','aria-label':'Remove photo',onclick:()=>{const [u2]=images.splice(i,1);if(added.includes(u2)){kzRemoveFiles([u2]);added.splice(added.indexOf(u2),1)}else removed.push(u2);paintPhotos()}}))))) };
+  const addBtn=h('button',{class:'btn ghost sm',type:'button',text:'Add photos',onclick:()=>fileIn.click()});
+  fileIn.addEventListener('change',async()=>{
+    const files=[...fileIn.files];fileIn.value='';if(!files.length)return;
+    if(images.length+files.length>6){err.textContent='You can have up to 6 photos per product.';return}
+    err.textContent='';addBtn.disabled=true;addBtn.textContent='Uploading…';
+    try{for(const f of files){const u=await kzUpload(f,'products');images.push(u);added.push(u);paintPhotos()}}
+    catch(e){console.error(e);err.textContent=(e&&e.message)||'Upload failed. Only Executive access can upload.'}
+    addBtn.disabled=false;addBtn.textContent='Add photos'});
+  const paintSizes=()=>{sizeBox.replaceChildren(
+    ...sizes.map((z,i)=>h('div',{style:'display:flex;gap:8px;margin-bottom:6px;align-items:center'},
+      h('input',{type:'text',value:z.name,placeholder:'Size (S, M, 38…)',style:'flex:1',oninput:e=>{z.name=e.target.value}}),
+      h('input',{type:'number',value:z.stock,placeholder:'Stock (empty = unlimited)',style:'flex:1',oninput:e=>{z.stock=e.target.value}}),
+      h('button',{class:'btn ghost sm danger',type:'button',text:'×','aria-label':'Remove size',onclick:()=>{sizes.splice(i,1);paintSizes()}}))),
+    h('div',{class:'acts',style:'margin-top:4px'},h('button',{class:'btn ghost sm',type:'button',text:'Add size',onclick:()=>{sizes.push({name:'',stock:''});paintSizes()}}),
+      ...KZ_PRESETS.map(([t,list])=>h('button',{class:'btn ghost sm',type:'button',text:t,onclick:()=>{list.forEach(n=>{if(!sizes.some(z=>z.name===n))sizes.push({name:n,stock:''})});paintSizes()}}))))};
+  paintPhotos();paintSizes();
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)};
+  const cancel=()=>{kzRemoveFiles(added);close()};
+  const esc=e=>{if(e.key==='Escape')cancel()};
+  const save=h('button',{class:'btn blue',type:'button',text:isNew?'Add product':'Save changes',onclick:async()=>{
+    err.textContent='';
+    const nm=name.value.trim(),ct=cat.value.trim(),pr=Number(price.value),op=old.value===''?null:Number(old.value);
+    if(!nm){err.textContent='Product name is required.';name.focus();return}
+    if(price.value===''||!(pr>=0)){err.textContent='Enter a valid selling price.';price.focus();return}
+    if(op!==null&&!(op>=0)){err.textContent='Enter a valid original price.';old.focus();return}
+    if(!ct){err.textContent='Category is required.';cat.focus();return}
+    const names=new Set(),szs=[];
+    for(const z of sizes){const n=String(z.name).trim();if(!n&&String(z.stock)==='')continue;
+      if(!n){err.textContent='Every size needs a name.';return}
+      if(n.length>40||n.includes('|')){err.textContent='Size names must be under 40 characters and cannot contain "|".';return}
+      if(names.has(n)){err.textContent='Size "'+n+'" is listed twice.';return}names.add(n);
+      const st=String(z.stock).trim()===''?null:Math.floor(Number(z.stock));
+      if(st!==null&&!(st>=0)){err.textContent='Stock for size "'+n+'" must be 0 or more.';return}szs.push({name:n,stock:st})}
+    const sk=stock.value===''?null:Math.floor(Number(stock.value));
+    if(sk!==null&&!(sk>=0)){err.textContent='Stock must be 0 or more.';stock.focus();return}
+    const row={name:nm,price:pr,old_price:op,category:ct,icon:icon.value,bg:bg.value,description:desc.value.trim()||null,images,sizes:szs,stock:szs.length?null:sk};
+    save.disabled=true;
+    const r=await (isNew?sb.from('kloze_products').insert({...row,created_by:me.email}):sb.from('kloze_products').update(row).eq('id',p.id));
+    if(r.error){save.disabled=false;console.error(r.error);err.textContent='Could not save. Only Executive access can change Kloze products.';return}
+    kzRemoveFiles(removed);close();
+    try{await loadKloze()}catch(e){console.error(e)}
+    toast(isNew?'Product added. It is live on Kloze now.':'Product updated.');render();
+  }});
+  const scrim=h('div',{class:'scrim',onclick:e=>{if(e.target===scrim)cancel()}},
+    h('div',{class:'modal wide',role:'dialog','aria-modal':'true','aria-label':isNew?'Add product':'Edit product',style:'max-height:92vh;overflow:auto'},
+      h('h2',{text:isNew?'Add Kloze product':'Edit product'}),
+      lab('Product name',name),
+      h('div',{class:'f'},'Photos (first one is the main photo, up to 6)',photos,addBtn,fileIn),
+      lab('Selling price (₱)',price),lab('Original price (₱), optional. Shows a discount badge if higher',old),
+      lab('Category',cat),lab('Icon (shown when there is no photo)',icon),lab('Card colour',bg),
+      h('div',{class:'f'},'Sizes (optional). Each size has its own stock',sizeBox),
+      lab('Stock on hand. Ignored if you add sizes. Empty = unlimited',stock),lab('Description',desc),
+      err,h('div',{class:'row'},h('button',{class:'btn ghost',type:'button',text:'Cancel',onclick:cancel}),save)));
+  document.body.append(scrim);document.addEventListener('keydown',esc);name.focus();
+}
+const addKzProduct=()=>kzProductModal(null);
+const editKzProduct=p=>kzProductModal(p);
 const toggleKzProduct=p=>runK(sb.from('kloze_products').update({active:!p.active}).eq('id',p.id),p.active?'Hidden from Kloze.':'Live on Kloze again.');
-const delKzProduct=p=>{if(confirm('Delete "'+p.name+'" for good? Past orders keep their record. To just hide it, use Hide instead.'))runK(sb.from('kloze_products').delete().eq('id',p.id),'Product deleted.')};
+const delKzProduct=p=>{if(confirm('Delete "'+p.name+'" for good? Past orders keep their record. To just hide it, use Hide instead.')){kzRemoveFiles(p.images||[]);runK(sb.from('kloze_products').delete().eq('id',p.id),'Product deleted.')}};
 const setKzStatus=(o,s)=>{if(s===o.status)return;runK(sb.from('kloze_orders').update({status:s}).eq('id',o.id),'Order '+o.id+' is now '+s+'.')};
 
 /* ---- views ---- */
+const kzSoldOut=p=>(p.sizes&&p.sizes.length)?p.sizes.every(z=>z.stock===0):p.stock===0;
 function kzProductsView(){
   const list=kzProducts.filter(p=>match(p,['name','category','description']));
   const row=p=>h('div',{class:'card item acc c-'+(p.active?'amber':'slate'),style:p.active?'':'opacity:.7'},
-    h('div',{style:'width:44px;height:44px;border-radius:10px;flex:none;background:'+(/^#[0-9a-f]{3,8}$/i.test(p.bg)?p.bg:'#eee')+';display:grid;place-items:center;font-size:.7rem;font-weight:700;color:#475569',text:cap(p.icon||'bag').slice(0,4)}),
+    (p.images&&p.images[0])?h('img',{src:p.images[0],alt:'',style:'width:56px;height:56px;border-radius:10px;flex:none;object-fit:cover'}):h('div',{style:'width:56px;height:56px;border-radius:10px;flex:none;background:'+(/^#[0-9a-f]{3,8}$/i.test(p.bg)?p.bg:'#eee')+';display:grid;place-items:center;font-size:.7rem;font-weight:700;color:#475569',text:cap(p.icon||'bag').slice(0,4)}),
     h('div',{class:'body'},
-      h('div',{class:'t',text:p.name},h('span',{class:'pill '+(p.active?'won':'closed'),text:p.active?'Live':'Hidden'}),(p.stock===0?h('span',{class:'pill high',text:'Sold out'}):null)),
-      h('div',{class:'s',text:peso(p.price)+(p.old_price&&Number(p.old_price)>Number(p.price)?' (was '+peso(p.old_price)+')':'')+' · '+p.category}),
-      h('div',{class:'s',text:(p.stock===null?'Unlimited stock':p.stock+' in stock')+' · '+p.sold+' sold'}),
+      h('div',{class:'t',text:p.name},h('span',{class:'pill '+(p.active?'won':'closed'),text:p.active?'Live':'Hidden'}),(kzSoldOut(p)?h('span',{class:'pill high',text:'Sold out'}):null)),
+      h('div',{class:'s',text:peso(p.price)+(p.old_price&&Number(p.old_price)>Number(p.price)?' (was '+peso(p.old_price)+')':'')+' · '+p.category+' · '+((p.images||[]).length)+' photo'+((p.images||[]).length===1?'':'s')}),
+      (p.sizes&&p.sizes.length)?h('div',{class:'s',text:'Sizes: '+p.sizes.map(z=>z.name+(z.stock===null||z.stock===undefined?'':' ('+z.stock+')')).join(', ')}):h('div',{class:'s',text:p.stock===null?'Unlimited stock':p.stock+' in stock'}),
+      h('div',{class:'s',text:p.sold+' sold'}),
       p.description?h('div',{class:'m',text:p.description}):null,
       h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editKzProduct(p)}),
         h('button',{class:'btn ghost sm',text:p.active?'Hide':'Show',onclick:()=>toggleKzProduct(p)}),
@@ -2559,7 +2624,7 @@ function kzOrdersView(){
     h('div',{class:'s',text:kzDate(o.created_at)+' · '+o.payment_method}),
     h('div',{class:'s',text:[o.customer_name,o.phone,o.email].filter(Boolean).join(' · ')}),
     h('div',{class:'s',text:[o.address,o.city].filter(Boolean).join(', ')}),
-    h('div',{class:'m',text:(o.items||[]).map(i=>i.q+'× '+i.n).join('\n')}),
+    h('div',{style:'display:flex;flex-direction:column;gap:6px;margin-top:6px'},(o.items||[]).map(i=>{const pr=kzProducts.find(x=>x.id===i.id),im=pr&&pr.images&&pr.images[0];return h('div',{style:'display:flex;gap:10px;align-items:center;font-size:.9rem'},im?h('img',{src:im,alt:'',style:'width:40px;height:40px;border-radius:8px;object-fit:cover'}):null,h('span',{text:i.q+'× '+i.n}))})),
     h('div',{class:'s',text:'Subtotal '+peso(o.subtotal)+(Number(o.discount)?' · Discount -'+peso(o.discount):'')+' · Shipping '+(Number(o.shipping)?peso(o.shipping):'Free')}),
     h('div',{class:'acts'},h('label',{style:'font-size:.8rem;font-weight:600;display:flex;gap:8px;align-items:center'},'Status',
       h('select',{'aria-label':'Order status',onchange:e=>setKzStatus(o,e.target.value)},KZ_STATUS.map(s=>{const op=h('option',{value:s,text:s});if(s===o.status)op.selected=true;return op}))))));
@@ -2569,12 +2634,54 @@ function kzOrdersView(){
     h('div',{class:'chips',style:'margin-bottom:12px'},['all',...KZ_STATUS].map(stBtn)),
     shown.length?h('div',{class:'list'},shown.map(orderRow)):empty(kzOrders.length?'No orders match':'No orders yet',kzOrders.length?'Try another period, status or search.':'Orders placed on the Kloze shop appear here automatically.'));
 }
+
+/* ---- SEO settings for the Kloze shop ---- */
+function kzSeoView(){
+  const c=kzSeo||{};
+  const title=h('input',{type:'text',value:c.site_title||'',maxlength:'120'}),desc=h('textarea',{maxlength:'320'}),kw=h('input',{type:'text',value:c.keywords||'',placeholder:'fashion, gadgets, gcash, philippines'}),
+    og=h('input',{type:'text',value:c.og_image||'',placeholder:'https://…  (or upload below)'}),canon=h('input',{type:'text',value:c.canonical_url||'',placeholder:'https://yourshop.com/'}),
+    gv=h('input',{type:'text',value:c.google_verification||'',placeholder:'Paste only the code from Google Search Console'}),
+    noindex=h('input',{type:'checkbox'});desc.value=c.meta_description||'';noindex.checked=!!c.noindex;
+  const cnt=(el,max)=>{const s=h('span',{class:'muted',style:'font-weight:500;margin-left:6px'});const u=()=>{s.textContent=el.value.length+'/'+max;s.style.color=el.value.length>max?'var(--danger)':''};el.addEventListener('input',u);u();return s};
+  const pvT=h('div',{style:'color:#1a0dab;font-size:1.05rem;line-height:1.3'}),pvU=h('div',{style:'color:#006621;font-size:.82rem'}),pvD=h('div',{style:'color:#545454;font-size:.85rem;margin-top:2px'});
+  const paint=()=>{pvT.textContent=(title.value.trim()||'Kloze').slice(0,60)+(title.value.length>60?'…':'');pvU.textContent=(canon.value.trim()||'https://your-shop-address')+'';pvD.textContent=(desc.value.trim()||'Add a description so people know what Kloze sells.').slice(0,160)+(desc.value.length>160?'…':'')};
+  [title,desc,canon].forEach(e=>e.addEventListener('input',paint));paint();
+  const ogPrev=h('img',{alt:'',style:'max-width:240px;max-height:130px;border-radius:8px;display:'+(c.og_image?'block':'none')+';margin-top:6px',src:c.og_image||''});
+  og.addEventListener('input',()=>{ogPrev.src=og.value;ogPrev.style.display=og.value?'block':'none'});
+  const err=h('div',{class:'err',role:'alert'}),file=h('input',{type:'file',accept:'image/*',style:'display:none'});
+  const up=h('button',{class:'btn ghost sm',type:'button',text:'Upload image',onclick:()=>file.click()});
+  file.addEventListener('change',async()=>{const f=file.files[0];file.value='';if(!f)return;up.disabled=true;up.textContent='Uploading…';err.textContent='';
+    try{const u=await kzUpload(f,'seo');og.value=u;ogPrev.src=u;ogPrev.style.display='block'}catch(e){console.error(e);err.textContent=(e&&e.message)||'Upload failed.'}up.disabled=false;up.textContent='Upload image'});
+  const lab=(t,el,extra)=>h('label',{class:'f'},t,extra||null,el);
+  const save=h('button',{class:'btn blue',text:'Save SEO settings',onclick:async()=>{
+    err.textContent='';const cu=canon.value.trim(),ou=og.value.trim();
+    if(cu&&!/^https?:\/\//i.test(cu)){err.textContent='The shop address must start with https://';return}
+    if(ou&&!/^https?:\/\//i.test(ou)){err.textContent='The share image must be a web address starting with https://';return}
+    if(noindex.checked&&!confirm('This asks Google NOT to list Kloze in search results. Continue?'))return;
+    save.disabled=true;
+    const r=await sb.from('kloze_settings').upsert({id:1,site_title:title.value.trim()||null,meta_description:desc.value.trim()||null,keywords:kw.value.trim()||null,og_image:ou||null,canonical_url:cu||null,google_verification:gv.value.trim()||null,noindex:noindex.checked,updated_at:new Date().toISOString(),updated_by:me.email});
+    save.disabled=false;if(r.error){console.error(r.error);err.textContent='Could not save. Only Executive access can change SEO settings.';return}
+    try{await loadKloze()}catch(e){console.error(e)}toast('SEO settings saved. The shop uses them right away.');render()}});
+  return h('div',{},
+    h('div',{class:'bar'},h('h3',{style:'margin:0',text:'SEO settings'})),
+    h('div',{class:'card',style:'margin-bottom:14px'},h('div',{class:'muted',style:'font-size:.8rem;margin-bottom:6px',text:'How Kloze can look on Google'}),pvT,pvU,pvD),
+    h('div',{class:'card'},
+      lab('Shop title',title,cnt(title,60)),
+      lab('Description (what Kloze sells, in one or two sentences)',desc,cnt(desc,160)),
+      lab('Keywords (separated by commas)',kw),
+      h('div',{class:'f'},'Share image (shown when the shop link is shared)',og,h('div',{class:'acts',style:'margin-top:6px'},up,file),ogPrev),
+      lab('Shop web address (canonical URL)',canon),
+      lab('Google Search Console verification code (optional)',gv),
+      h('label',{class:'f',style:'display:flex;gap:10px;align-items:center'},noindex,'Hide Kloze from Google and other search engines'),
+      h('p',{class:'hint',text:'Google reads these settings. Facebook and Messenger link previews read the page file itself, so they may keep showing the default title and picture. Each product also gets automatic Google product info (name, photo, price, availability).'}),
+      err,h('div',{class:'row'},save)));
+}
 /* the whole app an Executive sees */
 function execView(){
-  const tabs=[['sales','Sales'],['orders','Orders',kzOrders.filter(o=>o.status==='Processing'||o.status==='Paid').length],['products','Products']];
-  const IC={sales:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',orders:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',products:'<path d="M6 7h12l1 13H5z"/><path d="M9 7V6a3 3 0 0 1 6 0v1"/>'};
+  const tabs=[['sales','Sales'],['orders','Orders',kzOrders.filter(o=>o.status==='Processing'||o.status==='Paid').length],['products','Products'],['seo','SEO']];
+  const IC={sales:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',orders:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',products:'<path d="M6 7h12l1 13H5z"/><path d="M9 7V6a3 3 0 0 1 6 0v1"/>',seo:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>'};
   const ico=k=>{const s=h('span',{class:'ico','aria-hidden':'true'});s.innerHTML='<svg viewBox="0 0 24 24">'+(IC[k]||'')+'</svg>';return s};
-  const body=kzErr?empty('Kloze store tools are not set up','The Kloze tables could not be loaded for your account. Ask the admin to check your access, then reload.'):kzTab==='orders'?kzOrdersView():kzTab==='products'?kzProductsView():kzSalesView();
+  const body=kzErr?empty('Kloze store tools are not set up','The Kloze tables could not be loaded for your account. Ask the admin to check your access, then reload.'):kzTab==='orders'?kzOrdersView():kzTab==='products'?kzProductsView():kzTab==='seo'?kzSeoView():kzSalesView();
   return h('div',{},
     h('header',{class:'top'},h('div',{class:'top-in'},
       h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('img',{src:KLOZE_LOGO,alt:'Kloze',style:'height:26px;width:auto;margin-left:12px;align-self:center'})),
@@ -2641,7 +2748,7 @@ async function init(){
   me={id:session.user.id,email:session.user.email};
   try{const r0=await sb.rpc('crm_role');if(r0.data==='executive'){
     myRole='executive';ready=true;try{await loadKloze()}catch(e){console.error(e);kzErr=true}
-    render();timers.push(setInterval(async()=>{if(leaving)return;try{await loadKloze()}catch(e){console.error(e)}const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()},30000));return}}catch(e){console.error(e)}
+    render();timers.push(setInterval(async()=>{if(leaving)return;try{await loadKloze()}catch(e){console.error(e)}const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))if(!document.querySelector('.scrim')&&kzTab!=='seo')render()},30000));return}}catch(e){console.error(e)}
   try{await loadAll();ready=true}catch(e){console.error(e);ready=false;return $('#app').replaceChildren(h('div',{class:'center'},h('div',{class:'panel'},h('h1',{text:'Could not load the CRM'}),h('p',{class:'sub',text:'The CRM tables may not be set up yet. Run crm_setup.sql in Supabase, then reload.'}),h('button',{class:'btn primary wide',text:'Reload',onclick:()=>location.reload()}))))}
   try{await loadPresence()}catch(e){console.error(e);presErr=true}
   try{await loadProd()}catch(e){console.error(e);prodErr=true}
