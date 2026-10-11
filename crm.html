@@ -2502,6 +2502,20 @@ function kzProductModal(p){
     icon=h('select',{},KZ_ICONS.map(v=>h('option',{value:v,text:cap(v)}))),bg=h('select',{},KZ_COLORS.map(([v,t])=>h('option',{value:v,text:t}))),
     stock=h('input',{type:'number',value:p?.stock??'',placeholder:'Empty = unlimited'}),desc=h('textarea',{});
   icon.value=p?.icon||'bag';bg.value=p?.bg||'#fde7d6';desc.value=p?.description||'';
+  const seoT=h('input',{type:'text',value:p?.seo_title||'',maxlength:'120',placeholder:'Defaults to the product name'}),
+    seoD=h('textarea',{maxlength:'320',placeholder:'One or two sentences for Google. Defaults to the description'}),
+    seoK=h('input',{type:'text',value:p?.seo_keywords||'',placeholder:'dress, summer, philippines'}),
+    seoS=h('input',{type:'text',value:p?.seo_slug||'',placeholder:'blue-summer-dress'}),
+    seoA=h('input',{type:'text',value:p?.image_alt||'',placeholder:'Describe the main photo, e.g. Woman wearing a blue summer dress'}),
+    seoN=h('input',{type:'checkbox'});seoD.value=p?.seo_description||'';seoN.checked=!!p?.seo_noindex;
+  const seoCnt=(el,max)=>{const s=h('span',{class:'muted',style:'font-weight:500;margin-left:6px'});const u=()=>{s.textContent=el.value.length+'/'+max;s.style.color=el.value.length>max?'var(--danger)':''};el.addEventListener('input',u);u();return s};
+  const pvT=h('div',{style:'color:#1a0dab;font-size:1.02rem;line-height:1.3'}),pvU=h('div',{style:'color:#006621;font-size:.8rem'}),pvD=h('div',{style:'color:#545454;font-size:.84rem;margin-top:2px'});
+  const seoSlugify=v=>String(v).toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
+  const seoPaint=()=>{const base=(kzSeo&&kzSeo.canonical_url||'https://your-shop-address').replace(/\/+$/,'');
+    pvT.textContent=((seoT.value.trim()||name.value.trim()||'Product name')).slice(0,60)+((seoT.value||name.value).length>60?'…':'');
+    pvU.textContent=base+'/product/'+(seoSlugify(seoS.value)||seoSlugify(name.value)||'product-name');
+    pvD.textContent=((seoD.value.trim()||desc.value.trim()||'Add a description so shoppers know what this product is.')).slice(0,160)+((seoD.value||desc.value).length>160?'…':'')};
+  [seoT,seoD,seoS,name,desc].forEach(e=>e.addEventListener('input',seoPaint));seoPaint();
   const err=h('div',{class:'err',role:'alert'}),photos=h('div',{style:'display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px'}),sizeBox=h('div');
   const fileIn=h('input',{type:'file',accept:'image/*',multiple:true,style:'display:none'});
   const paintPhotos=()=>{photos.replaceChildren(...images.map((u,i)=>h('div',{style:'width:92px'},
@@ -2544,7 +2558,11 @@ function kzProductModal(p){
       if(st!==null&&!(st>=0)){err.textContent='Stock for size "'+n+'" must be 0 or more.';return}szs.push({name:n,stock:st})}
     const sk=stock.value===''?null:Math.floor(Number(stock.value));
     if(sk!==null&&!(sk>=0)){err.textContent='Stock must be 0 or more.';stock.focus();return}
-    const row={name:nm,price:pr,old_price:op,category:ct,icon:icon.value,bg:bg.value,description:desc.value.trim()||null,images,sizes:szs,stock:szs.length?null:sk};
+    const slug=seoSlugify(seoS.value);
+    if(slug&&kzProducts.some(x=>x.seo_slug===slug&&(!p||x.id!==p.id))){err.textContent='Another product already uses the web address \"'+slug+'\". Choose a different one.';seoS.focus();return}
+    if(seoN.checked&&!confirm('This asks Google NOT to list this product in search results. Continue?'))return;
+    const row={name:nm,price:pr,old_price:op,category:ct,icon:icon.value,bg:bg.value,description:desc.value.trim()||null,images,sizes:szs,stock:szs.length?null:sk,
+      seo_title:seoT.value.trim()||null,seo_description:seoD.value.trim()||null,seo_keywords:seoK.value.trim()||null,seo_slug:slug||null,image_alt:seoA.value.trim()||null,seo_noindex:seoN.checked};
     save.disabled=true;
     const r=await (isNew?sb.from('kloze_products').insert({...row,created_by:me.email}):sb.from('kloze_products').update(row).eq('id',p.id));
     if(r.error){save.disabled=false;console.error(r.error);err.textContent='Could not save. Only Executive access can change Kloze products.';return}
@@ -2561,6 +2579,11 @@ function kzProductModal(p){
       lab('Category',cat),lab('Icon (shown when there is no photo)',icon),lab('Card colour',bg),
       h('div',{class:'f'},'Sizes (optional). Each size has its own stock',sizeBox),
       lab('Stock on hand. Ignored if you add sizes. Empty = unlimited',stock),lab('Description',desc),
+      h('div',{class:'muted',style:'font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:14px 0 6px',text:'SEO for this product'}),
+      h('div',{class:'card',style:'margin-bottom:10px;padding:12px'},h('div',{class:'muted',style:'font-size:.78rem;margin-bottom:4px',text:'How this product can look on Google'}),pvT,pvU,pvD),
+      lab('SEO title',seoT,seoCnt(seoT,60)),lab('SEO description',seoD,seoCnt(seoD,160)),lab('Keywords (separated by commas)',seoK),
+      lab('Web address ending (slug)',seoS),lab('Main photo description (alt text, helps Google Images and screen readers)',seoA),
+      h('label',{class:'f',style:'display:flex;gap:10px;align-items:center'},seoN,'Hide this product from Google'),
       err,h('div',{class:'row'},h('button',{class:'btn ghost',type:'button',text:'Cancel',onclick:cancel}),save)));
   document.body.append(scrim);document.addEventListener('keydown',esc);name.focus();
 }
@@ -2581,7 +2604,7 @@ function kzProductsView(){
       h('div',{class:'s',text:peso(p.price)+(p.old_price&&Number(p.old_price)>Number(p.price)?' (was '+peso(p.old_price)+')':'')+' · '+p.category+' · '+((p.images||[]).length)+' photo'+((p.images||[]).length===1?'':'s')}),
       (p.sizes&&p.sizes.length)?h('div',{class:'s',text:'Sizes: '+p.sizes.map(z=>z.name+(z.stock===null||z.stock===undefined?'':' ('+z.stock+')')).join(', ')}):h('div',{class:'s',text:p.stock===null?'Unlimited stock':p.stock+' in stock'}),
       h('div',{class:'s',text:p.sold+' sold'}),
-      p.description?h('div',{class:'m',text:p.description}):null,
+      p.description?h('div',{class:'m',text:p.description}):null,(p.seo_title||p.seo_description||p.seo_slug)?h('div',{class:'s',text:'SEO set'+(p.seo_slug?' · /product/'+p.seo_slug:'')+(p.seo_noindex?' · hidden from Google':'')}):h('div',{class:'s',text:'SEO not set yet'}),
       h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editKzProduct(p)}),
         h('button',{class:'btn ghost sm',text:p.active?'Hide':'Show',onclick:()=>toggleKzProduct(p)}),
         h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delKzProduct(p)}))));
