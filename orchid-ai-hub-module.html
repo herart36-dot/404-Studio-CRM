@@ -37,6 +37,7 @@
 .oh-dots i{display:inline-block;width:6px;height:6px;margin-right:4px;border-radius:50%;background:#22d3ee;animation:oh-p 1s infinite}.oh-dots i:nth-child(2){animation-delay:.15s}.oh-dots i:nth-child(3){animation-delay:.3s}
 @media(max-width:860px){.oh-p{top:auto;left:0;right:0;bottom:0;width:auto;height:62vh;border-radius:18px 18px 0 0}.oh-leg{display:none}#oh-btn{bottom:156px;right:16px}}
 @media(prefers-reduced-motion:reduce){#oh *,#oh-btn i{animation:none!important}.oh-bar i{transition:none}}
+.oh-ac input,.oh-ac textarea{width:100%;background:rgba(2,8,23,.7);color:#e6f1ff;border:1px solid rgba(74,168,255,.3);border-radius:8px;padding:8px;font:inherit;font-size:.82rem}.oh-ac textarea{min-height:140px}.oh-ac span{color:#9cc4ea;font-size:.78rem}
 </style>
 <script id="oh-js">(()=>{
 if(window.__ohub)return;window.__ohub=1;
@@ -66,8 +67,8 @@ function localBrief(a){const L=[],t=a.rows[0];if(!a.rows.length&&!a.openT.length
 
 /* ---------- AI call: your deployed crm-ai Edge Function (key never in the browser) ---------- */
 async function callAI(msgs){const c=sbc(),{data:{session}}=await c.auth.getSession();if(!session)throw new Error('Please log in again.');think=true;
- try{const r=await fetch(c.supabaseUrl+'/functions/v1/crm-ai',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:c.supabaseKey},body:JSON.stringify({messages:msgs,today:ymd(new Date()),tz:Intl.DateTimeFormat().resolvedOptions().timeZone})});
-  let d={};try{d=await r.json()}catch(e){}if(!r.ok||!d.reply)throw new Error(r.status===404?'The crm-ai function is not deployed.':d.error||'The AI is busy. Try again in a minute.');return d}finally{think=false}}
+ try{for(const fn of ['crm-agent','crm-ai']){const r=await fetch(c.supabaseUrl+'/functions/v1/'+fn,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:c.supabaseKey},body:JSON.stringify({messages:msgs,today:ymd(new Date()),tz:Intl.DateTimeFormat().resolvedOptions().timeZone})});
+  if(r.status===404&&fn==='crm-agent')continue;let d={};try{d=await r.json()}catch(e){}if(!r.ok||!d.reply)throw new Error(d.error||'The AI is busy. Try again in a minute.');return d}throw new Error('The AI is not deployed.')}finally{think=false}}
 function typeInto(n,txt,cb){if(RM||txt.length>1200){n.textContent=txt;cb&&cb();return}let i=0;const f=()=>{i=Math.min(txt.length,i+3);n.textContent=txt.slice(0,i);if(i<txt.length)requestAnimationFrame(f);else cb&&cb()};f()}
 function countUp(n,v){if(RM||!v){n.textContent=v;return}const t0=performance.now(),f=t=>{const p=Math.min(1,(t-t0)/700);n.textContent=Math.round(v*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
 
@@ -114,21 +115,46 @@ function brief(b){const k=E('div','oh-k');[['Open inquiries',A.rows.length,''],[
  b.append(k,c,go,note)}
 function radar(b){if(!A.rows.length){b.append(E('div','oh-c','No open inquiries to score yet.'));return}
  A.rows.slice(0,12).forEach(r=>{const i=r.i,row=E('div','oh-r'+(r.cold?' cold':'')),hd=E('div','oh-rh');hd.append(E('b','',i.name),E('span','',i.status+' · silent '+ago(r.hrs)+(r.cold?' · going cold':'')));
-  const bar=E('div','oh-bar'),f=E('i');bar.append(f);setTimeout(()=>f.style.width=r.score+'%',60);const ac=E('div','oh-a'),dr=E('button','oh-b s','✦ Draft follow-up'),tc=E('button','oh-b g s','Log touch'),tk=E('button','oh-b g s','+ Task');
-  dr.onclick=async()=>{dr.disabled=true;dr.textContent='Writing…';try{const d=await callAI([{role:'user',text:'Draft a short, warm follow-up email to '+i.name+' ('+i.status+' inquiry, silent '+ago(r.hrs)+'). Their message: "'+String(i.message||'').slice(0,300)+'". Start with a Subject: line. Plain text, ready to send, sign off as the team.'}]);
-    const m=/^subject:\s*(.+)$/im.exec(d.reply),bd=d.reply.replace(/^subject:.*\n+/im,'').trim(),ta=E('textarea');ta.value=bd;const bar2=E('div','oh-a'),cp=E('button','oh-b g s','Copy'),op=E('button','oh-b s','Open in composer');
-    cp.onclick=async()=>{try{await navigator.clipboard.writeText((m?'Subject: '+m[1]+'\n\n':'')+ta.value);cp.textContent='Copied'}catch(e){}};op.onclick=()=>{if(i.email&&!sample){close();window.__orc.composeEmail({to:i.email,subject:m?m[1]:'Following up',body:ta.value,inquiry_id:i.id})}else cp.click()};bar2.append(cp,op);row.append(ta,bar2);dr.remove()}catch(e){dr.disabled=false;dr.textContent='✦ Draft follow-up';window.__orc.toast(e.message)}};
+  const bar=E('div','oh-bar'),f=E('i');bar.append(f);setTimeout(()=>f.style.width=r.score+'%',60);const ac=E('div','oh-a'),dr=E('button','oh-b s','✉ Compose email'),tc=E('button','oh-b g s','Log touch'),tk=E('button','oh-b g s','+ Task');
+  dr.onclick=async()=>{dr.disabled=true;dr.textContent='Thinking…';try{const d=await callAI([{role:'user',text:'Compose a follow-up email to '+i.name+' (inquiry id '+i.id+', '+i.status+', silent '+ago(r.hrs)+') based on everything in the CRM about them: their message, our emails, tasks and notes. Then propose sending it with a send_email action.'}]);
+    if(d.reply)row.append(E('div','oh-c',d.reply));(d.actions||[]).forEach(a=>actionCard(a,row));dr.remove()}catch(e){dr.disabled=false;dr.textContent='✉ Compose email';window.__orc.toast(e.message)}};
   tc.onclick=()=>{if(sample)return;window.__orc.logTouch(i);tc.textContent='Logged'};
   tk.onclick=async()=>{if(sample)return;const p=window.__orchidCrm&&window.__orchidCrm.plan({type:'create_task',title:'Follow up with '+i.name,due_date:ymd(new Date(Date.now()+864e5)),priority:r.cold?'high':'normal'});try{tk.textContent=await p.exec()&&'Added'}catch(e){window.__orc.toast(e.message||'Could not add')}};
   ac.append(dr,tc,tk);row.append(hd,bar,ac);b.append(row)})}
-function actionCard(a,box){const p=window.__orchidCrm&&window.__orchidCrm.plan(a),c=E('div','oh-ac');if(!p||p.error){c.textContent=(p&&p.error)||'I could not prepare that action.';box.append(c);return}
- c.append(E('b','',p.title));p.lines.forEach(l=>c.append(E('span','',l)));const bar=E('div','oh-a'),ok=E('button','oh-b s',p.confirm||'Confirm'),no=E('button','oh-b g s','Cancel');
- ok.onclick=async()=>{ok.disabled=no.disabled=true;ok.textContent='Working…';try{const m=await p.exec();c.replaceChildren(E('b','','✓ '+m))}catch(e){c.replaceChildren(E('b','',e.message||'Something went wrong.'))}};no.onclick=()=>c.replaceChildren(E('span','','Cancelled.'));bar.append(ok,no);c.append(bar);box.append(c)}
+const W=async q=>{const r=await q;if(r.error)throw new Error(r.error.message||'Something went wrong.');return r},hx=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),meE=()=>String(D().me.email||'').toLowerCase();
+const TT={create_lead:'Add lead',create_task:'Add task',set_schedule:'Set schedule',create_client:'Add client',update_inquiry:'Update inquiry',log_touch:'Log a touch',update_task:'Update task',create_case:'Open a case',update_case:'Update case',add_case_note:'Add case note',create_deal:'Add deal',move_deal:'Move deal',send_email:'Send email',send_chat:'Send team chat'};
+const stage=async n=>{const st=(await W(sbc().from('crm_deal_stages').select('*').order('position'))).data||[],o=st.filter(x=>x.kind==='open');const s=o.find(x=>n&&x.name.toLowerCase().includes(String(n).toLowerCase()))||(n?null:o[0]);if(!s)throw new Error('No open deal stage called "'+n+'". Use the Deals tab for won or lost.');return s};
+const EX={
+ create_client:async a=>{await W(sbc().from('crm_clients').insert({name:a.name,email:a.email,phone:a.phone,company:a.company,notes:a.notes}));return 'Client '+a.name+' added.'},
+ update_inquiry:async a=>{const v={};if(a.status)v.status=a.status;if(a.priority)v.priority=a.priority;
+  if(D().isAdmin){await W(sbc().from('crm_inquiries').update(v).eq('id',a.id));return 'Inquiry updated.'}
+  await W(sbc().from('crm_approvals').insert({requested_by:meE(),action:'inq_edit',target_id:a.id,summary:('AI: update '+(a.label||'inquiry')+' → '+Object.values(v).join(', ')).slice(0,600),payload:{values:v}}));return 'Sent to the admin for approval. Nothing changes until they approve.'},
+ log_touch:async a=>{const i=(D().inquiries||[]).find(x=>x.id===a.id);if(!i)throw new Error('That inquiry no longer exists.');await window.__orc.logTouch(i);return D().isAdmin?'Touch logged. The clock restarts.':'Sent to the admin for approval.'},
+ update_task:async a=>{const v={};['done','due_date','priority'].forEach(k=>{if(a[k]!==undefined)v[k]=a[k]});await W(sbc().from('crm_tasks').update(v).eq('id',a.id));return 'Task updated.'},
+ create_case:async a=>{await W(sbc().from('crm_cases').insert({subject:a.subject,description:a.description,priority:a.priority,requester_name:a.requester_name,requester_email:a.requester_email}));return 'Case opened. Routing and SLA clocks applied.'},
+ update_case:async a=>{const v={};['status','priority','assigned_to'].forEach(k=>{if(a[k])v[k]=a[k]});await W(sbc().from('crm_cases').update(v).eq('id',a.id));return 'Case updated.'},
+ add_case_note:async a=>{await W(sbc().from('crm_case_notes').insert({case_id:a.case_id,kind:'note',body:a.body,author:meE()}));return 'Note added to the case.'},
+ create_deal:async a=>{const s=await stage(a.stage||null),c=a.client&&(D().clients||[]).find(x=>x.name.toLowerCase()===a.client.toLowerCase());await W(sbc().from('crm_deals').insert({title:a.title,value:a.value,stage_id:s.id,probability:s.probability,owner_email:meE(),expected_close:a.expected_close,client_id:c?c.id:null,account_id:(c&&c.account_id)||null}));return 'Deal added in '+s.name+'.'},
+ move_deal:async a=>{const s=await stage(a.stage);await W(sbc().from('crm_deals').update({stage_id:s.id,probability:s.probability,closed_at:null,win_loss_reason:null,win_loss_note:null}).eq('id',a.id));return 'Deal moved to '+s.name+'.'},
+ send_email:async a=>{const r=await sbc().functions.invoke('crm-send-email',{body:{to:a.to,subject:a.subject,body:a.body,html:'<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.55;white-space:pre-wrap">'+hx(a.body)+'</div>',request_id:crypto.randomUUID(),inquiry_id:a.inquiry_id||null,client_id:a.client_id||null,reply_to_message_id:null}});
+  if(r.error){let m='Could not reach the email service.';try{const j=await r.error.context.json();if(j&&j.error)m=j.error}catch(e){}throw new Error(m)}if(!r.data||!r.data.ok)throw new Error((r.data&&r.data.error)||'The email was not sent.');return 'Email sent to '+a.to+'.'},
+ send_chat:async a=>{await W(sbc().from('crm_team_messages').insert({sender_email:meE(),recipient_email:a.to,body:a.body}));return 'Message sent to '+a.to+'.'}};
+function actionCard(a,box){const viaPlan=['create_lead','create_task','set_schedule'].includes(a.type),p=viaPlan&&window.__orchidCrm&&window.__orchidCrm.plan(a),c=E('div','oh-ac');
+ if(viaPlan&&(!p||p.error)){c.textContent=(p&&p.error)||'I could not prepare that action.';box.append(c);return}
+ c.append(E('b','',viaPlan?p.title:(TT[a.type]||a.type)+(a.label?' · '+a.label:'')));let ta=null,sj=null;
+ if(viaPlan)p.lines.forEach(l=>c.append(E('span','',l)));else{
+  Object.keys(a).forEach(k=>{if(!['type','id','case_id','label','body','subject','inquiry_id','client_id'].includes(k)&&a[k]!=null&&a[k]!=='')c.append(E('span','',k.replace(/_/g,' ')+': '+a[k]))});
+  if(a.type==='send_email'){sj=E('input');sj.value=a.subject;sj.setAttribute('aria-label','Subject');c.append(sj)}
+  if(a.body!=null){ta=E('textarea');ta.value=a.body;ta.setAttribute('aria-label','Message (editable)');c.append(ta)}}
+ const bar=E('div','oh-a'),ok=E('button','oh-b s',viaPlan?(p.confirm||'Confirm'):a.type==='send_email'||a.type==='send_chat'?'Send':'Confirm'),no=E('button','oh-b g s','Cancel');
+ ok.onclick=async()=>{if(sj)a.subject=sj.value;if(ta)a.body=ta.value;ok.disabled=no.disabled=true;ok.textContent='Working…';
+  try{const m=viaPlan?await p.exec():await EX[a.type](a);c.replaceChildren(E('b','','✓ '+m));if(window.__orc.refresh)window.__orc.refresh().then(()=>{A=analyse()}).catch(()=>{})}catch(e){c.replaceChildren(E('b','',e.message||'Something went wrong.'),E('span','','Nothing was changed.'))}};
+ no.onclick=()=>c.replaceChildren(E('span','','Cancelled.'));bar.append(ok,no);c.append(bar);box.append(c)}
 function ask(b){const log=E('div','oh-body');log.style.padding='0';const sg=E('div','oh-sg');
  const say=async t=>{t=t.trim();if(!t||busy)return;busy=true;sg.remove();log.append(E('div','oh-m u',t));const w=E('div','oh-m a'),dd=E('div','oh-dots');dd.append(E('i'),E('i'),E('i'));w.append(dd);log.append(w);log.scrollTop=1e9;hist.push({role:'user',text:t});
   try{const d=await callAI(hist.slice(0,-1).concat({role:'user',text:t+'\n\n'+ctx(A)}));hist.push({role:'model',text:d.reply});w.textContent='';typeInto(w,d.reply,()=>{log.scrollTop=1e9});(d.actions||[]).slice(0,3).forEach(a=>actionCard(a,log))}catch(e){hist.pop();w.className='oh-m e';w.textContent=e.message}busy=false;log.scrollTop=1e9};
- ['Who is going cold?','What should I do first today?','Draft a follow-up for my hottest lead','Add a task: call back tomorrow'].forEach(s=>{const x=E('button','oh-b g s',s);x.onclick=()=>say(s);sg.append(x)});
- const intro=E('div','oh-m a','I am your Orchid copilot. I can see your inquiries, clients, tasks and cases, draft emails, and propose actions. Nothing is saved until you press Confirm.');log.append(intro,sg);hist.forEach(m=>log.append(E('div','oh-m '+(m.role==='user'?'u':'a'),m.text)));if(hist.length)sg.remove();
+ ['Plan my day','Compose an email to my hottest lead','What should I reply to my latest team chat?','Reply to my latest email','What to do on my overdue tasks?','Summarize my open cases','Add a task: call back tomorrow'].forEach(s=>{const x=E('button','oh-b g s',s);x.onclick=()=>say(s);sg.append(x)});
+ const intro=E('div','oh-m a','I am your Orchid copilot. I read your inquiries, clients, tasks, cases, deals, inbox and team chat. I can compose and send emails, reply in team chat, create leads, clients, tasks, cases and deals, update statuses, add case notes and advise on what to do next. You review every action (and can edit the text) before it runs.');log.append(intro,sg);hist.forEach(m=>log.append(E('div','oh-m '+(m.role==='user'?'u':'a'),m.text)));if(hist.length)sg.remove();
  const f=E('div','oh-in'),inp=E('input');inp.placeholder='Ask anything or give a command…';inp.setAttribute('aria-label','Ask the Orchid AI');const sn=E('button','oh-b','Send');sn.onclick=()=>{const v=inp.value;inp.value='';say(v)};inp.onkeydown=e=>{if(e.key==='Enter')sn.click()};f.append(inp,sn);b.append(log);b.parentNode.append(f);b.style.overflow='hidden';setTimeout(()=>inp.focus(),80)}
 function paint(){const p=$('.oh-p');p.querySelectorAll('.oh-in').forEach(n=>n.remove());const b=$('.oh-body');b.replaceChildren();b.style.overflow='';p.querySelectorAll('[role=tab]').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.t===tab)));({brief,radar,ask})[tab](b)}
 
