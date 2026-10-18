@@ -3451,8 +3451,10 @@ function aiPlan(a){
    - Automation: trigger -> actions rules. They run while an admin has the CRM open.
    ====================================================================== */
 const GCAL_SCOPE='https://www.googleapis.com/auth/calendar.events';
-const G={cid:'',tok:null,exp:0,events:[],err:'',loading:false,loaded:false};
-try{G.cid=localStorage.getItem('orchid_g_cid')||'';const s=JSON.parse(sessionStorage.getItem('orchid_g_tok')||'null');if(s&&s.exp>Date.now()+60000){G.tok=s.t;G.exp=s.exp}}catch(e){}
+/* Paste your Google OAuth Client ID between the quotes to skip the setup box in the Calendar tab. It is not a secret. */
+const GOOGLE_CLIENT_ID='235514449340-4bnqmdbshvh0eqqdf0schsfv5o46ugu7.apps.googleusercontent.com';
+const G={cid:GOOGLE_CLIENT_ID,tok:null,exp:0,events:[],err:'',loading:false,loaded:false};
+try{if(!G.cid)G.cid=localStorage.getItem('orchid_g_cid')||'';const s=JSON.parse(sessionStorage.getItem('orchid_g_tok')||'null');if(s&&s.exp>Date.now()+60000){G.tok=s.t;G.exp=s.exp}}catch(e){}
 const gConnected=()=>!!G.tok&&G.exp>Date.now()+30000;
 const pad2=n=>String(n).padStart(2,'0');
 const ymd=d=>d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
@@ -3573,7 +3575,7 @@ function calConn(conn){
     h('span',{class:'s',style:'flex:1;min-width:220px;margin:0',text:conn?'Google Calendar is connected. Events you add here go to your primary calendar.':'Google Calendar is not connected on this device yet.'}),
     conn?null:h('button',{class:'btn blue sm',text:'Connect Google Calendar',onclick:async()=>{try{await gAuth('');await loadEvents();render();toast('Google Calendar connected.')}catch(e){toast(e.message,6000)}}}),
     conn?h('button',{class:'btn ghost sm danger',text:'Disconnect',onclick:()=>{try{google.accounts.oauth2.revoke(G.tok,()=>{})}catch(e){}G.tok=null;G.exp=0;G.events=[];G.loaded=false;try{sessionStorage.removeItem('orchid_g_tok');localStorage.removeItem('orchid_g_on')}catch(e){}render();toast('Google Calendar disconnected.')}}):null,
-    h('button',{class:'btn ghost sm',text:'Change Client ID',onclick:()=>{if(!confirm('Remove the saved Client ID and disconnect?'))return;G.cid='';G.tok=null;G.exp=0;try{localStorage.removeItem('orchid_g_cid');localStorage.removeItem('orchid_g_on');sessionStorage.removeItem('orchid_g_tok')}catch(e){}render()}}));
+    GOOGLE_CLIENT_ID?null:h('button',{class:'btn ghost sm',text:'Change Client ID',onclick:()=>{if(!confirm('Remove the saved Client ID and disconnect?'))return;G.cid='';G.tok=null;G.exp=0;try{localStorage.removeItem('orchid_g_cid');localStorage.removeItem('orchid_g_on');sessionStorage.removeItem('orchid_g_tok')}catch(e){}render()}}));
 }
 function calendarView(){
   const conn=gConnected();
