@@ -1591,6 +1591,7 @@ function inquiryRow(i){
       isActive(i)?h('button',{class:'btn ghost sm',text:'Log a touch',onclick:()=>logTouch(i)}):null,
       i.client_id?null:h('button',{class:'btn blue sm',text:'Make client',onclick:()=>convert(i)}),
       caseBtn(i),
+      i.email?h('button',{class:'btn ghost sm',text:'Email',onclick:()=>composeEmail({to:i.email,inquiry_id:i.id,client_id:i.client_id||null})}):null,
       h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editInquiry(i)}),
       h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delInquiry(i)}))));
 }
@@ -1992,33 +1993,52 @@ async function loadMessages(){
   try{const r=await sb.from('crm_messages').select('*').order('received_at',{ascending:false}).limit(200);
     if(r.error){msgErr=true;return}msgErr=false;messages=r.data||[]}catch(e){msgErr=true}
 }
+/* ---- Compose & reply: sends through the crm-send-email Edge Function (Titan SMTP). A message is only shown as Sent if the mail server accepted it. ---- */
+async function sendEmailNow(p){
+  const r=await sb.functions.invoke('crm-send-email',{body:p});
+  if(r.error){let msg='Could not reach the email service. Check your connection and try again.';try{const j=await r.error.context.json();if(j&&j.error)msg=j.error}catch(e){}throw new Error(msg)}
+  const d=r.data||{};if(!d.ok)throw new Error(d.error||'The email was not sent.');return d;
+}
+function composeEmail(o={}){
+  openForm({title:o.reply?'Reply':'New email',saveText:'Send email',
+    fields:[{k:'to',label:'To',type:'email',req:true,placeholder:'name@example.com'},{k:'subject',label:'Subject',req:true},{k:'body',label:'Message',type:'textarea',req:true}],
+    values:{to:o.to||'',subject:o.subject||'',body:o.body||''},
+    onSave:async v=>{
+      try{await sendEmailNow({to:v.to,subject:v.subject,body:v.body,request_id:crypto.randomUUID(),inquiry_id:o.inquiry_id||null,client_id:o.client_id||null,reply_to_message_id:o.reply_to_message_id||null})}
+      catch(e){toast('Not sent: '+e.message,6000);try{await loadMessages()}catch(x){}throw e}
+      toast('Email accepted by the mail server.');await loadMessages();render();
+    }});
+}
 const unreadMsgs=()=>messages.filter(m=>!m.is_read&&m.direction!=='out').length;
 async function markRead(ids){if(!ids.length)return;const r=await sb.from('crm_messages').update({is_read:true}).in('id',ids);if(r.error)return fail(r.error,'Could not mark as read.');await loadMessages();render()}
 function messageRow(m){
   const inq=inquiries.find(i=>i.id===m.inquiry_id),open=msgOpen.has(m.id),body=String(m.body||'').trim(),long=body.length>380;
-  const who=m.from_name||m.from_address||'Unknown sender';
+  const out=m.direction==='out',who=out?('To: '+(m.to_address||'')):(m.from_name||m.from_address||'Unknown sender');
   return h('div',{class:'card item acc c-'+(m.is_read?'slate':(m.channel==='facebook'?'violet':'emerald'))},h('div',{class:'body'},
     h('div',{class:'t'},document.createTextNode(who),
       h('span',{class:'pill role-'+(m.channel==='facebook'?'admin':'staff'),text:m.channel==='facebook'?'Facebook':'Email'}),
+      out?h('span',{class:'pill '+(m.send_status==='failed'?'lost':'won'),text:m.send_status==='failed'?'Failed':m.send_status==='sending'?'Sending…':'Sent'}):null,
       m.is_read?null:h('span',{class:'pill won',text:'New'})),
     h('div',{class:'s',text:[m.from_address&&m.from_address!==who?m.from_address:'',ago(m.received_at)].filter(Boolean).join(' · ')}),
     m.subject?h('div',{style:'font-weight:600;margin-top:6px',text:m.subject}):null,
+    m.send_status==='failed'&&m.send_error?h('div',{class:'err',text:'Not delivered: '+m.send_error}):null,
     h('div',{class:'m',style:'white-space:pre-wrap;word-break:break-word',text:body?(open||!long?body:body.slice(0,380)+'…'):'(no text)'}),
     h('div',{class:'acts'},
       long?h('button',{class:'btn ghost sm',text:open?'Show less':'Show more',onclick:()=>{open?msgOpen.delete(m.id):msgOpen.add(m.id);render()}}):null,
-      m.channel==='email'&&m.from_address?h('a',{class:'btn ghost sm',style:'text-decoration:none',href:'mailto:'+encodeURIComponent(m.from_address).replace('%40','@')+'?subject='+encodeURIComponent('Re: '+(m.subject||'')),text:'Reply by email'}):null,
+      m.channel==='email'&&!out&&m.from_address?h('button',{class:'btn blue sm',text:'Reply',onclick:()=>composeEmail({reply:true,to:m.from_address,subject:/^re:/i.test(m.subject||'')?m.subject:'Re: '+(m.subject||''),inquiry_id:m.inquiry_id,client_id:m.client_id||null,reply_to_message_id:m.id})}):null,
       inq?h('button',{class:'btn ghost sm',text:'Open inquiry',onclick:()=>{view='inquiries';q=inq.name||'';render();window.scrollTo(0,0)}}):null,
       m.is_read?null:h('button',{class:'btn ghost sm',text:'Mark read',onclick:()=>markRead([m.id])}))));
 }
 function messagesView(){
-  const list=messages.filter(m=>(msgFilter==='all'||(msgFilter==='unread'?!m.is_read:m.channel===msgFilter))&&match(m,['from_name','from_address','subject','body']));
+  const list=messages.filter(m=>(msgFilter==='all'||(msgFilter==='unread'?!m.is_read:msgFilter==='sent'?m.direction==='out':m.channel===msgFilter))&&match(m,['from_name','from_address','subject','body']));
   const un=messages.filter(m=>!m.is_read&&m.direction!=='out').map(m=>m.id);
   return h('div',{},
-    h('div',{class:'bar'},searchBar('Search messages'),chips([['all','All'],['unread','Unread'],['email','Email'],['facebook','Facebook']],msgFilter,v=>msgFilter=v),h('span',{class:'sp'}),
+    h('div',{class:'bar'},searchBar('Search messages'),chips([['all','All'],['unread','Unread'],['email','Email'],['facebook','Facebook'],['sent','Sent']],msgFilter,v=>msgFilter=v),h('span',{class:'sp'}),
+      h('button',{class:'btn blue',text:'New email',onclick:()=>composeEmail()}),
       un.length?h('button',{class:'btn ghost',text:'Mark all read',onclick:()=>markRead(un)}):null),
     msgErr?empty('Messages could not be loaded','Ask the admin to check the crm_messages setup in Supabase, then reload.')
     :list.length?h('div',{class:'list'},list.map(messageRow))
-    :empty(messages.length?'No matches':'No messages yet','Email sent to your Titan inbox appears here within a couple of minutes. Each sender also becomes an inquiry.'));
+    :empty(messages.length?'No matches':'No messages yet','Emails you send from here, and replies to them, appear in this list. Each new sender also becomes an inquiry.'));
 }
 function inquiriesView(){
   const list=inquiries.filter(i=>(inqFilter==='all'||i.status===inqFilter)&&match(i,['name','email','phone','source','message']));
@@ -2035,7 +2055,7 @@ function clientsView(){
       h('div',{class:'s',text:[c.email,c.phone].filter(Boolean).join(' · ')||'No contact details'}),
       h('div',{class:'s',text:ni+' inquir'+(ni===1?'y':'ies')+' · '+nt+' open task'+(nt===1?'':'s')}),
       c.notes?h('div',{class:'m',text:c.notes}):null,
-      h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Add task',onclick:()=>addTask(c.id)}),h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editClient(c)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delClient(c)}))));
+      h('div',{class:'acts'},c.email?h('button',{class:'btn ghost sm',text:'Email',onclick:()=>composeEmail({to:c.email,client_id:c.id})}):null,h('button',{class:'btn ghost sm',text:'Add task',onclick:()=>addTask(c.id)}),h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editClient(c)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delClient(c)}))));
   };
   return h('div',{},
     h('div',{class:'bar'},searchBar('Search clients'),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'Add client',onclick:addClient})),
