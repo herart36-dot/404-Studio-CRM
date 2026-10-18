@@ -2100,11 +2100,14 @@ function nextMove(){
   if(co)return{k:'Going cold',w:'Follow up with '+co.name+' (quiet for '+Math.floor(idleDays(co))+' days)',b:'Log a touch',go:()=>logTouch(co)};
   return null;
 }
+/* REDESIGN: friendly empty state with illustration + quick actions */
+const NX_SVG='<svg viewBox="0 0 96 96" width="72" height="72"><circle cx="48" cy="48" r="44" fill="var(--ov-primary-50)"/><rect x="28" y="22" width="40" height="54" rx="6" fill="#fff" stroke="var(--ov-primary)" stroke-width="3"/><rect x="39" y="17" width="18" height="10" rx="4" fill="var(--ov-primary)"/><path d="m37 50 7 7 14-15" fill="none" stroke="#16a34a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M36 66h24" stroke="#d1d5db" stroke-width="3" stroke-linecap="round"/><circle cx="76" cy="26" r="3.5" fill="var(--ov-accent)"/><circle cx="18" cy="62" r="2.5" fill="var(--ov-accent)"/></svg>';
 function nextCard(){
   const n=nextMove();
-  return h('div',{class:'card next'},h('div',{class:'body',style:'flex:1;min-width:200px'},
-    h('div',{class:'k',text:n?'Do this next · '+n.k:'Do this next'}),h('div',{class:'w',text:n?n.w:'Nothing is waiting on you.'})),
-    n?h('button',{class:'btn primary',text:n.b,onclick:n.go}):null);
+  if(n)return h('div',{class:'card next'},h('div',{class:'body',style:'flex:1;min-width:200px'},h('div',{class:'k',text:'Do this next · '+n.k}),h('div',{class:'w',text:n.w})),h('button',{class:'btn primary',text:n.b,onclick:n.go}));
+  const ill=h('span',{class:'nx-ill','aria-hidden':'true'});ill.innerHTML=NX_SVG;
+  return h('div',{class:'card next nx-empty'},ill,h('div',{class:'body',style:'flex:1;min-width:200px'},h('div',{class:'k',text:'Do this next'}),h('div',{class:'w',text:'Nothing is waiting on you.'}),h('div',{class:'nx-sub',text:"You're all caught up. A few ways to get ahead:"})),
+    h('div',{class:'nx-acts'},h('button',{class:'btn blue sm',text:'Add client',onclick:()=>addClient()}),h('button',{class:'btn ghost sm',text:'Create task',onclick:()=>addTask()}),h('button',{class:'btn ghost sm',text:'Log inquiry',onclick:()=>addInquiry()})));
 }
 function avgReply(){
   const d=inquiries.filter(i=>i.contacted_at).map(i=>new Date(i.contacted_at)-new Date(i.created_at));
@@ -2113,11 +2116,16 @@ function avgReply(){
 function overview(){
   const nNew=inquiries.filter(i=>i.status==='new').length;
   const open=tasks.filter(t=>!t.done),over=open.filter(isOverdue).length;
-  const stat=(v,l,c,hot)=>h('div',{class:'card stat c-'+(c||'slate')+(hot&&v>0?' hot':'')},h('div',{class:'v',text:String(v)}),h('div',{class:'l',text:l}));
+  /* REDESIGN: KPI card = icon, big number, label, small trend (real last-7-days vs previous-7-days counts) */
+  const OVI={inq:'<path d="M4 4h16v12h-5l-3 3-3-3H4z"/>',clk:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',tsk:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',bad:'<path d="M12 3 2.5 20h19z"/><path d="M12 10v4M12 17.5v.01"/>',cas:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>',sla:'<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="M12 8v5M12 16v.01"/>',usr:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-4 3.2-6 6.5-6s6 2 6.5 6"/><path d="M16 5a3.5 3.5 0 0 1 0 6.5M18 14c2 .6 3.3 2.5 3.5 6"/>'};
+  const trend=arr=>{const now=Date.now(),W=6048e5;let a=0,b=0;arr.forEach(x=>{const t=new Date(x.created_at).getTime();if(!t)return;if(now-t<W)a++;else if(now-t<2*W)b++});const d=a-b;return (d>0?'▲ +'+d:d<0?'▼ −'+(-d):'● no change')+' vs last week'};
+  const stat=(v,l,c,hot,ic,sub)=>{const i=h('span',{class:'st-ic','aria-hidden':'true'});i.innerHTML='<svg viewBox="0 0 24 24">'+(OVI[ic]||'')+'</svg>';return h('div',{class:'card stat'+(hot&&v>0?' hot':'')},i,h('div',{class:'v',text:String(v)}),h('div',{class:'l',text:l}),h('div',{class:'tr',text:sub||''}))};
   const liveCases=cases.filter(isLive).length,breached=cases.filter(c=>isLive(c)&&sla(c).breach).length;
   const recent=inquiries.slice(0,5),upcoming=open.slice(0,6);
-  return h('div',{},nextCard(),
-    h('div',{class:'stats'},stat(nNew,'New inquiries','blue'),stat(avgReply(),'Avg first reply','teal'),stat(open.length,'Open tasks','indigo'),stat(over,'Overdue tasks','rose',true),stat(liveCases,'Open cases','violet'),stat(breached,'SLA breached','amber',true),stat(clients.length,'Clients','emerald')),
+  const replied=inquiries.filter(i=>i.contacted_at).length;
+  return h('div',{class:'ov'},
+    h('div',{class:'stats'},stat(nNew,'New inquiries','',false,'inq',trend(inquiries)),stat(avgReply(),'Avg first reply','',false,'clk','Across '+replied+' repl'+(replied===1?'y':'ies')),stat(open.length,'Open tasks','',false,'tsk',trend(tasks)),stat(over,'Overdue tasks','',true,'bad','of '+open.length+' open'),stat(liveCases,'Open cases','',false,'cas',trend(cases)),stat(breached,'SLA breached','',true,'sla','of '+liveCases+' live'),stat(clients.length,'Clients','',false,'usr',trend(clients))),
+    nextCard(),
     h('div',{class:'grid2'},
       h('div',{},h('div',{class:'bar'},h('h3',{style:'margin:0',text:'Latest inquiries'}),h('span',{class:'sp'}),h('button',{class:'btn ghost sm',text:'Add inquiry',onclick:addInquiry})),
         recent.length?h('div',{class:'list'},recent.map(inquiryRow)):empty('No inquiries yet','Add one when someone gets in touch.')),
@@ -3538,6 +3546,30 @@ function navSumBadges(){
   });
 }
 {const a=updateApprBadge,c=updateChatBadge;updateApprBadge=function(){a();navSumBadges()};updateChatBadge=function(){c();navSumBadges()}}
+/* REDESIGN: compact status pills (green / amber / purple / gray) replace the full-width My status block */
+/* REDESIGN: header icon buttons + one avatar dropdown (email, role, theme, log out) */
+try{if(localStorage.getItem('orchid_theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(e){}
+function hdIcon(tip,path,fn){const b=h('button',{class:'hd-ic',type:'button','aria-label':tip,'data-tip':tip,onclick:fn});b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+path+'</svg>';return b}
+function avatarMenu(){
+  const dark=()=>document.documentElement.getAttribute('data-theme')==='dark';
+  const btn=h('button',{class:'av',type:'button','aria-label':'Account menu','aria-haspopup':'menu','aria-expanded':'false',text:String(me.email||'?').slice(0,2).toUpperCase()});
+  const th=h('button',{class:'av-item',type:'button',role:'menuitem',text:dark()?'Light mode':'Dark mode',onclick:()=>{const d=!dark();if(d)document.documentElement.setAttribute('data-theme','dark');else document.documentElement.removeAttribute('data-theme');try{localStorage.setItem('orchid_theme',d?'dark':'light')}catch(e){}th.textContent=d?'Light mode':'Dark mode'}});
+  const menu=h('div',{class:'av-menu',role:'menu',hidden:true},h('div',{class:'av-id'},h('div',{class:'av-em',text:me.email}),h('span',{class:'pill role-'+myRole,style:'margin-left:0',text:ROLES[myRole].l})),th,h('button',{class:'av-item av-out',type:'button',role:'menuitem',text:'Log out',onclick:logout}));
+  const wrap=h('div',{class:'av-wrap'},btn,menu);
+  const closeM=()=>{menu.hidden=true;btn.setAttribute('aria-expanded','false');document.removeEventListener('click',away)};
+  const away=e=>{if(!wrap.contains(e.target))closeM()};
+  btn.addEventListener('click',e=>{e.stopPropagation();if(menu.hidden){menu.hidden=false;btn.setAttribute('aria-expanded','true');document.addEventListener('click',away)}else closeM()});
+  wrap.addEventListener('keydown',e=>{if(e.key==='Escape'){closeM();btn.focus()}});
+  return wrap;
+}
+function heroStatus(){
+  if(isExec()||presErr||!me)return null;
+  const mine=pres.find(r=>low(r.email)===low(me.email)&&!r.ended_at);
+  const t=secondsBy(low(me.email),rangeStart('today').getTime(),Date.now());
+  return h('div',{class:'hero-st'},
+    h('div',{class:'hs-pills',role:'group','aria-label':'My status'},Object.keys(ST).map(k=>h('button',{class:'hs-p hs-'+k,type:'button','aria-pressed':String(!!mine&&mine.status===k),title:ST[k].l+(mine&&mine.status===k?' since '+fmtClock(mine.started_at):''),text:ST[k].t,onclick:()=>setMyStatus(k)}))),
+    h('div',{class:'hs-cap',title:'Your admin can see your status and these totals.',text:(mine?ST[mine.status].l+' since '+fmtClock(mine.started_at):'Not checked in')+' · Today: Active '+fmtDur(t.active)+' · Meeting '+fmtDur(t.meeting)+' · Lunch '+fmtDur(t.lunch)+' · Out '+fmtDur(t.out)}));
+}
 function heroEl(){
   let t='',d='',k='Orchid CRM';
   if(isExec()){
@@ -3549,9 +3581,11 @@ function heroEl(){
     if(P){t=P[1];d=P[2]}
     if(view==='overview'){const hr=new Date().getHours();t=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening'}
   }
+  /* REDESIGN: greeting + date pill on one line, status pills live in the banner */
+  const chip=h('span',{class:'hero-chip',text:new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})});
   return h('section',{class:'hero'},
-    h('div',{class:'hero-tx'},h('span',{class:'hero-k',text:k}),h('h1',{text:t}),h('p',{text:d})),
-    h('span',{class:'hero-chip',text:new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})}));
+    h('div',{class:'hero-tx'},h('span',{class:'hero-k',text:k}),h('div',{class:'hero-l'},h('h1',{text:t}),chip),h('p',{text:d})),
+    heroStatus());
 }
 function setNavInk(){
   const nav=document.querySelector('.nv');if(!nav)return;
@@ -3681,12 +3715,12 @@ function appView(){
     h('header',{class:'top'},h('div',{class:'top-in'},
       h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'CRM'})),
       globalSearch(),h('span',{class:'sp'}),
-      h('span',{class:'muted',style:'font-size:.82rem',text:me.email}),h('span',{class:'pill role-'+myRole,style:'margin-left:0',text:ROLES[myRole].l}),
-      h('button',{class:'btn ghost sm',text:'Manual',onclick:openManual}),h('button',{class:'btn ghost sm',text:'Apps',onclick:home}),
-      h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
+      hdIcon('Manual','<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6"/>',openManual),
+      hdIcon('Apps','<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',home),
+      avatarMenu())),
     navTop(navItems(tabs,ico)),
     h('div',{class:'wrap'},
-      h('main',{},view==='chat'?null:heroEl(),view==='chat'?null:statusBar(),body)));
+      h('main',{},view==='chat'?null:heroEl(),body)));
 }
 function noAccess(){
   return h('div',{class:'center'},h('div',{class:'panel'},h('div',{class:'wm',style:'font-size:2rem'},h('b',{text:'O'}),'rchid'),h('h1',{text:'No access'}),
@@ -4623,5 +4657,107 @@ body.gl-full .center{background:transparent!important}
   if(window.THREE)init();else{addEventListener('DOMContentLoaded',init);addEventListener('load',init)}
 })();
 </script>
+<style id="ov-redesign">
+/* ==========================================================================
+   REDESIGN (Overview): tokens, banner, KPI cards, header, FAB, dark mode
+   All colors and spacing below come from these variables (8px grid).
+   ========================================================================== */
+:root{
+  --sp-1:8px;--sp-2:16px;--sp-3:24px;--sp-4:32px;
+  --ov-primary:#0176d3;--ov-primary-d:#0a5cb0;--ov-primary-50:#eaf3fd;   /* banner blue */
+  --ov-accent:#f97316;                                                   /* logo orange, sparingly */
+  --ov-ink:#111827;--ov-ink-2:#374151;--ov-ink-3:#4b5563;                /* AA on white and #f3f5fa */
+  --ov-bg:#f3f5fa;--ov-card:#fff;--ov-bd:#e5e7eb;--ov-r:12px;
+  --ov-sh:0 1px 2px rgba(17,24,39,.05),0 4px 12px rgba(17,24,39,.06);
+  --ov-ok:#15803d;--ov-warn:#b45309;--ov-bad:#b91c1c;                    /* status meaning only */
+  --ov-ok-bg:#dcfce7;--ov-warn-bg:#fef3c7;--ov-bad-bg:#fee2e2;
+  --ov-font:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+.top,.nv,.wrap,.ov,.hero{font-family:var(--ov-font)}
+
+/* ---- BANNER: ~40% shorter, calmer dots, status pills inside ---- */
+.hero{min-height:104px;box-sizing:border-box;padding:12px 0 0;align-items:flex-start;flex-wrap:wrap;gap:var(--sp-2)}
+.hero-k{font-size:.66rem;color:#bfdbfe}
+.hero-l{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.hero h1{font-size:clamp(1.3rem,2.4vw,1.6rem);line-height:1.15;margin:2px 0 2px}
+.hero p{font-size:.82rem;color:#dbeafe;line-height:1.3}
+.hero-chip{padding:3px 10px;font-size:.72rem;color:#fff}
+#gl canvas{opacity:.5}
+#gl:after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(2,29,64,.9) 0%,rgba(2,29,64,.6) 45%,rgba(2,29,64,0) 82%)}
+.hero-st{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;max-width:100%}
+.hs-pills{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.hs-p{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;font:600 .76rem/1 var(--ov-font);cursor:pointer;transition:background .15s,border-color .15s}
+.hs-p:before{content:'';width:8px;height:8px;border-radius:50%;background:var(--d,#fff)}
+.hs-p:hover{background:rgba(255,255,255,.22)}
+.hs-p:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.hs-active{--d:#4ade80}.hs-lunch{--d:#fbbf24}.hs-meeting{--d:#a78bfa}.hs-out{--d:#cbd5e1}
+.hs-active[aria-pressed=true]{background:#15803d;border-color:#15803d}
+.hs-lunch[aria-pressed=true]{background:#b45309;border-color:#b45309}
+.hs-meeting[aria-pressed=true]{background:#6d28d9;border-color:#6d28d9}
+.hs-out[aria-pressed=true]{background:#475569;border-color:#475569}
+.hs-p[aria-pressed=true]:before{background:#fff}
+.hs-cap{font-size:.74rem;color:#dbeafe;text-align:right;line-height:1.3}
+
+/* ---- KPI CARDS: overlap the banner edge ---- */
+.wrap>main>.hero+.ov{margin-top:-24px;position:relative;z-index:3}
+.ov .stats{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:var(--sp-2);margin:0 0 var(--sp-3)}
+.ov .stat{display:flex;flex-direction:column;gap:4px;padding:var(--sp-2)!important;background:var(--ov-card)!important;border:1px solid var(--ov-bd)!important;border-left:1px solid var(--ov-bd)!important;border-radius:var(--ov-r)!important;box-shadow:var(--ov-sh)!important}
+.ov .stat .st-ic{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--ov-primary-50);color:var(--ov-primary);margin-bottom:4px}
+.ov .stat .st-ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ov .stat.hot .st-ic{background:var(--ov-bad-bg);color:var(--ov-bad)}
+.ov .stat .v{font-size:1.75rem;font-weight:700;line-height:1.1;letter-spacing:-.02em;color:var(--ov-ink)!important;font-variant-numeric:tabular-nums}
+.ov .stat .l{font-size:.82rem;font-weight:600;color:var(--ov-ink-2)}
+.ov .stat .tr{font-size:.72rem;color:var(--ov-ink-3);font-weight:500}
+
+/* ---- READABILITY ---- */
+.next .k,.muted,.mybar .muted{color:var(--ov-ink-3)}
+.next .w{color:var(--ov-ink)}
+.next{border-radius:var(--ov-r);border:1px solid var(--ov-bd);border-left:4px solid var(--ov-accent);box-shadow:var(--ov-sh);margin-bottom:var(--sp-3)}
+
+/* ---- EMPTY STATE ---- */
+.nx-empty{align-items:center}
+.nx-ill{flex:none;display:inline-flex}
+.nx-sub{margin-top:4px;font-size:.86rem;color:var(--ov-ink-3)}
+.nx-acts{display:flex;gap:var(--sp-1);flex-wrap:wrap}
+
+/* ---- HEADER: icon buttons + avatar menu ---- */
+.hd-ic{position:relative;width:36px;height:36px;border-radius:8px;border:1px solid var(--ov-bd);background:var(--ov-card);color:var(--ov-ink-2);display:inline-grid;place-items:center;cursor:pointer}
+.hd-ic:hover{background:var(--ov-primary-50);color:var(--ov-primary)}
+.hd-ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.hd-ic:hover:after,.hd-ic:focus-visible:after{content:attr(data-tip);position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#111827;color:#fff;font:600 .72rem/1 var(--ov-font);padding:6px 8px;border-radius:6px;white-space:nowrap;z-index:130}
+.av-wrap{position:relative}
+.av{width:36px;height:36px;border-radius:50%;border:0;background:var(--ov-primary);color:#fff;font:700 .78rem/1 var(--ov-font);cursor:pointer}
+.av:focus-visible,.hd-ic:focus-visible{outline:2px solid var(--ov-primary);outline-offset:2px}
+.av-menu{position:absolute;right:0;top:calc(100% + 8px);min-width:240px;background:var(--ov-card);border:1px solid var(--ov-bd);border-radius:var(--ov-r);box-shadow:0 12px 32px rgba(17,24,39,.18);padding:var(--sp-1);z-index:130}
+.av-menu[hidden]{display:none}
+.av-id{padding:8px 8px 12px;border-bottom:1px solid var(--ov-bd);margin-bottom:var(--sp-1);display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.av-em{font-size:.84rem;font-weight:600;color:var(--ov-ink);word-break:break-all}
+.av-item{display:block;width:100%;text-align:left;padding:8px;border:0;border-radius:8px;background:none;font:600 .84rem var(--ov-font);color:var(--ov-ink-2);cursor:pointer}
+.av-item:hover{background:var(--ov-primary-50);color:var(--ov-primary)}
+.av-out{color:var(--ov-bad)}.av-out:hover{background:var(--ov-bad-bg);color:var(--ov-bad)}
+.top-in>.hd-ic,.top-in>.av-wrap{flex:none}
+
+/* ---- FLOATING K BUTTON: bottom-right, 24px, label ---- */
+#oai-fab{right:calc(24px + env(safe-area-inset-right,0px))!important;bottom:calc(24px + env(safe-area-inset-bottom,0px))!important}
+#oai-fab:hover:after,#oai-fab:focus-visible:after{content:'Ask Orchid AI';position:absolute;right:calc(100% + 12px);top:50%;transform:translateY(-50%);background:#111827;color:#fff;font:600 .78rem/1 var(--ov-font);padding:8px 10px;border-radius:8px;white-space:nowrap}
+
+/* ---- RESPONSIVE ---- */
+@media(max-width:1100px){.ov .stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:760px){
+  .hero{padding-bottom:40px}.hero-st{margin-left:0;align-items:flex-start;width:100%}.hs-pills{justify-content:flex-start}.hs-cap{text-align:left}
+  .ov .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-1)}
+  .nx-acts{width:100%}.nx-acts .btn{flex:1}
+}
+@media(max-width:600px){.hero-chip{display:inline-flex!important}.hero p{display:none}}
+
+/* ---- DARK MODE (opt-in from the avatar menu; themes the Overview, banner and header) ---- */
+html[data-theme=dark]{--ov-bg:#0b1220;--ov-card:#111a2b;--ov-bd:#243049;--ov-ink:#f3f4f6;--ov-ink-2:#d1d5db;--ov-ink-3:#aab4c3;--ov-primary-50:#12294a;--ov-sh:none;--ov-bad-bg:#3b1517}
+html[data-theme=dark] body:has(.ov){background:var(--ov-bg)}
+html[data-theme=dark] body:has(.ov) :is(.top,.nv){background:var(--ov-card);border-color:var(--ov-bd)}
+html[data-theme=dark] body:has(.ov) :is(.nv-t,.wm,.wm .lg){color:var(--ov-ink-2)}
+html[data-theme=dark] body:has(.ov) :is(.card,.next){background:var(--ov-card);color:var(--ov-ink);border-color:var(--ov-bd)}
+html[data-theme=dark] body:has(.ov) :is(.muted,.s){color:var(--ov-ink-3)}
+html[data-theme=dark] body:has(.ov) :is(h3,.t){color:var(--ov-ink)}
+</style>
 </body>
 </html>
