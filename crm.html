@@ -1283,7 +1283,7 @@ const ROLES={
   staff:{l:'Staff',c:'blue',d:'Can use the CRM. Changes to inquiries need admin approval.'}
 };
 const roleOf=r=>ROLES[r]?r:'staff';
-const roleOptions=()=>Object.keys(ROLES).reverse().map(k=>({v:k,t:ROLES[k].l+' · '+ROLES[k].d}));
+const roleOptions=cur=>Object.keys(ROLES).reverse().filter(k=>k!=='executive'||cur==='executive').map(k=>({v:k,t:ROLES[k].l+' · '+ROLES[k].d}));
 const taskAssignments=()=>JSON.parse(localStorage.getItem('orchid_crm_task_assignments')||'{}');
 const saveTaskAssignment=(id,email)=>{const a=taskAssignments();if(email)a[id]=email;else delete a[id];localStorage.setItem('orchid_crm_task_assignments',JSON.stringify(a))};
 let cases=[],policies=[],rules=[],casesErr=false,caseFilter='all';
@@ -2118,7 +2118,7 @@ const addStaff=()=>openForm({title:'Add member',fields:[
   if(r.error){if(r.error.code==='23505')toast('That email already has access.');else fail(r.error,'Could not add the member. Only an admin can do this.');return}
   return run(Promise.resolve(r),ROLES[role].l+' access added. They can sign in with '+email+'.');
 }});
-const changeAccess=m=>openForm({title:'Change access for '+(m.name||m.email),fields:[{k:'role',label:'Access level',type:'select',options:roleOptions()}],values:{role:roleOf(m.role)},saveText:'Save access',onSave:v=>{
+const changeAccess=m=>openForm({title:'Change access for '+(m.name||m.email),fields:[{k:'role',label:'Access level',type:'select',options:roleOptions(roleOf(m.role))}],values:{role:roleOf(m.role)},saveText:'Save access',onSave:v=>{
   const role=roleOf(v.role);
   if(role===roleOf(m.role)){toast('No change.');return}
   return run(sb.from('crm_staff').update({role}).eq('id',m.id),(m.name||m.email)+' now has '+ROLES[role].l+' access.');
