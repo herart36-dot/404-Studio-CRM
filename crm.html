@@ -1374,6 +1374,7 @@ label.f{font-size:.78rem;font-weight:600;color:#3e4f68}
 .ov-rb{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}.ov-rb label{font-size:.75rem;font-weight:600;color:#334155}.ov-rb select{margin-top:4px}
 .ov-fl{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;font-size:.8rem}.ov-fl label{display:flex;gap:4px;align-items:center}
 </style>
+<style id="ai-assist-css">.ai-note{background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;border-radius:10px;padding:8px 12px;font-size:.8rem;margin:8px 0 4px}.ai-res{margin-top:8px;padding:10px 12px;cursor:pointer}.ai-res:hover{border-color:var(--brand)}</style>
 <style id="deals-css">
 .dl-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
 .dl-bar select,.dl-bar input[type=date]{width:auto;min-height:30px;padding:4px 10px;font-size:.8rem;border-radius:8px}
@@ -1886,7 +1887,7 @@ function openCase(id){
     h('div',{class:'modal wide',role:'dialog','aria-modal':'true','aria-label':'Case details'},
       head,h('h3',{class:'sec',text:'History'}),log,txt,
       h('p',{class:'hint',text:'Logging a reply records your first response and stops the reply timer. It does not send an email.'}),err,
-      h('div',{class:'row'},h('button',{class:'btn ghost',text:'Close',onclick:close}),bNote,bReply)));
+      h('div',{class:'row'},h('button',{class:'btn ghost',text:'Close',onclick:close}),h('button',{class:'btn ghost',text:'✨ Summarize',onclick:e=>aiCase(get(),e.target)}),bNote,bReply)));
   document.body.append(scrim);document.addEventListener('keydown',esc);
   paintHead();loadNotes();
 }
@@ -2262,6 +2263,59 @@ function overview(){
 }
 if(!window.__ovLive){window.__ovLive=setInterval(async()=>{if(leaving||view!=='overview'||isExec()||document.querySelector('.scrim')||document.hidden)return;const a=document.activeElement;if(a&&/INPUT|TEXTAREA/.test(a.tagName))return;try{await Promise.all([loadAll(),loadDeals(),loadOv()]);render()}catch(e){console.error(e)}},60000)}
 
+/* ===== AI assistance: calls the crm-ai-assist Edge Function (no key in the browser). Output is always an editable suggestion; nothing is sent automatically. ===== */
+async function aiCall(task,input){
+  const r=await sb.functions.invoke('crm-ai-assist',{body:{task,input}});
+  if(r.error){let m='The AI service could not be reached. Ask your admin to deploy crm-ai-assist.';try{const j=await r.error.context.json();if(j&&j.error)m=j.error}catch(e){}throw new Error(m)}
+  const d=r.data||{};if(!d.ok)throw new Error(d.error||'The AI did not return a result.');return d.result||{};
+}
+async function aiGo(btn,task,input,show){const t=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='Thinking…'}try{show(await aiCall(task,input))}catch(e){fail(e,e.message)}finally{if(btn){btn.disabled=false;btn.textContent=t}}}
+function aiModal(title,fields,buttons){
+  const tas=fields.map(f=>{const t=h('textarea',{rows:String(f.rows||5),'aria-label':f.label});t.value=f.value||'';return t});
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape')close()};
+  const scrim=h('div',{class:'scrim',onclick:e=>{if(e.target===scrim)close()}},h('div',{class:'modal wide',role:'dialog','aria-modal':'true','aria-label':title},
+    h('h2',{text:'✨ '+title}),h('div',{class:'ai-note',text:'AI suggestion. Review and edit it before you use it. Nothing is sent or saved until you choose.'}),
+    fields.map((f,i)=>h('label',{class:'f'},f.label,tas[i])),
+    h('div',{class:'row'},h('button',{class:'btn ghost',text:'Close',onclick:close}),buttons.map(b=>h('button',{class:'btn '+(b.cls||'ghost'),text:b.t,onclick:async e=>{e.target.disabled=true;try{await b.fn(tas.map(t=>t.value),close)}finally{e.target.disabled=false}}})))));
+  document.body.append(scrim);document.addEventListener('keydown',esc);
+}
+const aiList=a=>(Array.isArray(a)?a:[]).filter(Boolean).map(x=>'• '+(typeof x==='object'?[x.action,x.why&&'('+x.why+')'].filter(Boolean).join(' '):x)).join('\n');
+const aiSum=r=>[r.summary,r.key_points&&r.key_points.length?'Key points:\n'+aiList(r.key_points):'',r.open_questions&&r.open_questions.length?'Open questions:\n'+aiList(r.open_questions):'',r.next_step?'Suggested next step: '+r.next_step:''].filter(Boolean).join('\n\n');
+const aiCopy=async t=>{try{await navigator.clipboard.writeText(t);toast('Copied.')}catch(e){toast('Select the text and copy it manually.')}};
+const aiThread=m=>{const n=s=>String(s||'').replace(/^(re|fwd?):\s*/gi,'').trim().toLowerCase();const t=messages.filter(x=>x.id===m.id||(m.inquiry_id&&x.inquiry_id===m.inquiry_id)||(n(x.subject)&&n(x.subject)===n(m.subject)));return t.sort((a,b)=>new Date(a.received_at)-new Date(b.received_at)).slice(-12).map(x=>({from:x.direction==='out'?'Our team':(x.from_name||x.from_address||'Customer'),date:x.received_at,body:String(x.body||'').slice(0,4000)}))};
+const aiMsg=(m,b)=>aiGo(b,'summarize',{kind:'email thread',subject:m.subject,thread:aiThread(m)},r=>aiModal('Thread summary',[{label:'Summary (editable)',value:aiSum(r),rows:10}],[{t:'Copy',fn:v=>aiCopy(v[0])}]));
+const aiDraft=(m,b)=>aiGo(b,'draft_reply',{subject:m.subject,thread:aiThread(m),our_name:memberName(me.email)},r=>aiModal('Draft reply',[{label:'Subject',value:r.subject||(/^re:/i.test(m.subject||'')?m.subject:'Re: '+(m.subject||'')),rows:1},{label:'Reply (editable)',value:r.body||'',rows:12}],[{t:'Open in email composer',cls:'blue',fn:(v,close)=>{close();composeEmail({reply:true,to:m.from_address,subject:v[0],body:v[1],inquiry_id:m.inquiry_id,client_id:m.client_id||null,reply_to_message_id:m.id})}}]));
+async function aiCase(c,b){if(!c)return;const nr=await sb.from('crm_case_notes').select('kind,author,body,created_at').eq('case_id',c.id).order('created_at',{ascending:true}).limit(30);
+  return aiGo(b,'summarize',{kind:'support case',subject:c.subject,description:c.description,status:c.status,priority:c.priority,channel:c.channel,sla:sla(c).t,opened:c.created_at,notes:(nr.data||[]).map(n=>({kind:n.kind,by:n.author,at:n.created_at,text:String(n.body||'').slice(0,1500)}))},
+    r=>aiModal('Case summary',[{label:'Summary (editable)',value:aiSum(r),rows:10}],[{t:'Copy',fn:v=>aiCopy(v[0])},{t:'Save as internal note',cls:'blue',fn:async(v,close)=>{if(!v[0].trim())return toast('Nothing to save.');const w=await sb.from('crm_case_notes').insert({case_id:c.id,kind:'note',body:'AI summary (reviewed): '+v[0].trim(),author:me.email});if(w.error)return fail(w.error,'Could not save the note.');close();try{await loadAll()}catch(e){}toast('Saved as an internal note.');render()}}]))}
+const aiDeal=(d,b)=>aiGo(b,'deal_next',{title:d.title,stage:dlSt(d.stage_id).name,value:dlVal(d),probability:dlP(d),expected_close:d.expected_close,today:today(),overdue:!!(d.expected_close&&d.expected_close<today()&&ovKind(d)==='open'),created:d.created_at,last_updated:d.updated_at,contact:clientName(d.client_id),company:dlAccName(d.account_id),owner:slOwn(d.owner_email),notes:String(d.notes||'').slice(0,2000)},
+  r=>aiModal('Next best actions',[{label:'Risk: '+(r.risk||'—'),value:(r.risk_reason||'')+'\n\n'+aiList(r.actions),rows:10}],[{t:'Copy',fn:v=>aiCopy(v[0])},{t:'Add to deal notes',cls:'blue',fn:async(v,close)=>{close();await runD(sb.from('crm_deals').update({notes:[d.notes,'AI suggestion ('+today()+'):\n'+v[0].trim()].filter(Boolean).join('\n\n')}).eq('id',d.id),'Added to the deal notes.')}}]));
+const aiLead=(l,b)=>aiGo(b,'score_lead',{name:l.name,company:l.company,email:!!l.email,phone:!!l.phone,source:l.source,status:l.status,qualification:l.qualification,notes:String(l.notes||'').slice(0,1500),created:l.created_at,today:today()},
+  r=>aiModal('Lead score: '+Math.round(Number(r.score)||0)+'/100 · '+(r.band||'—'),[{label:'Explanation (editable)',value:'Why:\n'+aiList(r.reasons)+'\n\nRisks:\n'+aiList(r.risks)+(r.next_step?'\n\nNext step: '+r.next_step:''),rows:11}],[{t:'Copy',fn:v=>aiCopy(v[0])},{t:'Save to lead notes',cls:'blue',fn:async(v,close)=>{close();await runS(sb.from('crm_leads').update({notes:[l.notes,'AI score '+Math.round(Number(r.score)||0)+'/100 '+(r.band||'')+' ('+today()+'):\n'+v[0].trim()].filter(Boolean).join('\n\n')}).eq('id',l.id),'Saved to the lead notes.')}}]));
+/* natural-language search: the AI only returns filters; they are applied here to data you already loaded */
+const AIS={
+  deals:{rows:()=>dlDeals,text:d=>[d.title,clientName(d.client_id),dlAccName(d.account_id),d.notes],status:d=>dlSt(d.stage_id).name,owner:d=>d.owner_email,value:dlVal,at:d=>d.created_at,label:d=>d.title,sub:d=>dlSt(d.stage_id).name+' · '+peso(d.value)+' · '+slOwn(d.owner_email),go:d=>{view='deals';q=d.title;render();scrollTo(0,0)}},
+  cases:{rows:()=>cases,text:c=>[c.subject,c.description,c.requester_name,c.requester_email],status:c=>c.status,owner:c=>c.assigned_to,pri:c=>c.priority,at:c=>c.created_at,breach:c=>isLive(c)&&sla(c).breach,label:c=>caseNo(c)+' · '+c.subject,sub:c=>stLabel(c.status)+' · '+cap(c.priority||'')+' · '+sla(c).t,go:c=>openCase(c.id)},
+  inquiries:{rows:()=>inquiries,text:i=>[i.name,i.email,i.message,i.source],status:i=>i.status,at:i=>i.created_at,label:i=>i.name,sub:i=>cap(i.status)+' · '+(i.source||''),go:i=>{view='inquiries';q=i.name;render();scrollTo(0,0)}},
+  clients:{rows:()=>clients,text:c=>[c.name,c.company,c.email,c.phone,c.notes],at:c=>c.created_at,label:c=>c.name,sub:c=>[c.company,c.email].filter(Boolean).join(' · '),go:c=>{view='clients';q=c.name;render();scrollTo(0,0)}}
+};
+function aiResults(r,close){
+  const E=AIS[r.entity];if(!E)return[h('div',{class:'muted',text:'I could not work out what to look for. Try naming deals, cases, inquiries or clients.'})];
+  const f=r.filters||{},l=x=>String(x||'').toLowerCase().replace(/_/g,' '),dt=x=>String(E.at(x)||'').slice(0,10);
+  const list=E.rows().filter(x=>!(f.text&&!E.text(x).some(v=>l(v).includes(l(f.text)))||f.status&&E.status&&!l(E.status(x)).includes(l(f.status))||f.owner&&E.owner&&!(l(E.owner(x)).includes(l(f.owner))||l(memberName(E.owner(x))).includes(l(f.owner)))||f.priority&&E.pri&&l(E.pri(x))!==l(f.priority)||E.value&&f.min_value!=null&&E.value(x)<Number(f.min_value)||E.value&&f.max_value!=null&&E.value(x)>Number(f.max_value)||f.created_after&&!(dt(x)>=f.created_after)||f.created_before&&!(dt(x)<=f.created_before)||f.sla_breached&&E.breach&&!E.breach(x)));
+  return[h('div',{class:'ai-note',text:'Interpreted as: '+(r.explanation||('search '+r.entity))+' · '+list.length+' match'+(list.length===1?'':'es')}),
+    ...(list.length?list.slice(0,25).map(x=>h('div',{class:'card ai-res',onclick:()=>{close();E.go(x)}},h('b',{text:E.label(x)}),h('div',{class:'s',text:E.sub(x)}))):[h('div',{class:'muted',style:'margin-top:8px',text:'Nothing matches. Try rewording the request.'})])];
+}
+function aiSearchOpen(){
+  const inp=h('input',{type:'text',placeholder:'e.g. breached high-priority cases this month, or deals over ₱100,000 owned by Ana','aria-label':'Describe what to find'}),out=h('div'),go=h('button',{class:'btn blue',text:'Search'});
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape')close()};
+  const run=async()=>{const t=inp.value.trim();if(!t)return;go.disabled=true;out.replaceChildren(h('div',{class:'muted',style:'margin-top:8px',text:'Thinking…'}));
+    try{if(!dlLoaded)await loadDeals();out.replaceChildren(...aiResults(await aiCall('nl_search',{query:t,today:today(),members:members.map(m=>m.name||m.email),stages:dlStages.map(s=>s.name)}),close))}catch(e){out.replaceChildren(h('div',{class:'err',text:e.message}))}finally{go.disabled=false}};
+  go.onclick=run;inp.addEventListener('keydown',e=>{if(e.key==='Enter')run()});
+  const scrim=h('div',{class:'scrim',onclick:e=>{if(e.target===scrim)close()}},h('div',{class:'modal wide',role:'dialog','aria-modal':'true','aria-label':'Ask AI to search'},h('h2',{text:'✨ Ask AI to search'}),h('div',{class:'ai-note',text:'Describe what you want in plain English. The AI only picks filters; it never sees or edits your database.'}),h('div',{style:'display:flex;gap:8px;margin-top:10px'},inp,go),out,h('div',{class:'row'},h('button',{class:'btn ghost',text:'Close',onclick:close}))));
+  document.body.append(scrim);document.addEventListener('keydown',esc);inp.focus();
+}
+
 /* ---- Messages: email (Titan) and Facebook messages that arrive in crm_messages ---- */
 let messages=[],msgErr=false,msgFilter='all';const msgOpen=new Set();
 async function loadMessages(){
@@ -2546,7 +2600,9 @@ function openMessage(m){
     h('button',{class:'btn ghost',text:m.starred?'★ Starred':'☆ Star',onclick:()=>{close();msgAct([m.id],{starred:!m.starred})}}),
     fld(m)==='inbox'?h('button',{class:'btn ghost',text:'Spam',onclick:()=>{close();msgAct([m.id],{folder:'spam'},'Marked as spam.')}}):null,
     fld(m)==='inbox'?h('button',{class:'btn ghost danger',text:'Delete',onclick:()=>{close();msgAct([m.id],{folder:'trash'},'Moved to trash.')}}):h('button',{class:'btn ghost',text:'Restore',onclick:()=>{close();msgAct([m.id],{folder:'inbox'},'Moved to inbox.')}}),
-    !out&&m.channel==='email'&&m.from_address?h('button',{class:'btn blue',text:'Reply',onclick:()=>{close();composeEmail({reply:true,to:m.from_address,subject:/^re:/i.test(m.subject||'')?m.subject:'Re: '+(m.subject||''),inquiry_id:m.inquiry_id,client_id:m.client_id||null,reply_to_message_id:m.id})}}):null]);
+    !out&&m.channel==='email'&&m.from_address?h('button',{class:'btn blue',text:'Reply',onclick:()=>{close();composeEmail({reply:true,to:m.from_address,subject:/^re:/i.test(m.subject||'')?m.subject:'Re: '+(m.subject||''),inquiry_id:m.inquiry_id,client_id:m.client_id||null,reply_to_message_id:m.id})}}):null,
+    h('button',{class:'btn ghost',text:'✨ Summarize thread',onclick:e=>aiMsg(m,e.target)}),
+    !out&&m.channel==='email'&&m.from_address?h('button',{class:'btn ghost',text:'✨ Draft reply',onclick:e=>aiDraft(m,e.target)}):null]);
 }
 function messagesView(){
   const inView=m=>msgFilter==='spam'?fld(m)==='spam':msgFilter==='trash'?fld(m)==='trash':fld(m)!=='spam'&&fld(m)!=='trash'&&(msgFilter==='all'||(msgFilter==='unread'?!m.is_read:msgFilter==='sent'?m.direction==='out':msgFilter==='starred'?!!m.starred:m.channel===msgFilter));
@@ -3479,7 +3535,7 @@ function slLeads(){
   const chips=h('div',{class:'chips',style:'margin-bottom:12px'},['all',...SL_LEAD].map(k=>h('button',{class:'chip','aria-pressed':String(slLeadF===k),text:(k==='all'?'All':k)+' · '+base.filter(l=>k==='all'||l.status===k).length,onclick:()=>{slLeadF=k;slPage=1;render()}})));
   const rows=list.slice((slPage-1)*25,slPage*25).map(l=>h('tr',{class:'clk',onclick:()=>l.status==='Converted'?toast('This lead was already converted.'):leadForm(l)},h('td',{},h('b',{text:l.name}),h('div',{class:'s',text:l.company||''})),h('td',{},h('div',{text:l.email||'—'}),h('div',{class:'s',text:l.phone||''})),h('td',{text:l.source||'—'}),
     h('td',{},h('span',{class:'pill '+(l.status==='Qualified'?'won':l.status==='Converted'?'gs':l.status==='Unqualified'?'closed':'med'),style:'margin:0',text:l.status})),h('td',{text:slOwn(l.owner_email)}),h('td',{text:fmtDate(String(l.created_at).slice(0,10))}),
-    h('td',{onclick:e=>e.stopPropagation()},h('div',{class:'acts',style:'margin:0;flex-wrap:nowrap'},l.status!=='Converted'?h('button',{class:'btn blue sm',text:'Convert',onclick:()=>convertLead(l)}):null,h('button',{class:'btn ghost sm',text:'Notes',onclick:()=>openNotes('lead',l)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>slDel('crm_leads',l,'lead')})))));
+    h('td',{onclick:e=>e.stopPropagation()},h('div',{class:'acts',style:'margin:0;flex-wrap:nowrap'},h('button',{class:'btn ghost sm',text:'✨ Score',onclick:e=>aiLead(l,e.target)}),l.status!=='Converted'?h('button',{class:'btn blue sm',text:'Convert',onclick:()=>convertLead(l)}):null,h('button',{class:'btn ghost sm',text:'Notes',onclick:()=>openNotes('lead',l)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>slDel('crm_leads',l,'lead')})))));
   return h('div',{},h('div',{class:'bar'},searchBar('Search leads'),h('span',{class:'sp'}),h('button',{class:'btn ghost sm',text:'Export CSV',onclick:()=>slCsv('leads',['Name','Company','Email','Phone','Source','Status','Owner'],list.map(l=>[l.name,l.company,l.email,l.phone,l.source,l.status,l.owner_email]))}),h('button',{class:'btn blue',text:'+ New lead',onclick:()=>leadForm()})),chips,
     list.length?h('div',{class:'tl-card flush'},h('div',{class:'tl-scroll'},h('table',{class:'tbl dt'},h('thead',{},h('tr',{},['Lead','Contact','Source','Status','Owner','Added',''].map(t=>h('th',{text:t})))),h('tbody',{},rows))),pg):empty(slLead.length?'No leads here':'No leads yet',slLead.length?'Try another status or search.':'Add a lead, then convert it into a contact, account and deal when it qualifies.',slLead.length?null:h('button',{class:'btn blue',text:'+ New lead',onclick:()=>leadForm()})));
 }
@@ -3559,7 +3615,7 @@ const dlCard=d=>{const s=dlSt(d.stage_id),od=s.kind==='open'&&d.expected_close&&
     h('div',{class:'s',text:peso(d.value)+' · '+dlP(d)+'%'}),
     h('div',{class:'s',style:od?'color:var(--danger)':null,text:(d.expected_close?(od?'Overdue · ':'Close ')+fmtDate(d.expected_close)+' · ':'')+slOwn(d.owner_email)}),
     s.kind!=='open'&&d.win_loss_reason?h('div',{class:'s',text:(s.kind==='won'?'Won: ':'Lost: ')+d.win_loss_reason}):null,
-    h('div',{class:'acts',style:'margin-top:6px',onclick:e=>e.stopPropagation()},h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>dlDel(d)})))};
+    h('div',{class:'acts',style:'margin-top:6px',onclick:e=>e.stopPropagation()},h('button',{class:'btn ghost sm',text:'✨ Next step',onclick:e=>aiDeal(d,e.target)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>dlDel(d)})))};
 const dlBoard=list=>h('div',{class:'board',style:'grid-auto-columns:minmax(230px,1fr)'},dlStages.map(s=>{
   const col=list.filter(d=>d.stage_id===s.id).sort((a,b)=>(a.expected_close||'9999').localeCompare(b.expected_close||'9999'));
   return h('div',{class:'bcol',ondragover:e=>{e.preventDefault();e.currentTarget.classList.add('over')},ondragleave:e=>e.currentTarget.classList.remove('over'),ondrop:e=>{e.preventDefault();e.currentTarget.classList.remove('over');const d=dlDeals.find(x=>x.id===e.dataTransfer.getData('text/plain'));if(d)dlMove(d,s.id)}},
@@ -3689,6 +3745,7 @@ function gsIndex(){
   add('Action','New deal','Add a deal to the sales pipeline.',GS_X.plus,()=>oppForm(),'add create opportunity');
   add('Action','Open the Manual','Read the guide to every part of the CRM.',GS_X.book,openManual,'help guide how');
   add('Action','Back to Apps','Return to the app picker.',NAV_ICONS.overview,home,'apps home');
+  if(!isExec())add('Action','Ask AI to search','Describe what you are looking for in plain English.',NAV_ICONS.messages,aiSearchOpen,'ai ask natural language search find');
   clients.slice(0,500).forEach(c=>add('Client',c.name,[c.company,c.email,c.phone].filter(Boolean).join(' · ')||'Client',NAV_ICONS.clients,()=>gsOpen('clients',c.name),[c.company,c.email,c.phone,c.notes].join(' ')));
   inquiries.slice(0,500).forEach(i=>add('Inquiry',i.name,[cap(i.status||''),gsCut(i.message,70)].filter(Boolean).join(' · '),NAV_ICONS.inquiries,()=>gsOpen('inquiries',i.name,()=>{inqFilter='all'}),[i.email,i.phone,i.source,i.message].join(' ')));
   tasks.slice(0,500).forEach(t=>add('Task',t.title,(t.done?'Done':'Open')+(t.due_date?' · due '+fmtDate(t.due_date):''),NAV_ICONS.tasks,()=>gsOpen('tasks',t.title,()=>{taskFilter='all'})));
