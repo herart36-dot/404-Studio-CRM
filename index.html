@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Orchid | CRM, Pals, Solopreneur and Ally apps behind one login</title>
-<meta name="description" content="Orchid is a small family of calm apps behind one login: a CRM for teams, a social network called Pals for everyone with an Orchid account, a simple business manager for small and local shops, and Ally for virtual assistants.">
+<title>Orchid CRM | Inquiries, clients and tasks in one calm place</title>
+<meta name="description" content="Orchid CRM keeps every inquiry, client and task in one calm place: a live waiting timer, going-cold alerts, cases with routing and SLA tracking, and a team chat log for every client. $8 a month.">
 <meta name="theme-color" content="#bfe0ff">
-<meta property="og:type" content="website"><meta property="og:title" content="Orchid: work that feels calm, connection that feels real">
-<meta property="og:description" content="A CRM for teams, a social network for every Orchid account, and a simple business manager for small shops. One login.">
+<meta property="og:type" content="website"><meta property="og:title" content="Orchid CRM: respond faster, follow up better">
+<meta property="og:description" content="A calm CRM for teams. Live waiting timer, going-cold alerts, SLA tracking. $8 a month.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext x='32' y='50' font-size='56' font-weight='800' font-family='Arial' text-anchor='middle' fill='%23f97316'%3EO%3C/text%3E%3C/svg%3E">
 <script>document.documentElement.className+=' js'</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,7 +33,7 @@ h1{font-size:1.6rem;margin:12px 0 6px;letter-spacing:-.02em}h2{font-size:clamp(1
 p.sub{color:var(--muted);margin:0 0 20px;font-size:.98rem}
 .kick{font-size:.75rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#7c3aed}
 .ic{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;flex:none;box-shadow:0 8px 18px rgba(20,18,46,.18)}
-.ic.crm{background:linear-gradient(135deg,#2563eb,#06b6d4)}.ic.pals{background:linear-gradient(135deg,#7c3aed,#d946ef)}.ic.solo{background:linear-gradient(135deg,#059669,#84cc16)}.ic.ally{background:linear-gradient(135deg,#0073ea,#7c4dff)}.ic.uni{background:linear-gradient(135deg,#f97316,#db2777)}
+.ic.crm{background:linear-gradient(135deg,#2563eb,#06b6d4)}.ic.solo{background:linear-gradient(135deg,#059669,#84cc16)}.ic.ally{background:linear-gradient(135deg,#0073ea,#7c4dff)}.ic.uni{background:linear-gradient(135deg,#f97316,#db2777)}
 .ic svg{width:28px;height:28px}.ic.big{width:72px;height:72px;border-radius:22px}.ic.big svg{width:42px;height:42px}
 /* story */
 .story{position:relative;width:100%;max-width:640px;height:min(600px,88vh)}
@@ -54,7 +54,7 @@ p.sub{color:var(--muted);margin:0 0 20px;font-size:.98rem}
 .pipe{display:flex;gap:10px;margin-top:22px}.col{width:92px;padding:8px;border-radius:14px;background:rgba(255,255,255,.7);display:grid;gap:6px;align-content:start;min-height:96px}
 .col i{height:18px;border-radius:7px;background:#dbe7ff}.col i:nth-child(2){background:#c9f0ee}.col u{height:18px;border-radius:7px;background:linear-gradient(90deg,#2563eb,#06b6d4);animation:hop 4s ease-in-out infinite;text-decoration:none}
 @keyframes hop{0%,15%{transform:translateX(0)}45%,100%{transform:translateX(204px)}}
-/* Pals visual */
+/* Story visuals */
 .floaty{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:16px;max-width:460px}
 .th{display:flex;align-items:center;gap:8px;background:#fff;border-radius:18px 18px 18px 6px;padding:8px 14px 8px 8px;font-size:.88rem;font-weight:600;box-shadow:0 8px 20px rgba(60,70,140,.12);animation:bob 4s ease-in-out infinite alternate}
 .th:nth-child(2){animation-delay:-1.3s}.th:nth-child(3){animation-delay:-2.6s}
@@ -69,7 +69,7 @@ p.sub{color:var(--muted);margin:0 0 20px;font-size:.98rem}
 .panel{background:rgba(255,255,255,.72);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.95);border-radius:30px;padding:36px 30px 28px;max-width:440px;width:100%;text-align:center;box-shadow:0 18px 60px rgba(60,70,140,.16);animation:rise .7s both}
 .card{display:flex;align-items:center;gap:14px;width:100%;margin-top:12px;padding:14px 16px;text-align:left;font:inherit;color:inherit;cursor:pointer;background:#fff;border:1.5px solid transparent;border-radius:22px;box-shadow:0 6px 20px rgba(60,70,140,.10);transition:transform .18s,box-shadow .18s,border-color .18s}
 .card:hover,.card:focus-visible{transform:translateY(-3px);outline:0;box-shadow:0 14px 30px rgba(60,70,140,.18)}
-.card[data-p=crm]:hover{border-color:#06b6d4}.card[data-p=pals]:hover{border-color:#d946ef}.card[data-p=solo]:hover{border-color:#84cc16}.card[data-p=ally]:hover{border-color:#7c4dff}
+.card[data-p=crm]:hover{border-color:#06b6d4}.card[data-p=solo]:hover{border-color:#84cc16}.card[data-p=ally]:hover{border-color:#7c4dff}
 .ct{flex:1;min-width:0}.ct small{display:block;color:var(--muted);font-size:.82rem;font-weight:500;margin-top:2px}.arr{color:#94a3b8;font-size:1.2rem;transition:transform .18s}.card:hover .arr{transform:translateX(4px);color:var(--ink)}
 .flogo{display:flex;align-items:center;justify-content:center;gap:12px}.backbtn{display:block;font-size:.88rem;margin:-10px 0 14px -6px;padding:4px 6px;border-radius:8px}.backbtn:hover{color:var(--ink);background:rgba(20,18,46,.05)}
 .field{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit;color:var(--ink);margin-top:10px}.field:focus{outline:2px solid #0176d355;border-color:#0176d3}
@@ -134,7 +134,7 @@ body[data-v=boot]:after{content:"";position:fixed;left:50%;top:50%;width:34px;he
 .lp-btn:hover{background:var(--bl2);border-color:var(--bl2);transform:translateY(-1px);box-shadow:0 10px 24px rgba(1,118,211,.30)}
 .lp-btn.sm{padding:8px 20px;font-size:.92rem}.lp-btn.lg{padding:14px 32px;font-size:1.05rem}
 .lp-btn.alt{background:#fff;color:var(--bl);box-shadow:none}.lp-btn.alt:hover{background:var(--sky);color:var(--bl2);box-shadow:none}
-.lp-btn.pals{background:#7c3aed;border-color:#7c3aed}.lp-btn.pals:hover{background:#5b21b6;border-color:#5b21b6;box-shadow:0 10px 24px rgba(124,58,237,.3)}
+
 .lp-btn.ally{background:#0060b9;border-color:#0060b9}.lp-btn.ally:hover{background:#4b2fc9;border-color:#4b2fc9;box-shadow:0 10px 24px rgba(75,47,201,.3)}
 .lp-btn.uni{background:#c2410c;border-color:#c2410c}.lp-btn.uni:hover{background:#be185d;border-color:#be185d;box-shadow:0 10px 24px rgba(190,24,93,.3)}
 .lp-btn.solo{background:#047857;border-color:#047857}.lp-btn.solo:hover{background:#065f46;border-color:#065f46;box-shadow:0 10px 24px rgba(4,120,87,.3)}
@@ -170,19 +170,19 @@ body[data-v=boot]:after{content:"";position:fixed;left:50%;top:50%;width:34px;he
 .lp-head{max-width:720px;margin:0 auto 52px;text-align:center}.lp-head .lp-lead{margin:0 auto}
 .lp-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px}
 .lp-card{--ac:#2563eb;display:flex;flex-direction:column;position:relative;overflow:hidden;background:#fff;border:1px solid var(--ln);border-radius:22px;padding:30px 28px 26px;transition:transform .2s,box-shadow .2s}
-.lp-card:before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--ac)}.lp-card.pals{--ac:#7c3aed}.lp-card.solo{--ac:#059669}.lp-card.ally{--ac:#0073ea}.lp-card.uni{--ac:#ea580c}
+.lp-card:before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--ac)}.lp-card.solo{--ac:#059669}.lp-card.ally{--ac:#0073ea}.lp-card.uni{--ac:#ea580c}
 .lp-card:hover{transform:translateY(-5px);box-shadow:0 26px 60px rgba(3,45,96,.14)}
 .lp-cwm{font-size:1.8rem;margin:16px 0 0;justify-content:flex-start}
 .lp-card h3{font-size:1.12rem;line-height:1.35;color:var(--nv);margin:12px 0 14px}
 .lp-chk{list-style:none;padding:0;margin:0 0 20px}
 .lp-chk li{position:relative;padding-left:28px;margin:10px 0;font-size:.96rem;line-height:1.5;color:var(--tx)}
 .lp-chk li:before{content:"";position:absolute;left:0;top:.28em;width:17px;height:17px;border-radius:50%;background:var(--ac,#0176d3) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-4.9' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/11px no-repeat}
-.lp-chk.crm{--ac:#2563eb}.lp-chk.pals{--ac:#7c3aed}.lp-chk.solo{--ac:#059669}.lp-chk.ally{--ac:#0073ea}.lp-chk.uni{--ac:#ea580c}.lp-chk b{color:var(--nv)}
+.lp-chk.crm{--ac:#2563eb}.lp-chk.solo{--ac:#059669}.lp-chk.ally{--ac:#0073ea}.lp-chk.uni{--ac:#ea580c}.lp-chk b{color:var(--nv)}
 .lp-more{margin-top:auto;font-weight:800;color:var(--bl);text-decoration:none}.lp-more:hover{color:var(--bl2);text-decoration:underline}
 .lp-row{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}.lp-row.rev .lp-copy{order:2}
 .lp-copy .hd{display:flex;align-items:center;gap:16px;margin-bottom:18px}.lp-copy .wm{font-size:2rem}
 .lp-vis{--t1:#e3efff;--t2:#d8f4fa;background:linear-gradient(160deg,var(--t1),var(--t2));border-radius:30px;padding:30px;display:flex;flex-direction:column;justify-content:center;gap:14px;min-height:360px}
-.lp-vis.pals{--t1:#efe6ff;--t2:#fbe3f6}.lp-vis.solo{--t1:#dcf7ea;--t2:#effad8}.lp-vis.ally{--t1:#e0edff;--t2:#ece6ff}.lp-vis.uni{--t1:#ffe9d9;--t2:#fde2ef}
+.lp-vis.solo{--t1:#dcf7ea;--t2:#effad8}.lp-vis.ally{--t1:#e0edff;--t2:#ece6ff}.lp-vis.uni{--t1:#ffe9d9;--t2:#fde2ef}
 .lp-vis .lp-shot{width:100%;height:auto;display:block;border-radius:14px;border:1px solid rgba(15,23,42,.1);box-shadow:0 14px 36px rgba(15,23,42,.18);margin-bottom:6px}
 .lp-vis .floaty{margin-top:0;max-width:none}.lp-vis .swap{color:var(--nv);margin-top:6px;justify-content:center}
 .lp-why{background:#fff;border-radius:18px;padding:16px 20px;box-shadow:0 12px 32px rgba(3,45,96,.10)}.lp-why h4{margin:0 0 6px;font-size:.98rem;color:var(--nv)}.lp-why ul{margin:6px 0 0;padding-left:1.1em}.lp-why li{margin:5px 0;font-size:.9rem;color:var(--tx)}
@@ -233,7 +233,7 @@ body[data-v=boot]:after{content:"";position:fixed;left:50%;top:50%;width:34px;he
   .lp-lnk,.lp-btn.sm{white-space:nowrap;font-size:.85rem}.lp-lnk{padding:8px}.lp-btn.sm{padding:8px 14px}.lp-annc{font-size:.8rem}
 }
 
-</style>
+#tabs{display:none}</style>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap" rel="stylesheet">
 <style>
 /* ===== Orchid landing redesign: "the bloom" ===== */
@@ -333,6 +333,62 @@ body[data-v=land],body[data-v=boot]{background:#faf8fd}
 }
 @media(max-width:560px){.ox-k3{grid-template-columns:1fr}.ox-k3>div{min-height:0}.ox-pg,.ox-fg{grid-template-columns:1fr}.ox-ni{gap:6px}.ox-brand .wm{font-size:1.4rem}.ox-lnk,.ox-btn.sm{font-size:.85rem;white-space:nowrap}.ox-act .ox-btn{flex:1 1 100%;text-align:center}}
 @media(prefers-reduced-motion:reduce){.ox-ring{animation:none}#land{transition:none}}
+
+/* ---- Added: richer sections + AI image slots ---- */
+.ox-stats{background:#fff;border-block:1px solid var(--ln)}.ox-stats>div{max-width:1480px;margin:0 auto;padding:28px var(--pad);display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center}
+.ox-stats b{display:block;font-family:var(--dsp);font-size:clamp(1.8rem,3.6vw,2.8rem);letter-spacing:-.04em;color:var(--a);line-height:1}.ox-stats span{color:var(--mut);font-size:.9rem}
+.ox-head{max-width:46em;margin:0 0 clamp(28px,4vw,52px)}.ox-head h2{font-size:clamp(2rem,4.4vw,3.4rem);line-height:1.05;letter-spacing:-.035em;margin:8px 0 12px}.ox-head p{color:var(--mut);font-size:1.1rem;line-height:1.6;margin:0}
+.ox-kick{font-size:.75rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--a)}
+.ox-ph{margin:0;position:relative;overflow:hidden;border-radius:24px;aspect-ratio:4/5;background:linear-gradient(150deg,var(--c1,#2457d6),var(--c2,#06b6d4));box-shadow:0 18px 44px rgba(28,16,48,.16);isolation:isolate}
+.ox-ph:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 25% 20%,rgba(255,255,255,.35),transparent 45%),radial-gradient(circle at 80% 85%,rgba(255,255,255,.2),transparent 40%);z-index:0}
+.ox-ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;transition:transform .8s}.ox-ph:hover img{transform:scale(1.05)}
+.ox-ph figcaption{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:60px 20px 20px;color:#fff;background:linear-gradient(transparent,rgba(20,10,40,.78))}
+.ox-ph figcaption b{display:block;font-size:1.1rem}.ox-ph figcaption span{font-size:.88rem;opacity:.9}
+.ox-ph .ph-ic{position:absolute;top:18px;left:18px;z-index:2}
+.ox-gal{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.ox-apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px}
+.ox-ac{background:#fff;border:1px solid var(--ln);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:12px;transition:transform .25s,box-shadow .25s}.ox-ac:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(28,16,48,.12)}
+.ox-ac .ox-ph{aspect-ratio:16/10;border-radius:16px;box-shadow:none}
+.ox-ac h3{margin:4px 0 0;font-size:1.25rem;letter-spacing:-.02em}.ox-ac p{margin:0;color:var(--mut);font-size:.95rem}.ox-ac ul{margin:0;padding-left:18px;color:var(--ink);font-size:.92rem;display:grid;gap:4px}
+.ox-ac .tag{font-size:.78rem;font-weight:800;color:var(--mut)}.ox-ac button{margin-top:auto;align-self:flex-start;background:none;border:0;font:inherit;font-weight:800;color:var(--a);cursor:pointer;padding:6px 0}
+.ox-day{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,72px);align-items:center}.ox-day .ox-ph{aspect-ratio:3/2}
+.ox-tl{list-style:none;margin:20px 0 0;padding:0;border-left:2px solid var(--ln)}.ox-tl li{position:relative;padding:0 0 18px 22px}.ox-tl li:before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--a)}.ox-tl b{display:block}.ox-tl span{color:var(--mut);font-size:.93rem}
+.ox-faq{max-width:900px}.ox-faq details{border-top:1px solid var(--ln);padding:18px 0}.ox-faq details:last-child{border-bottom:1px solid var(--ln)}
+.ox-faq summary{cursor:pointer;font-weight:800;font-size:1.08rem;list-style:none;display:flex;justify-content:space-between;gap:16px}.ox-faq summary::-webkit-details-marker{display:none}.ox-faq summary:after{content:"+";color:var(--a);font-size:1.4rem;line-height:1}.ox-faq details[open] summary:after{content:"\2212"}
+.ox-faq p{color:var(--mut);margin:10px 0 0;line-height:1.65}
+@media(max-width:980px){.ox-gal{grid-template-columns:1fr 1fr}.ox-stats>div{grid-template-columns:1fr 1fr}.ox-day{grid-template-columns:1fr}}
+@media(max-width:560px){.ox-gal{grid-template-columns:1fr}}
+
+.ox-pghd{background:linear-gradient(135deg,var(--a),color-mix(in srgb,var(--a) 55%,#14122e));color:#fff;padding:clamp(40px,7vw,88px) var(--pad)}.ox-pghd>div{max-width:1480px;margin:0 auto}
+.ox-bc{font-size:.85rem;opacity:.85;margin-bottom:14px}.ox-bc a{color:#fff}.ox-bc i{font-style:normal;opacity:.6;margin:0 4px}
+.ox-pghd h1{font-family:var(--dsp);font-size:clamp(2.2rem,5vw,4rem);letter-spacing:-.035em;line-height:1.05;margin:0 0 10px}.ox-pghd p{margin:0;font-size:1.15rem;opacity:.92;max-width:34em}
+.ox-menu a.act,.ox-ddb.act{color:var(--a);box-shadow:inset 0 -3px 0 var(--a)}
+#land [data-pg]{animation:pgin .45s both}@keyframes pgin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){#land [data-pg]{animation:none}}
+
+/* ---- v2 professional restyle ---- */
+#land{--ink:#0b1b34;--mut:#4a5b73;--ln:#dde5ef;--tint:#f6f9fd;--dsp:'Plus Jakarta Sans',system-ui,sans-serif}
+#land .ox-h1{font-size:clamp(2.2rem,4.2vw,3.5rem);letter-spacing:-.03em;line-height:1.08}
+.ox-q,.ox-who,.ox-bloom{display:none!important}.ox-hero{min-height:0;padding-block:clamp(40px,6vw,88px)}
+.hx{position:relative;margin:0}.hx img{width:100%;aspect-ratio:5/4;object-fit:cover;border-radius:20px;box-shadow:0 24px 60px rgba(11,27,52,.18);display:block}
+.hc{position:absolute;background:#fff;border-radius:14px;padding:12px 16px;box-shadow:0 14px 34px rgba(11,27,52,.2);display:grid;gap:1px;font-size:.85rem}.hc small{color:var(--mut);font-weight:700}.hc b{font-size:1rem}.hc span{color:var(--a);font-weight:700}.hc.a{left:-18px;top:14%}.hc.b{right:-12px;bottom:12%}
+.cx{background:#fff}.cx-in{max-width:1180px;margin:0 auto;padding:0 var(--pad) clamp(48px,7vw,96px)}
+.cx-sub{position:sticky;top:66px;z-index:20;display:flex;align-items:center;gap:4px;background:#fff;border-bottom:1px solid var(--ln);padding:10px 0;margin-bottom:clamp(28px,4vw,56px);overflow-x:auto}
+.cx-sub b{margin-right:12px;white-space:nowrap}.cx-sub button{background:none;border:0;font:inherit;font-weight:700;color:var(--mut);padding:8px 12px;cursor:pointer;white-space:nowrap;border-radius:8px}.cx-sub button:hover{color:var(--ink);background:var(--tint)}.cx-sub .cta{margin-left:auto;background:#0b5cab;color:#fff}.cx-sub .cta:hover{background:#094a8c;color:#fff}
+.cx-ov{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,5vw,64px);align-items:center}.cx-ov h2{font-size:clamp(1.9rem,3.6vw,2.8rem);line-height:1.1;letter-spacing:-.03em;margin:8px 0 14px}.cx-ov p{color:var(--mut);font-size:1.08rem;line-height:1.65;margin:0 0 22px}
+.cx-img{margin:0}.cx-img img{width:100%;border-radius:18px;box-shadow:0 18px 44px rgba(11,27,52,.15);display:block}
+.cx-out{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:clamp(32px,5vw,56px) 0}.cx-out div{border-left:3px solid var(--a);padding:4px 0 4px 16px}.cx-out b{display:block;font-size:1.1rem}.cx-out span{color:var(--mut)}
+.cx-h{font-size:clamp(1.5rem,2.6vw,2rem);letter-spacing:-.02em;margin:clamp(40px,6vw,72px) 0 20px;scroll-margin-top:130px}
+.cx-g{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.cx-g article{border:1px solid var(--ln);border-radius:16px;padding:22px;background:#fff}.cx-g i{font-style:normal;display:grid;place-items:center;width:32px;height:32px;border-radius:9px;background:color-mix(in srgb,var(--a) 12%,#fff);color:var(--a);font-weight:800;margin-bottom:12px}.cx-g h4{margin:0 0 8px;font-size:1.05rem}.cx-g p{margin:0;color:var(--mut);font-size:.95rem;line-height:1.6}
+.cx-st{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:n}.cx-st li{counter-increment:n;background:var(--tint);border-radius:16px;padding:22px}.cx-st li:before{content:counter(n);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--a);color:#fff;font-weight:800;margin-bottom:12px}.cx-st b{display:block;font-size:1.1rem;margin-bottom:6px}.cx-st span{color:var(--mut);line-height:1.6}
+.cx-w{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.cx-w div{border:1px solid var(--ln);border-radius:14px;padding:16px}.cx-w b{display:block;margin-bottom:6px}.cx-w span{color:var(--mut);font-size:.9rem;line-height:1.55}
+.cx-t{width:100%;border-collapse:collapse;border:1px solid var(--ln);border-radius:14px;overflow:hidden}.cx-t th,.cx-t td{padding:14px 18px;text-align:left;border-bottom:1px solid var(--ln)}.cx-t th{background:var(--tint)}.cx-t th:last-child{color:var(--a)}.cx-t td:last-child{font-weight:700}
+.cx-pr{display:flex;justify-content:space-between;align-items:center;gap:24px;margin-top:clamp(40px,6vw,72px);padding:clamp(24px,4vw,40px);border-radius:20px;background:#0b1b34;color:#fff}.cx-pr h3{font-size:1.8rem;margin:6px 0;letter-spacing:-.02em}.cx-pr p{margin:0;color:#c6d3e6;max-width:34em}.cx-pr .ox-kick{color:#8ec5ff}.cx-pr .ox-btn{background:#fff;color:#0b1b34;border-color:#fff}
+@media(max-width:980px){.cx-ov,.cx-out,.cx-g,.cx-st{grid-template-columns:1fr}.cx-w{grid-template-columns:1fr 1fr}.cx-pr{flex-direction:column;align-items:flex-start}.hc.a{left:8px}.hc.b{right:8px}}
+
+/* ---- v3 clean, text-first ---- */
+.gl{background:#fff;border:1px solid var(--ln);border-radius:18px;padding:28px;box-shadow:0 18px 44px rgba(11,27,52,.08);display:grid;gap:14px}.gl b{font-size:1.15rem}.gl ul{margin:0;padding:0;list-style:none;display:grid}.gl li{padding:11px 0;border-top:1px solid var(--ln)}.gl div{color:var(--mut);border-top:1px solid var(--ln);padding-top:14px}.gl strong{font-size:1.6rem;color:var(--a)}.gl a{font-weight:800;color:var(--a)}
+.ox-day{grid-template-columns:1fr}.cx-ov{display:block;max-width:46em}.cx-g em{display:block;margin-top:10px;font-style:normal;font-size:.88rem;color:var(--a);font-weight:700}.cx-t th[scope=row]{background:none;font-weight:700}.cx-t th:last-child,.cx-t td:last-child{color:var(--a)}.cx-fn{color:var(--mut);font-size:.85rem;margin:10px 0 0}
 </style>
 </head>
 <body data-v="land">
@@ -463,19 +519,15 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
 <div id="land" data-app="crm">
   <header class="ox-nav" id="lpnav">
     <div class="ox-ni">
-      <a class="ox-brand" href="#top" aria-label="Orchid home"><span class="wm"><b>O</b>rchid</span></a>
+      <a class="ox-brand" href="#/home" aria-label="Orchid home"><span class="wm"><b>O</b>rchid</span></a>
       <nav class="ox-menu" id="menu" aria-label="Primary">
         <div class="lp-dd">
-          <button class="ox-ddb" id="megaBtn" type="button" aria-expanded="false" aria-controls="mega">Products &#9662;</button>
+          <button class="ox-ddb" id="megaBtn" data-nav="products" type="button" aria-expanded="false" aria-controls="mega">Products &#9662;</button>
           <div class="ox-mega" id="mega" hidden>
-            <a class="ox-mi" href="#try" data-go="crm"><span class="ic crm" data-ic="crm"></span><span><b>Orchid CRM</b><small>Inquiries, clients, tasks and cases</small></span></a>
-            <a class="ox-mi" href="#try" data-go="pals"><span class="ic pals" data-ic="pals"></span><span><b>Orchid Pals</b><small>The social network for every Orchid account</small></span></a>
-            <a class="ox-mi" href="#try" data-go="solo"><span class="ic solo" data-ic="solo"></span><span><b>Orchid Solopreneur</b><small>Leads, customers and jobs for small business</small></span></a>
-            <a class="ox-mi" href="#try" data-go="ally"><span class="ic ally" data-ic="ally"></span><span><b>Orchid Ally</b><small>Clients, time and invoices for virtual assistants</small></span></a>
-            <a class="ox-mi" href="#try" data-go="uni"><span class="ic uni" data-ic="uni"></span><span><b>Orchid University</b><small>Courses, modules and grades</small></span></a>
+            <a class="ox-mi" href="#/products/crm" data-go="crm"><span class="ic crm" data-ic="crm"></span><span><b>Orchid CRM</b><small>Inquiries, clients, tasks and cases</small></span></a>
           </div>
         </div>
-        <a href="#try">Try it</a><a href="#pricing">Pricing</a><a href="#how">How it works</a><a href="#security">Privacy</a>
+        <a href="#/solutions" data-nav="solutions">Solutions</a><a href="#/pricing" data-nav="pricing">Pricing</a><a href="#/resources" data-nav="resources">Resources</a>
       </nav>
       <div class="ox-ctas">
         <button class="ox-lnk hm js-inq" type="button">Contact us</button>
@@ -487,17 +539,14 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
   </header>
 
   <main id="main">
-    <section class="ox-hero" id="top">
+    <section class="ox-pghd" id="pgHd" style="display:none"><div><nav class="ox-bc"><a href="#/home">Home</a> <i>/</i> <span id="pgBc"></span></nav><h1 id="pgT"></h1><p id="pgS"></p></div></section>
+    <section class="ox-hero" id="top" data-pg="home">
       <div>
         <h1 class="ox-h1"><span>Work that feels calm.</span><span class="b">Connection that feels real.</span></h1>
-        <p class="ox-sub">Five focused apps behind one login. Tell us which one sounds like your day, and watch Orchid bloom around it.</p>
+        <p class="ox-sub">Orchid CRM keeps every inquiry, client and task in one calm place, for $8 a month.</p>
         <p class="ox-q" id="oxQ">Which sounds like you?</p>
         <div class="ox-who" role="group" aria-labelledby="oxQ">
           <button class="ox-chip" type="button" data-sel="crm">I lead a team</button>
-          <button class="ox-chip" type="button" data-sel="solo">I run a small shop</button>
-          <button class="ox-chip" type="button" data-sel="ally">I'm a virtual assistant</button>
-          <button class="ox-chip" type="button" data-sel="uni">I teach or study</button>
-          <button class="ox-chip" type="button" data-sel="pals">I want good company</button>
         </div>
         <div class="ox-act">
           <button class="ox-btn js-start" type="button">Get started</button>
@@ -505,18 +554,15 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
         </div>
         <p class="ox-note">Already have a password? <button class="ox-lnk in js-login" type="button">Log in</button></p>
       </div>
-      <div class="ox-bloom" id="bloom">
+      <aside class="gl"><b>Orchid CRM at a glance</b><ul><li>Live waiting timer on every inquiry</li><li>Going-cold alerts after 5+ quiet days</li><li>Cases with routing and SLA tracking</li><li>Team chat log for every client</li></ul><div><strong>$8</strong> a month &middot; one login &middot; cancel anytime</div><a href="#/products/crm">See every CRM function &rarr;</a></aside>
+<div class="ox-bloom" id="bloom">
         <div class="ox-ring" aria-hidden="true"></div>
         <button class="ox-pt" type="button" data-sel="crm" style="--r:0deg" aria-label="Orchid CRM" title="Orchid CRM"><span class="ic crm" data-ic="crm"></span></button>
-        <button class="ox-pt" type="button" data-sel="pals" style="--r:72deg" aria-label="Orchid Pals" title="Orchid Pals"><span class="ic pals" data-ic="pals"></span></button>
-        <button class="ox-pt" type="button" data-sel="solo" style="--r:144deg" aria-label="Orchid Solopreneur" title="Orchid Solopreneur"><span class="ic solo" data-ic="solo"></span></button>
-        <button class="ox-pt" type="button" data-sel="ally" style="--r:216deg" aria-label="Orchid Ally" title="Orchid Ally"><span class="ic ally" data-ic="ally"></span></button>
-        <button class="ox-pt" type="button" data-sel="uni" style="--r:288deg" aria-label="Orchid University" title="Orchid University"><span class="ic uni" data-ic="uni"></span></button>
         <div class="ox-hub" aria-live="polite"><span id="hubIc" class="ic big crm"></span><b id="hubN">Orchid CRM</b><small id="hubT"></small><a href="#try">Try it live</a></div>
       </div>
     </section>
 
-    <section class="ox-stage" id="try">
+    <section class="ox-stage" id="try" data-pg="products">
       <div class="ox-si">
         <div class="ox-tabs" id="tabs" role="group" aria-label="Choose an app"></div>
         <div class="ox-sg">
@@ -531,44 +577,56 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
       </div>
     </section>
 
-    <section class="ox-sec" id="pricing">
+    
+    <div class="ox-stats" data-pg="home"><div><p style="margin:0"><b>$8</b><span>a month, one simple price</span></p><p style="margin:0"><b>5+</b><span>quiet days trigger a going-cold alert</span></p><p style="margin:0"><b>24/7</b><span>live waiting timer on every inquiry</span></p><p style="margin:0"><b>0</b><span>sales calls needed</span></p></div></div>
+    <section class="cx" id="crmx" data-pg="products"><div class="cx-in"><nav class="cx-sub"><b>Orchid CRM</b><button type="button" onclick="document.getElementById('cxf').scrollIntoView({behavior:'smooth'})">Functions</button><button type="button" onclick="document.getElementById('cxd').scrollIntoView({behavior:'smooth'})">Why it is different</button><button type="button" onclick="document.getElementById('cxc').scrollIntoView({behavior:'smooth'})">Compare</button><button type="button" onclick="document.getElementById('cxq').scrollIntoView({behavior:'smooth'})">FAQ</button><button type="button" class="js-login cta">Start my CRM</button></nav><div class="cx-ov"><span class="ox-kick">Overview</span><h2>Know who is waiting, who has gone quiet, and what comes next.</h2><p>Orchid CRM is a simple home for every inquiry, client and task. It is built for agencies, clinics, service teams, support desks and small sales teams that want to respond faster and follow up better, without a sales call or a per-seat price maze.</p><div class="ox-act"><button class="ox-btn js-login" type="button">Start my CRM</button><button class="ox-btn alt js-inq" type="button">Talk to us</button></div></div><h3 class="cx-h" id="cxf">What Orchid CRM does</h3><div class="cx-g"><article><i>1</i><h4>Inquiries with a live waiting timer</h4><p>Every new inquiry shows how long it has been waiting.</p><em>The longest-waiting client is always visible, so replies do not slip.</em></article><article><i>2</i><h4>Going-cold alerts</h4><p>Clients who have been quiet for five or more days are flagged.</p><em>You follow up before the relationship fades.</em></article><article><i>3</i><h4>Cases with routing</h4><p>Each case is sent to the right person on your team.</p><em>Every issue has a clear owner.</em></article><article><i>4</i><h4>SLA tracking</h4><p>Cases are tracked against your response targets.</p><em>Risk shows early instead of arriving as a complaint.</em></article><article><i>5</i><h4>Team chat log for every client</h4><p>Every conversation with a client is kept in one log.</p><em>Anyone can pick up where a colleague left off.</em></article><article><i>6</i><h4>Clients, tasks and cases in one home</h4><p>Clients, what you owe them and what they asked for sit together.</p><em>No jumping between inboxes and spreadsheets.</em></article></div><h3 class="cx-h" id="cxd">Why it is different</h3><div class="cx-g"><article><h4>Response time comes first</h4><p>The live waiting timer puts how long people have waited at the centre of your day.</p></article><article><h4>One flat price</h4><p>$8 a month. No per-seat maze, so the cost is easy to predict.</p></article><article><h4>No sales call</h4><p>Log in and start. You do not need a demo or a quote.</p></article><article><h4>Nothing to learn</h4><p>A simple layout that is comfortable to use on a phone.</p></article><article><h4>Everything in one home</h4><p>Clients, tasks, cases and your team's conversations live together, so you do not need separate tools.</p></article><article><h4>Private by design</h4><p>Only members your admin adds can log in, and CRM data stays with your team.</p></article></div><h3 class="cx-h" id="cxc">How it compares with other CRM platforms</h3><table class="cx-t"><thead><tr><th></th><th>Many CRM platforms</th><th>Orchid CRM</th></tr></thead><tbody><tr><th scope="row">Pricing</th><td>Tiers and per-seat pricing can be hard to predict</td><td>$8 a month, one simple price</td></tr><tr><th scope="row">Getting started</th><td>Demos and sales calls are common</td><td>Log in and start</td></tr><tr><th scope="row">Learning curve</th><td>Feature-heavy tools can take time to set up</td><td>Simple and phone friendly</td></tr><tr><th scope="row">Response times</th><td>Usually something you configure</td><td>Live waiting timer built in</td></tr><tr><th scope="row">Follow-up</th><td>Depends on how you set it up</td><td>Going-cold alerts after 5+ quiet days</td></tr><tr><th scope="row">Access</th><td>Varies by product</td><td>Approved members only</td></tr></tbody></table><p class="cx-fn">A general comparison. Features and pricing vary by product.</p><div class="cx-pr"><div><span class="ox-kick">Pricing</span><h3>$8 a month, no per-seat maze.</h3><p>One simple price. Cancel anytime.</p></div><button class="ox-btn js-login" type="button">Start my CRM</button></div><h3 class="cx-h" id="cxq">CRM questions</h3><div class="ox-faq"><details><summary>Is there a setup fee or sales call?</summary><p>No. Log in and start. There is no sales call and no per-seat maze.</p></details><details><summary>Who can see my client data?</summary><p>Only people your admin has added can log in, and your CRM data stays with your team.</p></details><details><summary>Can I use it on my phone?</summary><p>Yes. It is phone friendly and made so there is nothing to learn.</p></details><details><summary>Can I cancel?</summary><p>Yes, anytime.</p></details></div></div></section>
+    
+
+    <section class="ox-sec" id="day" style="padding-top:0" data-pg="solutions">
+      <div class="ox-day">
+        
+        <div><span class="ox-kick">A day with Orchid (example)</span><h2 style="font-size:clamp(1.8rem,3.6vw,2.8rem);letter-spacing:-.03em;line-height:1.08;margin:8px 0">From first coffee to closed tickets.</h2>
+          <ol class="ox-tl"><li><b>8:30 &middot; Open your Today view</b><span>Money owed and replies due are listed first.</span></li><li><b>11:00 &middot; A new inquiry arrives</b><span>A waiting timer starts so nobody is left on read.</span></li><li><b>3:00 &middot; A client goes quiet</b><span>A going-cold alert reminds you to check in.</span></li><li><b>5:30 &middot; Wrap up</b><span>Review open cases and tasks, and see who is still waiting.</span></li></ol></div>
+      </div>
+    </section>
+
+    <section class="ox-sec" id="pricing" data-pg="pricing">
       <div class="ox-pr">
         <div>
           <h2>Your own CRM for $8 a month.</h2>
-          <p class="l">No sales call, no per-seat maze. One simple price, and your Orchid login opens every app.</p>
+          <p class="l">No sales call, no per-seat maze. One simple price, and your Orchid login opens your CRM.</p>
         </div>
         <div class="ox-pc">
           <div class="ox-amt">$8<small>a month</small></div>
           <ul><li>Inquiries with a live waiting timer</li><li>Clients, tasks and cases in one calm home</li><li>SLA tracking so you never miss a reply</li><li>Team chat log for every client</li><li>Phone friendly, nothing to learn</li></ul>
           <button class="ox-btn js-login" type="button">Start my CRM</button>
-          <p class="ox-fine">Cancel anytime. Pals is included with every account.</p>
+          <p class="ox-fine">Cancel anytime.</p>
         </div>
       </div>
     </section>
 
-    <div class="ox-hw" id="how">
+    <div class="ox-hw" id="how" data-pg="solutions resources">
       <div class="ox-sec">
         <h2>From login to your day in three steps.</h2>
         <div class="ox-steps">
-          <div><b>1</b><h3>Log in once</h3><p>One email and password for every Orchid app.</p></div>
-          <div><b>2</b><h3>Choose your app</h3><p>Pick CRM, Pals, Solopreneur, Ally or University on the welcome screen.</p></div>
+          <div><b>1</b><h3>Log in once</h3><p>Use the email and password your admin set up.</p></div>
+          <div><b>2</b><h3>Open Orchid CRM</h3><p>Choose Orchid CRM on the welcome screen.</p></div>
           <div><b>3</b><h3>Get on with your day</h3><p>Everything is private to you and your team.</p></div>
         </div>
       </div>
     </div>
 
-    <section class="ox-sec ox-pv" id="security">
+    <section class="ox-sec ox-pv" id="security" data-pg="resources">
       <h2>Your people and your data stay yours.</h2>
       <div class="ox-pg">
         <div><h3>Approved members only</h3><p>Only people your admin has added can log in, and your CRM data stays with your team.</p></div>
-        <div><h3>An invite-only community</h3><p>Pals members join by approved email, so your space stays calm and free of strangers.</p></div>
-        <div><h3>Separate business data</h3><p>In Solopreneur, each business sees only its own leads, customers and jobs.</p></div>
       </div>
     </section>
 
-    <section class="ox-cta" id="svc-go">
+    <section class="ox-sec" id="faq" data-pg="resources pricing"><div class="ox-head"><span class="ox-kick">Questions</span><h2>Good to know.</h2></div><div class="ox-faq"><details><summary>How do I log in?</summary><p>Use the email your admin added and your password. If you are new, create your password with that email.</p></details><details><summary>Is my data shared with other businesses?</summary><p>No. Only members your admin approves can log in, and your CRM data stays with your team.</p></details><details><summary>How much does it cost?</summary><p>Orchid CRM is $8 a month with no per-seat maze. Cancel anytime.</p></details><details><summary>Does it work on my phone?</summary><p>Yes. Orchid CRM is phone friendly and made so there is nothing to learn.</p></details><details><summary>Who is Orchid CRM for?</summary><p>Agencies, clinics, service teams, support desks and small sales teams.</p></details></div></section>
+    <section class="ox-cta" id="svc-go" data-pg="home products solutions pricing resources">
       <h2>Ready to start?</h2>
-      <p>Log in to open your apps, or send us an inquiry and we will get back to you.</p>
+      <p>Log in to open Orchid CRM, or send us an inquiry and we will get back to you.</p>
       <div class="ox-act"><button class="ox-btn" id="loginBtn" type="button">Log in</button><button class="ox-btn wg" id="inqBtn" type="button">Send an inquiry</button></div>
     </section>
   </main>
@@ -576,8 +634,8 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
   <footer class="ox-ft">
     <div>
       <div class="ox-fg">
-        <div><div class="wm"><b>O</b>rchid</div><p>A small family of apps made to help people get organised and feel connected.</p></div>
-        <div><h5>Products</h5><a href="#try" data-go="crm">Orchid CRM</a><a href="#try" data-go="pals">Orchid Pals</a><a href="#try" data-go="solo">Orchid Solopreneur</a><a href="#try" data-go="ally">Orchid Ally</a><a href="#try" data-go="uni">Orchid University</a></div>
+        <div><div class="wm"><b>O</b>rchid</div><p>A calm CRM that helps teams respond faster and follow up better.</p></div>
+        <div><h5>Products</h5><a href="#try" data-go="crm">Orchid CRM</a></div>
         <div><h5>Explore</h5><a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#security">Privacy</a></div>
         <div><h5>Get started</h5><button class="js-login" type="button">Log in</button><button class="js-login" type="button">Create your password</button><button class="js-inq" type="button">Send an inquiry</button></div>
       </div>
@@ -596,7 +654,7 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
     <div class="kick r">Hello</div>
     <div class="wm xl r" style="--d:1"><b>O</b>rchid</div>
     <h2 class="r" style="--d:2">What is <span class="grad">Orchid</span>?</h2>
-    <p class="t r" style="--d:3">A small family of apps made to help people get organised and feel connected.</p>
+    <p class="t r" style="--d:3">A calm CRM that helps teams respond faster and follow up better.</p>
   </section>
   <section class="s">
     <div class="kick r">Our vision</div>
@@ -605,30 +663,13 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
     <p class="t r" style="--d:4">Tools that put people first: less noise, less pressure and no performing for a crowd.</p>
   </section>
   <section class="s">
-    <div class="kick r">Meet the first one</div>
+    <div class="kick r">Meet Orchid CRM</div>
     <span class="ic crm big r" data-ic="crm" style="--d:1"></span>
     <div class="wm r" style="--d:2"><b>O</b>rchid<span class="lg">CRM</span></div>
     <p class="t r" style="--d:3">One calm home for every inquiry, client and task, so nothing slips through.</p>
     <div class="pipe r" style="--d:4"><div class="col"><u></u><i></i></div><div class="col"><i></i></div><div class="col"><i></i></div></div>
   </section>
-  <section class="s">
-    <div class="kick r">And the second</div>
-    <span class="ic pals big r" data-ic="pals" style="--d:1"></span>
-    <div class="wm r" style="--d:2"><b>O</b>rchid<span class="lg">Pals</span></div>
-    <p class="t r" style="--d:3">A social space for thoughts, not selfies. Post how you feel in words.</p>
-    <span class="noph r" style="--d:3">No photos of people, ever</span>
-    <div class="floaty r" style="--d:4"><div class="th"><em>M</em>Rainy day, good playlist.</div><div class="th"><em>J</em>Small win today.</div><div class="th"><em>A</em>Need a quiet evening.</div></div>
-    <div class="swap r" style="--d:5"><span class="alb a"></span>Album Exchange<span class="alb b"></span></div>
-    <p class="t r" style="--d:5;font-size:.88rem;margin-top:0">Swap the albums you love with your pals.</p>
-  </section>
-  <section class="s">
-    <div class="kick r">And the third</div>
-    <span class="ic solo big r" data-ic="solo" style="--d:1"></span>
-    <div class="wm r" style="--d:2"><b>O</b>rchid<span class="lg">Solopreneur</span></div>
-    <p class="t r" style="--d:3">For small and local business: see who to reply to, what to do today, and who owes you money.</p>
-    <div class="floaty r" style="--d:4"><div class="th"><em style="background:linear-gradient(135deg,#059669,#84cc16)">₱</em>Collect ₱1,500 · aircon cleaning</div><div class="th"><em style="background:linear-gradient(135deg,#059669,#84cc16)">4</em>New leads to answer</div><div class="th"><em style="background:linear-gradient(135deg,#059669,#84cc16)">60</em>Days: time to check in</div></div>
-  </section>
-  <div class="ctl"><div class="bar"><i></i></div><button class="skip" id="skip" type="button">Skip</button><div class="dots" id="dots"><b class="on"></b><b></b><b></b><b></b><b></b></div><button class="pill" id="next" type="button">Next</button></div>
+  <div class="ctl"><div class="bar"><i></i></div><button class="skip" id="skip" type="button">Skip</button><div class="dots" id="dots"><b class="on"></b><b></b><b></b></div><button class="pill" id="next" type="button">Next</button></div>
 </div>
 
 <!-- SIGN IN (one login for all of Orchid) -->
@@ -652,17 +693,7 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
   <h1>Welcome</h1>
   <p class="who" id="who"></p>
   <p class="sub">What would you like to open?</p>
-  <button class="card" type="button" data-p="crm"><span class="ic crm" data-ic="crm"></span><span class="ct"><span class="wm sm"><b>O</b>rchid<span class="lg">CRM</span></span><small>Inquiries, clients and tasks</small></span><span class="arr">→</span></button>
-  <button class="card" type="button" data-p="pals"><span class="ic pals" data-ic="pals"></span><span class="ct"><span class="wm sm"><b>O</b>rchid<span class="lg">Pals</span></span><small>Share your thoughts, swap albums</small></span><span class="arr">→</span></button>
-  <button class="card" type="button" data-p="solo"><span class="ic solo" data-ic="solo"></span><span class="ct"><span class="wm sm"><b>O</b>rchid<span class="lg">Solopreneur</span></span><small>Leads, customers and jobs for small business</small></span><span class="arr">→</span></button>
-  <button class="card" type="button" data-p="ally"><span class="ic ally" data-ic="ally"></span><span class="ct"><span class="wm sm"><b>O</b>rchid<span class="lg">Ally</span></span><small>Clients, time and invoices for virtual assistants</small></span><span class="arr">→</span></button>
-  <button class="card" type="button" data-p="uni" hidden><span class="ic uni" data-ic="uni"></span><span class="ct"><span class="wm sm"><b>O</b>rchid<span class="lg">University</span></span><small>Courses, modules and grades</small></span><span class="arr">→</span></button>
-  <div class="fix" id="fix" hidden>
-    <p id="fixmsg"></p>
-    <input id="fixpass" class="field" type="password" placeholder="Password" autocomplete="current-password" maxlength="200" aria-label="Password to connect Pals">
-    <button id="fixgo" class="btn" type="button">Connect Pals</button>
-  </div>
-  <div id="pmsg" class="msg" role="alert" hidden></div>
+  <button class="card" type="button" data-p="crm"><span class="ic crm" data-ic="crm"></span><span class="ct"><span class="wm sm"><b>O</b>rchid<span class="lg">CRM</span></span><small>Inquiries, clients and tasks</small></span><span class="arr">→</span></button>  <div id="pmsg" class="msg" role="alert" hidden></div>
   <div class="row"><button id="replay" class="link" type="button">Watch the intro again</button><button id="logout" class="link" type="button">Log out</button></div>
 </div>
 </div>
@@ -672,8 +703,7 @@ const ICONS={
 crm:'<svg viewBox="0 0 28 28" fill="none"><rect x="4" y="14" width="5" height="10" rx="2" fill="#fff"/><rect x="11.5" y="8" width="5" height="16" rx="2" fill="#fff"/><rect x="19" y="3" width="5" height="21" rx="2" fill="#fff" opacity=".75"/></svg>',
 solo:'<svg viewBox="0 0 28 28" fill="none"><path d="M5 12l2-6h14l2 6" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M6 12v11h16V12" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><rect x="11" y="16" width="6" height="7" rx="1.5" fill="#fff" opacity=".75"/><circle cx="23" cy="5" r="2.4" fill="#f97316"/></svg>',
 ally:'<svg viewBox="8 4 28 28" fill="none"><path fill="#fff" fill-rule="evenodd" d="M17.6 9h4.8L30 31h-5.2l-1.5-4.4h-6.6L15.2 31H10zM20 14.5 18.2 22h3.6z"/><circle cx="31" cy="10" r="3.4" fill="#f97316"/></svg>',
-uni:'<svg viewBox="0 0 28 28" fill="none"><path d="M14 4l12 6-12 6L2 10z" fill="#fff"/><path d="M7 14v5c0 1.8 3.1 3.5 7 3.5s7-1.7 7-3.5v-5l-7 3.4z" fill="#fff" opacity=".75"/><path d="M25 10.5v7" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="25" cy="19.5" r="1.8" fill="#fff"/></svg>',
-pals:'<svg viewBox="0 0 28 28" fill="none"><circle cx="11" cy="12" r="7" fill="#fff"/><circle cx="18.5" cy="16" r="7" fill="#fff" fill-opacity=".35" stroke="#fff" stroke-width="1.6"/><circle cx="23" cy="6" r="2.6" fill="#f97316"/><path d="M8 13.6c1.4 1.8 4.6 1.8 6 0" stroke="#7c3aed" stroke-width="1.6" stroke-linecap="round"/></svg>'};
+uni:'<svg viewBox="0 0 28 28" fill="none"><path d="M14 4l12 6-12 6L2 10z" fill="#fff"/><path d="M7 14v5c0 1.8 3.1 3.5 7 3.5s7-1.7 7-3.5v-5l-7 3.4z" fill="#fff" opacity=".75"/><path d="M25 10.5v7" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="25" cy="19.5" r="1.8" fill="#fff"/></svg>',};
 document.querySelectorAll('[data-ic]').forEach(e=>e.innerHTML=ICONS[e.dataset.ic]);
 
 // ---- intro story ----
@@ -701,13 +731,11 @@ const LEGAL_USERS=[
   // 'herart36@gmail.com'      // removed: herart36 is CRM staff now (opens the CRM, not Orchid Legal)
   // '@somefirm.com'            // a whole domain also works
 ];
-// Orchid identity lives in the CRM (or Legal) project. Pals is a separate project and is linked automatically after login.
+// Orchid identity lives in the CRM (or Legal) project.
 const APPS={
   crm:  {url:'https://acxrobzulaswsubfoghg.supabase.co',key:'sb_publishable_3Ehkqe8QtPVJQoh4FCZIVg_m2f8SOTD',page:'crm.html'},
   legal:{url:'https://djymgcwvfevvvxhhpxcj.supabase.co',key:'sb_publishable_2ymWgVfW4kw8rBkZcetl8A_XzYwwiHa',page:'legal.html'}
 };
-const PALS={url:'https://dqvvidwzuvrxojpfukqe.supabase.co',key:'sb_publishable_v8eV56c-CwARaIlAL8IXYg_KA99WcXX'};
-const PALS_SQ='What was the name of your first pet?'; // Pals still stores one; users no longer see or need it
 function $(id){return document.getElementById(id)}
 const routeFor=email=>{const e=String(email||'').trim().toLowerCase();return LEGAL_USERS.some(x=>{x=x.toLowerCase();return x.startsWith('@')?e.endsWith(x):e===x})?'legal':'crm'};
 let mode='in',clients={},who='',lastPass='';
@@ -720,64 +748,20 @@ function renderForm(){
   $('swap').textContent=up?'Already have a password? Log in':'New here? Create your password';
   $('pass').autocomplete=up?'new-password':'current-password';say('');
 }
-// Pals is open to every Orchid account. CRM, Solopreneur, Ally and University only show if the admin granted them
-// in the Supabase table public.orchid_app_access (email + app). If the lookup fails, only Pals is shown.
+// Orchid CRM only shows if the admin granted it in the Supabase table public.orchid_app_access (email + app).
 async function applyAccess(email){
   const k=routeFor(email),cards=[...document.querySelectorAll('.card[data-p]')];
-  cards.forEach(b=>{if(b.dataset.p!=='pals')b.hidden=true});
+  cards.forEach(b=>{b.hidden=true});
   if(k==='legal'){const c=document.querySelector('.card[data-p=crm]');if(c)c.hidden=false;return}
   let apps=[];
   try{const r=await clients[k].from('orchid_app_access').select('app');if(!r.error&&r.data)apps=r.data.map(x=>x.app)}catch(e){}
   if(String(email).trim().toLowerCase()!==who.toLowerCase())return;   // user changed meanwhile
-  cards.forEach(b=>{const p=b.dataset.p;if(p!=='pals')b.hidden=!apps.includes(p)});
-  if(!apps.length)say('You have Orchid Pals. Ask your admin if you need access to other Orchid apps.',true,'pmsg');
+  cards.forEach(b=>{b.hidden=!apps.includes(b.dataset.p)});
+  if(!apps.length)say('Ask your admin if you need access to Orchid CRM.',true,'pmsg');
 }
 function showPick(email){
   document.body.dataset.v='pick';clearTimeout(timer);tiles.forEach(t=>t.classList.remove('dim'));who=email;$('land').hidden=true;applyAccess(email);
-  $('who').textContent='Signed in as '+email;$('story').hidden=true;$('form').hidden=true;$('pick').hidden=false;$('fix').hidden=true;say('',0,'pmsg');
-}
-// Link Pals silently using the same email + password (creates the Pals account on first use).
-async function connectPals(email,pass){
-  const c=clients.pals;
-  let r=await c.auth.signInWithPassword({email,password:pass});
-  if(!r.error)return{s:'ok'};
-  if(/not confirmed/i.test(r.error.message))return{s:'confirm'};
-  if(!/invalid login/i.test(r.error.message))return{s:'err',m:r.error.message};
-  const name=email.split('@')[0].slice(0,60)||'Pal';
-  r=await c.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname,data:{display_name:name,security_question:PALS_SQ,security_answer:(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now())}}});
-  if(r.error){
-    if(/already registered/i.test(r.error.message))return{s:'mismatch'};
-    if(/database error|not been approved/i.test(r.error.message))return{s:'unapproved'};
-    return{s:'err',m:r.error.message};
-  }
-  if(r.data.user&&r.data.user.identities&&r.data.user.identities.length===0)return{s:'mismatch'};
-  return r.data.session?{s:'ok'}:{s:'confirm'};
-}
-function palsProblem(r){
-  const fix=$('fix');fix.hidden=true;say('',0,'pmsg');
-  if(r.s==='unapproved')return say('This email has not been approved for Orchid Pals yet. Ask the admin to approve it, then try again.',false,'pmsg');
-  if(r.s==='confirm')return say('Pals sent you a confirmation email. Tap the link in it, then try again.',false,'pmsg');
-  if(r.s==='err')return say(r.m||'Could not open Pals. Please try again.',false,'pmsg');
-  $('fixmsg').textContent=r.s==='mismatch'?'Pals already has an account for this email with a different password. Enter that password once to link it.':'Enter your Orchid password once to open Pals.';
-  $('fixpass').value='';fix.hidden=false;$('fixpass').focus();
-}
-async function openPals(){
-  say('',0,'pmsg');const c=clients.pals;
-  let{data:{session}}=await c.auth.getSession();
-  if(session&&String(session.user.email).toLowerCase()!==who.toLowerCase()){await c.auth.signOut({scope:'local'});session=null}
-  if(session)return location.assign('pals.html');
-  if(!lastPass)return palsProblem({s:'need'});
-  $('pick').style.opacity='.6';const r=await connectPals(who,lastPass);$('pick').style.opacity='';
-  if(r.s==='ok')return location.assign('pals.html');
-  palsProblem(r);
-}
-async function fixPals(){
-  const p=$('fixpass').value;if(!p)return say('Enter your password.',false,'pmsg');
-  $('fixgo').disabled=true;
-  try{const r=await connectPals(who,p);if(r.s==='ok'){lastPass=p;return location.assign('pals.html')}
-    if(r.s==='mismatch')return say('That password did not match the Pals account.',false,'pmsg');
-    palsProblem(r)}
-  catch(e){say(e.message||'Something went wrong.',false,'pmsg')}finally{$('fixgo').disabled=false}
+  $('who').textContent='Signed in as '+email;$('story').hidden=true;$('form').hidden=true;$('pick').hidden=false;say('',0,'pmsg');
 }
 async function logoutAll(){
   for(const c of Object.values(clients)){try{await c.auth.signOut()}catch(e){}}
@@ -802,7 +786,6 @@ async function submit(){
       if(error)return say(error.message==='Invalid login credentials'?'Wrong email or password. If you just signed up, confirm your email first.':error.message);
     }
     lastPass=pass;keep('orchid_email',email);showPick(email);
-    connectPals(email,pass).catch(()=>{});   // link Pals in the background; re-checked when Pals is opened
   }catch(e){say(e.message||'Something went wrong. Please try again.')}finally{$('go').disabled=false;$('go').textContent=mode==='up'?'Create account':'Log in'}
 }
 function showErr(m){const id=$('pick').hidden?'msg':'pmsg';say('Something went wrong: '+m,false,id)}
@@ -813,7 +796,6 @@ async function boot(){
   if(!hasSess&&!location.search&&!location.hash)await new Promise(r=>('requestIdleCallback' in window)?requestIdleCallback(r,{timeout:2000}):setTimeout(r,400));
   await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';s.onload=res;s.onerror=()=>rej(new Error('Could not load the sign-in service. Check your connection and refresh.'));document.head.appendChild(s)});
   for(const k of Object.keys(APPS))clients[k]=window.supabase.createClient(APPS[k].url,APPS[k].key);
-  clients.pals=window.supabase.createClient(PALS.url,PALS.key);
   const qs=new URLSearchParams(location.search+'&'+location.hash.slice(1)),oe=qs.get('error_description');
   if(oe){history.replaceState(null,'',location.pathname);showLogin();return say(oe)}
   if(qs.get('logout')){history.replaceState(null,'',location.pathname);return logoutAll()}
@@ -828,13 +810,11 @@ async function boot(){
 $('next').onclick=()=>idx<last?show(idx+1):showLogin();$('skip').onclick=showLogin;$('replay').onclick=replay;
 $('story').addEventListener('click',e=>{if(!e.target.closest('button')&&idx<last)show(idx+1)});
 document.addEventListener('keydown',e=>{if($('story').hidden)return;if(e.key==='ArrowRight'&&idx<last)show(idx+1);if(e.key==='ArrowLeft'&&idx>0)show(idx-1)});
-document.querySelectorAll('.card').forEach(b=>b.onclick=()=>{if(b.dataset.p==='pals')return openPals();if(b.dataset.p==='uni')return location.assign('orchid-university.html');if(b.dataset.p==='solo')return location.assign('solopreneur.html');if(b.dataset.p==='ally'){try{if(who)localStorage.setItem('orchid_ally_hint',who)}catch(e){}return location.assign('ally.html')}location.assign(APPS[routeFor(who)].page)});
+document.querySelectorAll('.card').forEach(b=>b.onclick=()=>{if(b.dataset.p==='uni')return location.assign('orchid-university.html');if(b.dataset.p==='solo')return location.assign('solopreneur.html');if(b.dataset.p==='ally'){try{if(who)localStorage.setItem('orchid_ally_hint',who)}catch(e){}return location.assign('ally.html')}location.assign(APPS[routeFor(who)].page)});
 $('back').onclick=showLand;$('logout').onclick=logoutAll;
 $('go').onclick=submit;$('swap').onclick=()=>{mode=mode==='in'?'up':'in';renderForm()};
-$('fixgo').onclick=fixPals;
 $('showpw').onchange=e=>{const t=e.target.checked?'text':'password';$('pass').type=t;$('pass2').type=t};
 ['email','pass','pass2'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')submit()}));
-$('fixpass').addEventListener('keydown',e=>{if(e.key==='Enter')fixPals()});
 
 // ---- Inquiry form: saves into the CRM inquiries; falls back to email until welcome_inquiry_setup.sql is run ----
 const INQUIRY_EMAIL='herart36@gmail.com'; // change to your business email (shown only if the database save is not available)
@@ -842,7 +822,7 @@ function openInquiry(){
   const f=(t,a={},...c)=>{const e=document.createElement(t);for(const k in a)k==='text'?e.textContent=a[k]:typeof a[k]==='function'?e.addEventListener(k.replace(/^on/,''),a[k]):e.setAttribute(k,a[k]);c.forEach(x=>e.append(x));return e};
   const name=f('input',{type:'text',maxlength:'120',autocomplete:'name'}),email=f('input',{type:'email',maxlength:'200',autocomplete:'email'}),phone=f('input',{type:'tel',maxlength:'40',autocomplete:'tel'}),
     app=f('select'),msg=f('textarea',{maxlength:'2000'}),hp=f('input',{type:'text',tabindex:'-1',autocomplete:'off','aria-hidden':'true'}),err=f('div',{class:'e',role:'alert'});
-  ['Orchid CRM','Orchid Pals','Orchid Solopreneur','Orchid Ally','Orchid University','Not sure yet'].forEach(o=>app.append(f('option',{text:o})));
+  ['Orchid CRM','Not sure yet'].forEach(o=>app.append(f('option',{text:o})));
   const lab=(t,el)=>f('label',{},t,el);
   const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape')close()};
   const send=f('button',{class:'b go',type:'button',text:'Send inquiry'});
@@ -944,13 +924,12 @@ document.getElementById('dWon').textContent='Won: $'+D.filter(d=>d[2]===2).reduc
 const $=id=>document.getElementById(id),L=$('land');if(!L||typeof ICONS==='undefined')return;
 const A={
 crm:{n:'CRM',a:'#2457d6',t:'One calm home for every inquiry, client and task.',w:'agencies, clinics, service teams, support desks and small sales teams',f:['Inquiries with a live waiting timer','Going-cold alerts after 5+ quiet days','Cases with routing and SLA tracking','Team chat log for every client']},
-pals:{n:'Pals',a:'#8b2fd1',t:'Share a moment. Say it in your own words. Get along.',w:'Orchid members, friends, communities and local groups',f:['Post stories and voice notes','React, and build your circle of Pals','Private chat with your Pals','One profile for every Orchid account']},
 solo:{n:'Solopreneur',a:'#047857',t:'Know who to reply to, what to do today, and who owes you money.',w:'salons, repair shops, tutors, caterers, cleaners and freelancers',f:['A Today card with money owed first','Leads with one-tap call, text or email','Jobs and payments, paid or unpaid','A nudge to check in after 60 days']},
 ally:{n:'Ally',a:'#4b2fc9',t:'Your virtual assistant workspace: clients, time, invoices and replies.',w:'virtual assistants, admin support and social media managers',f:['A Today view with what to do next','A time tracker that turns hours into invoices','Reply templates you can copy in one tap','Schedule and tasks with priorities']},
 uni:{n:'University',a:'#c2410c',t:'Teach clearly. Learn without feeling lost.',w:'teachers, tutors, schools and training teams',f:['Courses built from simple modules','Assignments, quizzes and a gradebook','Announcements for the whole class','Draft first, publish when you are ready']}
 };
-const K=Object.keys(A),mon=n=>'\u20B1'+n.toLocaleString();
-const S={crm:[['Maria Santos',1500,0],['Cafe Luna',800,0],['J. Reyes',2400,1]],solo:[['Aircon cleaning',1500,0],['Haircut and color',950,1],['Birthday cake',2800,0]],ally:{s:0,run:0,inv:0},pals:[['M','Rainy day, good playlist.',3,0],['J','Small win today.',5,0],['A','Need a quiet evening.',2,0]],uni:[['Quiz 1',20,17],['Essay',50,38],['Project',30,24]]};
+const K=['crm'],mon=n=>'\u20B1'+n.toLocaleString();
+const S={crm:[['Maria Santos',1500,0],['Cafe Luna',800,0],['J. Reyes',2400,1]],solo:[['Aircon cleaning',1500,0],['Haircut and color',950,1],['Birthday cake',2800,0]],ally:{s:0,run:0,inv:0},uni:[['Quiz 1',20,17],['Essay',50,38],['Project',30,24]]};
 let cur='crm',auto,tm;
 function up(){const e=S.uni.reduce((t,x)=>t+x[2],0),m=S.uni.reduce((t,x)=>t+x[1],0);$('uP').textContent='Running grade: '+Math.round(e/m*100)+'%'}
 function demo(){
@@ -961,8 +940,6 @@ function demo(){
     h='<div class="ox-top"><b>Tap a job when it gets paid</b><span>Owed '+mon(owed)+'</span></div><div class="ox-body">'+S.solo.map((x,j)=>'<button class="ox-row" data-j="'+j+'"><span><b>'+x[0]+'</b><small>'+mon(x[1])+'</small></span><em class="'+(x[2]?'ok':'due')+'">'+(x[2]?'Paid':'Unpaid')+'</em></button>').join('')+'<p class="ox-n">Earned this month: '+mon(got)+'</p></div>';
   }else if(cur==='ally'){const a=S.ally;
     h='<div class="ox-top"><b>Client: Anna, social media</b><span>'+(a.inv?'Invoice sent '+mon(a.inv):'Rate '+mon(350)+' an hour')+'</span></div><div class="ox-body"><div class="ox-big" id="aH">'+(a.s/10).toFixed(1)+' h</div><p class="ox-n" id="aM">Unbilled: '+mon(Math.round(a.s/10*350))+'</p><div class="ox-act"><button class="ox-btn sm" data-act="t">'+(a.run?'Stop timer':'Start timer')+'</button><button class="ox-btn sm alt" data-act="b"'+(a.s?'':' disabled')+'>Turn into invoice</button></div><p class="ox-n">Demo speed: one second counts as six minutes.</p></div>';
-  }else if(cur==='pals'){
-    h='<div class="ox-top"><b>Today in your circle</b><span>Tap to react</span></div><div class="ox-body">'+S.pals.map((x,j)=>'<div class="ox-bub"><em>'+x[0]+'</em><p>'+x[1]+'</p><button type="button" data-j="'+j+'" class="'+(x[3]?'on':'')+'" aria-pressed="'+(x[3]?'true':'false')+'">\u2665 '+(x[2]+x[3])+'</button></div>').join('')+'</div>';
   }else{
     h='<div class="ox-top"><b>Gradebook, week 3</b><span id="uP"></span></div><div class="ox-body">'+S.uni.map((x,j)=>'<label class="ox-rng"><span><b>'+x[0]+'</b><small id="uS'+j+'">'+x[2]+' / '+x[1]+'</small></span><input type="range" min="0" max="'+x[1]+'" value="'+x[2]+'" data-j="'+j+'" aria-label="'+x[0]+' score"></label>').join('')+'<p class="ox-n">Drag a slider to enter a score.</p></div>';
   }
@@ -984,7 +961,6 @@ $('demo').addEventListener('click',e=>{
   const b=e.target.closest('[data-j],[data-act]');if(!b)return;const j=+b.dataset.j;
   if(cur==='crm'){if(S.crm[j][2]<2)S.crm[j][2]++}
   else if(cur==='solo')S.solo[j][2]^=1;
-  else if(cur==='pals')S.pals[j][3]^=1;
   else if(cur==='ally'){const a=S.ally;if(b.dataset.act==='t')a.run^=1;else{a.inv=Math.round(a.s/10*350);a.s=0;a.run=0}}
   else return;
   demo();
@@ -1000,6 +976,23 @@ if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
   auto=setInterval(()=>sel(K[(K.indexOf(cur)+1)%K.length]),4500);
   ['pointerdown','keydown','wheel','touchstart'].forEach(ev=>addEventListener(ev,()=>clearInterval(auto),{once:true,passive:true}));
 }
+})();
+</script>
+<script>
+(()=>{const L=document.getElementById('land');if(!L)return;
+const T={products:['Products','One login. Five focused apps.'],solutions:['Solutions','Find the Orchid app that fits how you work.'],pricing:['Pricing','No sales call, no per-seat maze.'],resources:['Resources','Answers, privacy and how Orchid works.']};
+const E=[...L.querySelectorAll('[data-pg]')],ip={};E.forEach(e=>{if(e.id)ip[e.id]=e.dataset.pg.split(' ')[0]});
+const $=id=>document.getElementById(id);
+function go(){const h=location.hash.replace(/^#\/?/,''),a=h.split('/');let pg=a[0],id=null;
+ if(!T[pg]&&pg!=='home'){const el=h&&$(h);if(el&&ip[h]){id=h;pg=el.dataset.pg.split(' ').includes(L.dataset.pg)?L.dataset.pg:ip[h]}else pg='home'}
+ L.dataset.pg=pg;E.forEach(e=>e.style.display=e.dataset.pg.split(' ').includes(pg)?'':'none');
+ const cx=$('crmx');if(cx)cx.style.display=((pg==='products'||pg==='home')&&(!a[1]||a[1]==='crm'))?'':'none';const hd=$('pgHd'),t=T[pg];hd.style.display=t?'':'none';
+ if(pg==='products'&&a[1]){const b=L.querySelector('.ox-tab[data-sel="'+a[1]+'"]');if(b)b.click();$('pgT').textContent=$('hubN').textContent;$('pgS').textContent=$('hubT').textContent;$('pgBc').textContent='Products / '+$('hubN').textContent}
+ else if(t){$('pgT').textContent=t[0];$('pgS').textContent=t[1];$('pgBc').textContent=t[0]}
+ L.querySelectorAll('[data-nav]').forEach(n=>n.classList.toggle('act',n.dataset.nav===pg));
+ document.title=(t?t[0]+' | ':'')+'Orchid';
+ if(id)$(id).scrollIntoView();else if(!window.__first)scrollTo(0,0);window.__first=0}
+window.__first=1;addEventListener('hashchange',go);go();
 })();
 </script>
 </body>
