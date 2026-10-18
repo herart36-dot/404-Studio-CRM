@@ -2411,6 +2411,8 @@ const MANUAL=[
  {id:'team',t:'Team',admin:true,lead:'Live view of what everyone is doing.',items:[
   ['Right now','Counts of who is Active, in a meeting, on lunch, out of office or not checked in, and a card for each person with their status, how long they have been in it and today\'s totals.'],
   ['Productivity table','Choose Today, 7 days or 30 days to see each person\'s time per status, tasks done, cases resolved, replies and notes, and chat messages sent. Status times are self-reported.']]},
+ {id:'tools',t:'Tools',admin:true,lead:'Kloze store tools, inside the CRM.',items:[
+  ['What is here','Sales, Orders, Products and SEO for the Kloze store. These are the same tools an Executive uses, shown to admins as a tab. Admin only.']]},
  {id:'members',t:'Members and access',lead:'Who can sign in.',items:[
   ['Everyone','See who has access, their level and whether they are active, and send a message.'],
   ['Admins','Add member needs a name and the exact email they will sign in with. Change access switches between Admin, Executive and Staff. Pause access blocks someone without deleting them, Restore access brings them back, and Remove deletes them. The owner account cannot be changed or removed.']]}
@@ -2699,6 +2701,14 @@ function kzSeoView(){
       h('p',{class:'hint',text:'Google reads these settings. Facebook and Messenger link previews read the page file itself, so they may keep showing the default title and picture. Each product also gets automatic Google product info (name, photo, price, availability).'}),
       err,h('div',{class:'row'},save)));
 }
+/* Tools tab (admin): the existing Kloze store tools, opened from the CRM sidebar */
+function toolsView(){
+  const T=[['sales','Sales'],['orders','Orders',kzOrders.filter(o=>o.status==='Processing'||o.status==='Paid').length],['products','Products'],['seo','SEO']];
+  if(!T.some(x=>x[0]===kzTab))kzTab='sales';
+  const bar=h('div',{class:'acts',style:'margin-bottom:14px;flex-wrap:wrap'},T.map(([k,t,n])=>h('button',{class:'btn sm '+(kzTab===k?'primary':'ghost'),text:t+(n?' ('+n+')':''),onclick:()=>{kzTab=k;q='';render();window.scrollTo(0,0)}})));
+  const body=kzErr?empty('Kloze store tools are not set up','The Kloze tables could not be loaded for your account. Ask the admin to check your access, then reload.'):kzTab==='orders'?kzOrdersView():kzTab==='products'?kzProductsView():kzTab==='seo'?kzSeoView():kzSalesView();
+  return h('div',{},h('h3',{style:'margin:0 0 4px',text:'Tools'}),h('div',{class:'muted',style:'font-size:.82rem;margin-bottom:12px',text:'Kloze store: sales, orders, products and SEO.'}),bar,body);
+}
 /* the whole app an Executive sees */
 function execView(){
   const tabs=[['sales','Sales'],['orders','Orders',kzOrders.filter(o=>o.status==='Processing'||o.status==='Paid').length],['products','Products']];
@@ -2718,9 +2728,9 @@ function execView(){
 
 function appView(){
   if(isExec())return execView();
-  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['messages','Messages',unreadMsgs()],['approvals',isAdmin?'Approvals':'My requests',isAdmin?pendingCount():0],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['tasks','Tasks',tasks.filter(t=>!t.done).length],['productivity','Productivity'],...(isAdmin?[['team','Team']]:[]),['members','Members',members.length]];
-  const body=view==='messages'?messagesView():view==='chat'?chatView():view==='approvals'?approvalsView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():view==='team'&&isAdmin?teamView():view==='productivity'?productivityView():overview();
-  const ICONS={messages:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',overview:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',inquiries:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',approvals:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',cases:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',clients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',productivity:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',team:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',members:'<path d="M12 3 4 6v6c0 4.5 3.4 7.8 8 9 4.6-1.2 8-4.5 8-9V6z"/>'};
+  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['messages','Messages',unreadMsgs()],['approvals',isAdmin?'Approvals':'My requests',isAdmin?pendingCount():0],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['tasks','Tasks',tasks.filter(t=>!t.done).length],['productivity','Productivity'],...(isAdmin?[['team','Team'],['tools','Tools']]:[]),['members','Members',members.length]];
+  const body=view==='messages'?messagesView():view==='chat'?chatView():view==='approvals'?approvalsView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():view==='team'&&isAdmin?teamView():view==='tools'&&isAdmin?toolsView():view==='productivity'?productivityView():overview();
+  const ICONS={messages:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',overview:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',inquiries:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',approvals:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',cases:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',clients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',productivity:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',team:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',tools:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3.5 17.3a1.6 1.6 0 0 0 2.2 2.2l5.8-5.8a4 4 0 0 0 5.2-5.4l-2.4 2.4-2.1-.5-.5-2.1z"/>',members:'<path d="M12 3 4 6v6c0 4.5 3.4 7.8 8 9 4.6-1.2 8-4.5 8-9V6z"/>'};
   const ico=k=>{const s=h('span',{class:'ico','aria-hidden':'true'});s.innerHTML='<svg viewBox="0 0 24 24">'+(ICONS[k]||'')+'</svg>';return s};
   return h('div',{},
     h('header',{class:'top'},h('div',{class:'top-in'},
@@ -2730,7 +2740,7 @@ function appView(){
       h('button',{class:'btn ghost sm',text:'Manual',onclick:openManual}),h('button',{class:'btn ghost sm',text:'Apps',onclick:home}),
       h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
     h('div',{class:'shell'},
-      h('aside',{class:'side'},h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',id:'tab_'+k,role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0);if(k==='chat')pollChat();if(k==='approvals')syncApprovals()}},ico(k),t,n?h('span',{class:'n',text:String(n)}):null)))),
+      h('aside',{class:'side'},h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',id:'tab_'+k,role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0);if(k==='chat')pollChat();if(k==='approvals')syncApprovals();if(k==='tools')syncKloze()}},ico(k),t,n?h('span',{class:'n',text:String(n)}):null)))),
       h('main',{},view==='chat'?null:statusBar(),body)));
 }
 function noAccess(){
@@ -2773,6 +2783,7 @@ async function init(){
     myRole='executive';ready=true;try{await loadKloze()}catch(e){console.error(e);kzErr=true}
     render();timers.push(setInterval(async()=>{if(leaving)return;try{await loadKloze()}catch(e){console.error(e)}const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))if(!document.querySelector('.scrim')&&kzTab!=='seo')render()},30000));return}}catch(e){console.error(e)}
   try{await loadAll();ready=true}catch(e){console.error(e);ready=false;return $('#app').replaceChildren(h('div',{class:'center'},h('div',{class:'panel'},h('h1',{text:'Could not load the CRM'}),h('p',{class:'sub',text:'The CRM tables may not be set up yet. Run crm_setup.sql in Supabase, then reload.'}),h('button',{class:'btn primary wide',text:'Reload',onclick:()=>location.reload()}))))}
+  if(isAdmin){try{await loadKloze()}catch(e){console.error(e);kzErr=true}}
   try{await loadPresence()}catch(e){console.error(e);presErr=true}
   try{await loadProd()}catch(e){console.error(e);prodErr=true}
   try{await loadChat()}catch(e){console.error(e);chatErr=true}
