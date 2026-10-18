@@ -450,6 +450,26 @@ table.dm-t{width:100%;border-collapse:collapse;background:#fff;border:1px solid 
 @media(max-width:760px){.dm-wrap{flex-direction:column}.dm-side{width:auto;flex:0 0 auto;display:flex;overflow-x:auto;padding:8px}.dm-side button{width:auto;white-space:nowrap}.dm-grid2{grid-template-columns:1fr}}
 </style>
 <style id="orchid-sq-css">.fqbox{margin:12px 0 0;padding:12px 14px;border-radius:14px;background:#eef5fd;color:var(--ink);font-weight:700;font-size:.95rem;text-align:left}.fqbox[hidden]{display:none}#form select.field{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:38px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23667' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center}#form .row{margin-top:16px}#form .row .link{margin-top:0}</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<style id="orchid-3d-css">
+/* ---- three.js: hero scene + login backdrop ---- */
+.ox3{position:relative;display:block}
+.ox3-cv{position:relative;height:clamp(280px,32vw,420px);border-radius:24px;overflow:hidden;border:1px solid var(--ln);background:radial-gradient(70% 80% at 30% 20%,#fff,#eaf3fd 60%,#dbe9fa);box-shadow:0 24px 60px rgba(11,27,52,.12)}
+.ox3-cv canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ox3-k{position:absolute;top:14px;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#3b5578;background:rgba(255,255,255,.85);border:1px solid var(--ln);border-radius:99px;padding:4px 11px;pointer-events:none}
+.ox3-k.k1{left:9%}.ox3-k.k2{left:50%;transform:translateX(-50%)}.ox3-k.k3{right:9%}
+.ox3 .gl{position:relative;margin:-48px 18px 0;padding:22px 24px;box-shadow:0 18px 44px rgba(11,27,52,.14)}
+.ox3.nogl .ox3-cv{display:none}.ox3.nogl .gl{margin:0}
+#bg3d{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:none}
+body[data-v=login] #bg3d,body[data-v=pick] #bg3d{display:block}
+body[data-v=login] .panel,body[data-v=pick] .panel{background:rgba(255,255,255,.82);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);border:1px solid rgba(255,255,255,.9);box-shadow:0 30px 80px rgba(3,45,96,.18),0 2px 0 rgba(255,255,255,.8) inset;border-radius:26px;padding:40px 34px 30px}
+body[data-v=login] .panel h1,body[data-v=pick] .panel h1{color:#032d60}
+body[data-v=login] .field{border-color:#d3e0ef;border-radius:12px;padding:13px 14px;transition:border-color .15s,box-shadow .15s}
+body[data-v=login] .field:focus{outline:0;border-color:#0176d3;box-shadow:0 0 0 4px rgba(1,118,211,.15)}
+.lg-trust{margin:16px 0 0;font-size:.78rem;color:#64748b;text-align:center}
+@media(max-width:560px){.ox3 .gl{margin:-36px 10px 0;padding:18px}.ox3-k{font-size:.64rem;padding:3px 8px}}
+@media(prefers-reduced-motion:reduce){.panel{animation:none}}
+</style>
 <style id="orchid-crm-host-css">html.crm-open,html.crm-open body{overflow:hidden}html.crm-open body>*:not(#orchid-crm-frame){display:none!important}#orchid-crm-frame{position:fixed;top:0;left:0;width:100%;height:100%;border:0;margin:0;padding:0;background:#f4f6f9;z-index:2147483000}</style>
 </head>
 <body data-v="land">
@@ -616,7 +636,7 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
         </div>
         <p class="ox-note">Already have a password? <button class="ox-lnk in js-login" type="button">Log in</button></p>
       </div>
-      <aside class="gl"><b>Orchid CRM at a glance</b><ul><li>Live waiting timer on every inquiry</li><li>Going-cold alerts after 5+ quiet days</li><li>Cases with routing and SLA tracking</li><li>Team chat log for every client</li></ul><div><strong>$8</strong> a month &middot; one login &middot; cancel anytime</div><a href="#/products/crm">See every CRM function &rarr;</a></aside>
+      <div class="ox3" id="ox3"><div class="ox3-cv" id="ox3cv" role="img" aria-label="Animated 3D pipeline: an inquiry card moving from New to Waiting to Done"><canvas id="hero3d"></canvas><span class="ox3-k k1">New</span><span class="ox3-k k2">Following up</span><span class="ox3-k k3">Done</span></div><aside class="gl"><b>Orchid CRM at a glance</b><ul><li>Live waiting timer on every inquiry</li><li>Going-cold alerts after 5+ quiet days</li><li>Cases with routing and SLA tracking</li><li>Team chat log for every client</li></ul><div><strong>$8</strong> a month &middot; one login &middot; cancel anytime</div><a href="#/products/crm">See every CRM function &rarr;</a></aside></div>
 <div class="ox-bloom" id="bloom">
         <div class="ox-ring" aria-hidden="true"></div>
         <button class="ox-pt" type="button" data-sel="crm" style="--r:0deg" aria-label="Orchid CRM" title="Orchid CRM"><span class="ic crm" data-ic="crm"></span></button>
@@ -706,6 +726,7 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
   </footer>
 </div>
 
+<canvas id="bg3d" aria-hidden="true"></canvas>
 <div class="bg" id="bg"><div class="tile" data-bg="https://images.unsplash.com/photo-1758876022356-9e7597f556d8?auto=format&fit=crop&w=900&q=70"></div><div class="tile" data-bg="https://images.unsplash.com/photo-1758873272562-aa5459cbf34b?auto=format&fit=crop&w=900&q=70"></div><div class="tile" data-bg="https://images.unsplash.com/photo-1770777843445-2a1621b1201d?auto=format&fit=crop&w=900&q=70"></div><div class="tile" data-bg="https://images.unsplash.com/photo-1713946598501-d6b32e7c2464?auto=format&fit=crop&w=900&q=70"></div><div class="tile" data-bg="https://images.unsplash.com/photo-1537511446984-935f663eb1f4?auto=format&fit=crop&w=900&q=70"></div><div class="tile" data-bg="https://images.unsplash.com/photo-1758876202507-f789e0ab34e1?auto=format&fit=crop&w=900&q=70"></div></div>
 <div class="center">
 
@@ -760,6 +781,7 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
   <label class="show" id="showrow"><input id="showpw" type="checkbox"> Show password</label>
   <button id="go" class="btn" type="button">Log in</button>
   <div id="msg" class="msg" role="alert" hidden></div>
+  <p class="lg-trust">Private by design. Only members your admin adds can log in.</p>
   <div class="row"><button id="forgot" class="link" type="button">Forgot password?</button><button id="swap" class="link" type="button">New here? Create your password</button></div>
 </div>
 
@@ -1465,7 +1487,125 @@ function go(){const h=location.hash.replace(/^#\/?/,''),a=h.split('/');let pg=a[
  if(id)$(id).scrollIntoView();else if(!window.__first)scrollTo(0,0);window.__first=0}
 window.__first=1;addEventListener('hashchange',go);go();
 })();
+</script><script>
+/* three.js scenes: hero pipeline (landing) + soft backdrop (login / chooser). Both pause when hidden. */
+(()=>{
+  const reduced=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const view=()=>document.body.dataset.v;
+  function boot(){
+    const T=window.THREE;if(!T)return false;
+    const mk=(canvas,alpha)=>{try{const r=new T.WebGLRenderer({canvas,antialias:true,alpha:true});r.setPixelRatio(Math.min(devicePixelRatio||1,2));r.setClearColor(0,0);return r}catch(e){return null}};
+    const BLUE=0x0176d3,CYAN=0x06b6d4,ORG=0xf97316,NAVY=0x032d60;
+    const ease=x=>x*x*(3-2*x);
+    const scenes=[];
+    /* ---------- hero ---------- */
+    const hc=document.getElementById('hero3d'),wrap=document.getElementById('ox3'),box=document.getElementById('ox3cv');
+    if(hc&&box){
+      const r=mk(hc);
+      if(!r){wrap.classList.add('nogl')}else{
+        const sc=new T.Scene(),cam=new T.PerspectiveCamera(32,1,.1,50);cam.position.set(0,.3,9.2);
+        sc.add(new T.HemisphereLight(0xffffff,0x9cc3ee,1.0));
+        const dl=new T.DirectionalLight(0xffffff,.9);dl.position.set(3,5,6);sc.add(dl);
+        const g=new T.Group();sc.add(g);
+        const X=[-1.85,0,1.85];
+        const panelM=new T.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.78,roughness:.6});
+        const edge=new T.LineBasicMaterial({color:0xb8d2ee});
+        const cardGeo=new T.BoxGeometry(1.34,.5,.12);
+        const cols=X.map((x,i)=>{
+          const m=new T.Mesh(new T.BoxGeometry(1.6,3.3,.16),panelM);m.position.set(x,0,-.2);g.add(m);
+          const e=new T.LineSegments(new T.EdgesGeometry(m.geometry),edge);e.position.copy(m.position);g.add(e);
+          const n=[3,2,1][i];
+          for(let k=0;k<n;k++){
+            const c=new T.Mesh(cardGeo,new T.MeshStandardMaterial({color:[0xdbe7ff,0xd4efee,0xd5f0e0][i],roughness:.5}));
+            c.position.set(x,.95-(k+(i===0?1:0))*.7,.02);g.add(c);
+          }
+          return m;
+        });
+        const hero=new T.Mesh(cardGeo,new T.MeshStandardMaterial({color:BLUE,emissive:CYAN,emissiveIntensity:.25,roughness:.35,metalness:.1}));
+        hero.position.set(X[0],.95,.18);hero.scale.setScalar(1.06);g.add(hero);
+        const orb=new T.Mesh(new T.SphereGeometry(.12,16,16),new T.MeshBasicMaterial({color:ORG}));g.add(orb);
+        const ring=new T.Mesh(new T.TorusGeometry(3.1,.012,8,120),new T.MeshBasicMaterial({color:BLUE,transparent:true,opacity:.35}));ring.rotation.x=1.25;g.add(ring);
+        const N=70,pa=new Float32Array(N*3);for(let i=0;i<N;i++){pa[i*3]=(Math.random()-.5)*9;pa[i*3+1]=(Math.random()-.5)*5;pa[i*3+2]=(Math.random()-.5)*4-1}
+        const pg=new T.BufferGeometry();pg.setAttribute('position',new T.BufferAttribute(pa,3));
+        const pts=new T.Points(pg,new T.PointsMaterial({color:BLUE,size:.05,transparent:true,opacity:.5}));sc.add(pts);
+        let tx=0,ty=0,mx=0,my=0;
+        box.addEventListener('pointermove',e=>{const b=box.getBoundingClientRect();tx=((e.clientX-b.left)/b.width-.5)*2;ty=((e.clientY-b.top)/b.height-.5)*2});
+        box.addEventListener('pointerleave',()=>{tx=ty=0});
+        const size=()=>{const w=box.clientWidth,h=box.clientHeight;r.setSize(w,h,false);cam.aspect=w/h;cam.position.z=w<420?11.5:9.2;cam.updateProjectionMatrix()};
+        new ResizeObserver(size).observe(box);size();
+        let vis=true;new IntersectionObserver(en=>{vis=en[0].isIntersecting;kick()}).observe(box);
+        const t0=performance.now();
+        const draw=()=>{
+          const t=(performance.now()-t0)/1000,p=(t%8)/8;
+          mx+=(tx-mx)*.06;my+=(ty-my)*.06;
+          let k=p<.28?0:p<.42?ease((p-.28)/.14):p<.62?1:p<.76?1+ease((p-.62)/.14):2;
+          hero.position.x=X[0]+(X[2]-X[0])*(k/2);
+          hero.position.y=.95+Math.sin(t*2)*.04+(k%1?.12:0);
+          const s=p>.94?1.06*(1-(p-.94)/.06):p<.04?1.06*(p/.04):1.06;hero.scale.setScalar(Math.max(s,.001));
+          orb.position.set(Math.cos(t*.9)*3.1,Math.sin(t*.9)*3.1*Math.cos(1.25),Math.sin(t*.9)*3.1*Math.sin(1.25));
+          g.rotation.y=mx*.35+Math.sin(t*.4)*.08;g.rotation.x=-my*.18-.05;
+          pts.rotation.y=t*.02;
+          r.render(sc,cam);
+        };
+        scenes.push({canvas:hc,active:()=>view()==='land'&&vis,draw});
+      }
+    }
+    /* ---------- login / chooser backdrop ---------- */
+    const bc=document.getElementById('bg3d');
+    if(bc){
+      const r=mk(bc);
+      if(r){
+        const sc=new T.Scene(),cam=new T.PerspectiveCamera(45,1,.1,100);cam.position.z=14;
+        sc.add(new T.AmbientLight(0xffffff,.9));const dl=new T.DirectionalLight(0xffffff,.6);dl.position.set(4,6,8);sc.add(dl);
+        const shapes=[];
+        const geos=[new T.IcosahedronGeometry(1,0),new T.OctahedronGeometry(1,0),new T.TorusGeometry(.9,.2,12,36)];
+        const cols=[BLUE,CYAN,0x7aa7e6,NAVY];
+        for(let i=0;i<16;i++){
+          const solid=i%3===0;
+          const m=new T.Mesh(geos[i%3],solid?new T.MeshStandardMaterial({color:cols[i%4],transparent:true,opacity:.28,roughness:.4}):new T.MeshBasicMaterial({color:cols[i%4],wireframe:true,transparent:true,opacity:.28}));
+          const sca=.35+Math.random()*.9;m.scale.setScalar(sca);
+          m.position.set((Math.random()-.5)*26,(Math.random()-.5)*14,-4-Math.random()*8);
+          m.userData={sp:.1+Math.random()*.25,ph:Math.random()*6.28,y:m.position.y};
+          sc.add(m);shapes.push(m);
+        }
+        const dot=new T.Mesh(new T.SphereGeometry(.14,16,16),new T.MeshBasicMaterial({color:ORG}));dot.position.set(5.5,3.2,-2);sc.add(dot);
+        let tx=0,ty=0,mx=0,my=0;
+        addEventListener('pointermove',e=>{tx=(e.clientX/innerWidth-.5)*2;ty=(e.clientY/innerHeight-.5)*2},{passive:true});
+        const size=()=>{r.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()};
+        addEventListener('resize',size);size();
+        const t0=performance.now();
+        const draw=()=>{
+          const t=(performance.now()-t0)/1000;mx+=(tx-mx)*.04;my+=(ty-my)*.04;
+          shapes.forEach(m=>{m.rotation.x=t*m.userData.sp;m.rotation.y=t*m.userData.sp*1.3;m.position.y=m.userData.y+Math.sin(t*.4+m.userData.ph)*.5});
+          dot.position.y=3.2+Math.sin(t*.7)*.5;
+          cam.position.x=mx*1.2;cam.position.y=-my*.8;cam.lookAt(0,0,-3);
+          r.render(sc,cam);
+        };
+        scenes.push({canvas:bc,active:()=>view()==='login'||view()==='pick',draw});
+      }
+    }
+    /* ---------- loop ---------- */
+    let raf=0;
+    function kick(){if(!raf)raf=requestAnimationFrame(loop)}
+    function loop(){
+      raf=0;
+      const live=scenes.filter(s=>s.active());
+      if(!live.length||document.visibilityState!=='visible')return;
+      live.forEach(s=>s.draw());
+      if(!reduced())raf=requestAnimationFrame(loop);
+    }
+    new MutationObserver(kick).observe(document.body,{attributes:true,attributeFilter:['data-v']});
+    document.addEventListener('visibilitychange',kick);
+    scenes.forEach(s=>s.canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();s.active=()=>false;s.canvas.style.display='none'}));
+    kick();
+    return true;
+  }
+  const go=()=>{try{boot()}catch(e){console.warn('3D scenes unavailable',e);const w=document.getElementById('ox3');if(w)w.classList.add('nogl')}};
+  if(window.THREE)go();else addEventListener('load',()=>{if(window.THREE)go();else{const w=document.getElementById('ox3');if(w)w.classList.add('nogl')}});
+})();
+
 </script>
+
 <template id="orchid-crm-tpl">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
