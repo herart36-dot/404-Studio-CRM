@@ -2136,12 +2136,14 @@ function emailConnBar(){
     a?h('button',{class:'btn ghost sm danger',text:'Disconnect',onclick:disconnectGoogle}):null,
     a&&a.last_error?h('div',{class:'err',style:'width:100%',text:a.last_error}):null);
 }
-const unreadMsgs=()=>messages.filter(m=>!m.is_read&&m.direction!=='out').length;
+const unreadMsgs=()=>messages.filter(m=>!m.is_read&&m.direction!=='out'&&(m.folder||'inbox')==='inbox').length;
 async function markRead(ids){if(!ids.length)return;const r=await sb.from('crm_messages').update({is_read:true}).in('id',ids);if(r.error)return fail(r.error,'Could not mark as read.');await loadMessages();render()}
 function messageRow(m){
   const inq=inquiries.find(i=>i.id===m.inquiry_id),open=msgOpen.has(m.id),body=String(m.body||'').trim(),long=body.length>380;
   const out=m.direction==='out',who=out?('To: '+(m.to_address||'')):(m.from_name||m.from_address||'Unknown sender');
+  const ck=h('input',{type:'checkbox','aria-label':'Select message',onchange:e=>{e.target.checked?msgSel.add(m.id):msgSel.delete(m.id);render()}});ck.checked=msgSel.has(m.id);
   return h('div',{class:'card item acc c-'+(m.is_read?'slate':(m.channel==='facebook'?'violet':'emerald'))},h('div',{class:'body'},
+    h('div',{style:'display:flex;gap:10px;align-items:center;margin-bottom:6px'},ck,h('button',{class:'btn ghost sm',text:m.starred?'★ Starred':'☆ Star','aria-pressed':String(!!m.starred),onclick:()=>msgAct([m.id],{starred:!m.starred})})),
     h('div',{class:'t'},document.createTextNode(who),
       h('span',{class:'pill role-'+(m.channel==='facebook'?'admin':'staff'),text:m.channel==='facebook'?'Facebook':'Email'}),
       out?h('span',{class:'pill '+(m.send_status==='failed'?'lost':'won'),text:m.send_status==='failed'?'Failed':m.send_status==='sending'?'Sending…':'Sent'}):null,
@@ -2154,19 +2156,51 @@ function messageRow(m){
       long?h('button',{class:'btn ghost sm',text:open?'Show less':'Show more',onclick:()=>{open?msgOpen.delete(m.id):msgOpen.add(m.id);render()}}):null,
       m.channel==='email'&&!out&&m.from_address?h('button',{class:'btn blue sm',text:'Reply',onclick:()=>composeEmail({reply:true,to:m.from_address,subject:/^re:/i.test(m.subject||'')?m.subject:'Re: '+(m.subject||''),inquiry_id:m.inquiry_id,client_id:m.client_id||null,reply_to_message_id:m.id})}):null,
       inq?h('button',{class:'btn ghost sm',text:'Open inquiry',onclick:()=>{view='inquiries';q=inq.name||'';render();window.scrollTo(0,0)}}):null,
-      m.is_read?null:h('button',{class:'btn ghost sm',text:'Mark read',onclick:()=>markRead([m.id])}))));
+      m.is_read?null:h('button',{class:'btn ghost sm',text:'Mark read',onclick:()=>markRead([m.id])}),
+      fld(m)==='inbox'&&!out?h('button',{class:'btn ghost sm',text:'Spam',onclick:()=>msgAct([m.id],{folder:'spam'},'Marked as spam.')}):null,
+      fld(m)==='inbox'?h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>msgAct([m.id],{folder:'trash'},'Moved to trash.')}):h('button',{class:'btn ghost sm',text:fld(m)==='spam'?'Not spam':'Restore',onclick:()=>msgAct([m.id],{folder:'inbox'},'Moved to inbox.')}))));
+}
+/* ---- Gmail-style actions: select, star, spam, trash, read/unread (needs messages_actions.sql) ---- */
+const msgSel=new Set();const fld=m=>m.folder||'inbox';
+async function msgAct(ids,patch,okMsg){
+  if(!ids.length)return toast('Select at least one message.');
+  const r=await sb.from('crm_messages').update(patch).in('id',ids);
+  if(r.error)return fail(r.error,'Could not update. Run messages_actions.sql in Supabase, then reload.');
+  msgSel.clear();await loadMessages();render();if(okMsg)toast(okMsg);
+}
+async function msgDeleteForever(ids){
+  if(!ids.length)return toast('Nothing to delete.');
+  if(!confirm('Delete '+ids.length+' message'+(ids.length>1?'s':'')+' forever? This cannot be undone, and it does not delete anything in Gmail.'))return;
+  const r=await sb.from('crm_messages').delete().in('id',ids);
+  if(r.error)return fail(r.error,'Could not delete. Run messages_actions.sql in Supabase, then reload.');
+  msgSel.clear();await loadMessages();render();toast('Deleted forever.');
 }
 function messagesView(){
-  const list=messages.filter(m=>(msgFilter==='all'||(msgFilter==='unread'?!m.is_read:msgFilter==='sent'?m.direction==='out':m.channel===msgFilter))&&match(m,['from_name','from_address','subject','body']));
-  const un=messages.filter(m=>!m.is_read&&m.direction!=='out').map(m=>m.id);
+  const inView=m=>msgFilter==='spam'?fld(m)==='spam':msgFilter==='trash'?fld(m)==='trash':fld(m)!=='spam'&&fld(m)!=='trash'&&(msgFilter==='all'||(msgFilter==='unread'?!m.is_read:msgFilter==='sent'?m.direction==='out':msgFilter==='starred'?!!m.starred:m.channel===msgFilter));
+  const list=messages.filter(m=>inView(m)&&match(m,['from_name','from_address','subject','body']));
+  const un=messages.filter(m=>!m.is_read&&m.direction!=='out'&&fld(m)==='inbox').map(m=>m.id);
+  const ids=[...msgSel].filter(id=>list.some(m=>m.id===id)),all=list.length&&ids.length===list.length;
+  const inSpam=msgFilter==='spam',inTrash=msgFilter==='trash',cnt=f=>messages.filter(m=>fld(m)===f).length;
+  const sel=list.filter(m=>msgSel.has(m.id));
+  const tb=(t,fn,cls)=>h('button',{class:'btn ghost sm'+(cls?' '+cls:''),text:t,disabled:!ids.length,onclick:fn});
+  const selAll=h('input',{type:'checkbox','aria-label':'Select all messages',onchange:e=>{e.target.checked?list.forEach(m=>msgSel.add(m.id)):msgSel.clear();render()}});selAll.checked=!!all;
   return h('div',{},
     emailConnBar(),
-    h('div',{class:'bar'},searchBar('Search messages'),chips([['all','All'],['unread','Unread'],['email','Email'],['facebook','Facebook'],['sent','Sent']],msgFilter,v=>msgFilter=v),h('span',{class:'sp'}),
-      h('button',{class:'btn blue',text:'New email',onclick:()=>composeEmail()}),
-      un.length?h('button',{class:'btn ghost',text:'Mark all read',onclick:()=>markRead(un)}):null),
+    h('div',{class:'bar'},searchBar('Search messages'),chips([['all','Inbox'],['unread','Unread'],['starred','Starred'],['email','Email'],['facebook','Facebook'],['sent','Sent'],['spam','Spam · '+cnt('spam')],['trash','Trash · '+cnt('trash')]],msgFilter,v=>{msgFilter=v;msgSel.clear()}),h('span',{class:'sp'}),
+      h('button',{class:'btn blue',text:'New email',onclick:()=>composeEmail()})),
+    list.length?h('div',{class:'card',style:'padding:8px 12px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap'},
+      h('label',{style:'display:flex;gap:6px;align-items:center;font-size:.85rem;font-weight:600'},selAll,ids.length?ids.length+' selected':'Select all'),
+      inSpam||inTrash?tb(inSpam?'Not spam':'Restore',()=>msgAct(ids,{folder:'inbox'},inSpam?'Moved to inbox.':'Restored.')):null,
+      inTrash?tb('Delete forever',()=>msgDeleteForever(ids),'danger'):null,
+      !inSpam&&!inTrash?[tb('Spam',()=>msgAct(ids,{folder:'spam'},'Marked as spam.')),tb('Delete',()=>msgAct(ids,{folder:'trash'},'Moved to trash.'),'danger'),
+        tb('Mark read',()=>msgAct(ids,{is_read:true},'Marked as read.')),tb('Mark unread',()=>msgAct(ids,{is_read:false},'Marked as unread.')),
+        tb(sel.length&&sel.every(m=>m.starred)?'Unstar':'Star',()=>msgAct(ids,{starred:!(sel.length&&sel.every(m=>m.starred))}))]:null,
+      h('span',{class:'sp'}),
+      !inSpam&&!inTrash&&un.length?h('button',{class:'btn ghost sm',text:'Mark all read',onclick:()=>markRead(un)}):null,
+      inTrash||inSpam?h('button',{class:'btn ghost sm danger',text:'Empty '+(inSpam?'spam':'trash'),onclick:()=>msgDeleteForever(list.map(m=>m.id))}):null):null,
     msgErr?empty('Messages could not be loaded','Ask the admin to check the crm_messages setup in Supabase, then reload.')
     :list.length?h('div',{class:'list'},list.map(messageRow))
-    :empty(messages.length?'No matches':'No messages yet','Emails you send from here, and replies to them, appear in this list. Each new sender also becomes an inquiry.'));
+    :empty(messages.length?(inSpam?'No spam':inTrash?'Trash is empty':'No matches'):'No messages yet','Emails you send from here, and replies to them, appear in this list. Each new sender also becomes an inquiry.'));
 }
 function inquiriesView(){
   const list=inquiries.filter(i=>(inqFilter==='all'||i.status===inqFilter)&&match(i,['name','email','phone','source','message']));
