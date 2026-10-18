@@ -2215,33 +2215,105 @@ async function openSignature(after){
     h('div',{class:'fl'},'Preview'),prev,err),
     close=>[h('button',{class:'btn ghost',text:'Cancel',onclick:close}),h('button',{class:'btn blue',text:'Save signature',onclick:async e=>{e.target.disabled=true;const ok=await saveSig(p);e.target.disabled=false;toast(ok?'Signature saved.':'Saved on this device only. Run email_templates.sql in Supabase to sync it.',4500);close();if(after)after()}})]);
 }
+function gmCss(){
+  if(document.getElementById('gm-css'))return;
+  const st=document.createElement('style');st.id='gm-css';
+  st.textContent=`
+.gm-scrim{position:fixed;inset:0;background:rgba(32,33,36,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:40}
+.gm-win{display:flex;flex-direction:column;width:min(980px,100%);height:min(88vh,820px);background:#fff;border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.35);overflow:hidden}
+.gm-head{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 18px;background:#f2f6fc;border-bottom:1px solid #e3e8ef;color:#041e49;font-weight:600;font-size:.95rem}
+.gm-head .sp{flex:1}
+.gm-x{border:0;background:none;font-size:1.5rem;line-height:1;width:36px;height:36px;border-radius:50%;cursor:pointer;color:#444746}
+.gm-x:hover{background:rgba(60,64,67,.12)}
+.gm-row{display:flex;align-items:center;gap:10px;padding:0 18px;border-bottom:1px solid #eceff4;min-height:46px}
+.gm-row label,.gm-row .gm-l{color:#5f6368;font-size:.9rem;min-width:60px}
+.gm-row input{flex:1;min-width:0;border:0;outline:0;box-shadow:none;background:transparent;font-size:.95rem;padding:12px 0;color:#1f1f1f;border-radius:0}
+.gm-row input:focus{outline:0;box-shadow:none;border:0}
+.gm-from{font-size:.9rem;color:#1f1f1f}
+.gm-edit{flex:1;display:flex;flex-direction:column;overflow:auto;min-height:0}
+.gm-edit textarea{flex:1;min-height:260px;border:0;outline:0;box-shadow:none;resize:none;padding:16px 18px;font:14px/1.6 Arial,Helvetica,sans-serif;color:#1f1f1f;background:transparent;border-radius:0}
+.gm-edit textarea:focus{outline:0;box-shadow:none;border:0}
+.gm-sig{padding:0 18px 20px;color:#444}
+.gm-dash{border-top:1px solid #eceff4;margin-bottom:14px}
+.gm-prev{flex:1;width:100%;border:0;min-height:0;background:#fff}
+.gm-edit[hidden],.gm-prev[hidden],.gm-sig[hidden]{display:none!important}
+.gm-err{color:#b3261e;font-size:.85rem;padding:8px 18px 0}
+.gm-err:empty{display:none}
+.gm-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid #eceff4;background:#fff}
+.gm-foot .sp{flex:1}
+.gm-send{background:#0b57d0;color:#fff;border:0;border-radius:18px;padding:10px 28px;font-weight:600;font-size:.9rem;cursor:pointer}
+.gm-send:hover{background:#0a4cb8}
+.gm-send:disabled{opacity:.6;cursor:default}
+.gm-tool{border:0;background:none;color:#444746;font-size:.85rem;padding:8px 10px;border-radius:8px;cursor:pointer}
+.gm-tool:hover{background:rgba(60,64,67,.1)}
+.gm-foot select{border:1px solid #dadce0;border-radius:8px;padding:7px 8px;font-size:.85rem;background:#fff;color:#3c4043;width:auto;max-width:160px}
+.gm-chk{display:flex;gap:6px;align-items:center;font-size:.85rem;color:#444746;cursor:pointer}
+@media(max-width:700px){
+  .gm-scrim{padding:0;align-items:stretch}
+  .gm-win{width:100%;height:100dvh;border-radius:0}
+  .gm-foot{padding:10px}
+}`;
+  document.head.append(st);
+}
 async function composeEmail(o={}){
   const p=await loadSig();
   const rec=(o.client_id&&clients.find(c=>c.id===o.client_id))||(o.inquiry_id&&inquiries.find(i=>i.id===o.inquiry_id))||null;
   const first=((rec&&rec.name)||'').trim().split(/\s+/)[0]||'there';
   const fill=s=>String(s).replace(/\{\{first\}\}/g,first).replace(/\{\{company\}\}/g,p.company||'our team');
-  const tpl=h('select',{id:'ce_t'},...EMAIL_TPL.map(t=>h('option',{value:t.id,text:t.name})));
-  const to=h('input',{id:'ce_to',type:'email',placeholder:'name@example.com'}),sub=h('input',{id:'ce_s'}),msg=h('textarea',{id:'ce_m',style:'min-height:150px'});
-  const use=h('input',{type:'checkbox'});use.checked=true;
-  const fr=h('iframe',{class:'mprev',sandbox:'',title:'Email preview'}),err=h('div',{class:'err',role:'alert'});
+  gmCss();
+  const tpl=h('select',{id:'ce_t','aria-label':'Template'},...EMAIL_TPL.map(t=>h('option',{value:t.id,text:t.name})));
+  const to=h('input',{id:'ce_to',type:'email',placeholder:'Recipients',autocomplete:'off'});
+  const sub=h('input',{id:'ce_s',placeholder:'Subject',autocomplete:'off'});
+  const msg=h('textarea',{id:'ce_m','aria-label':'Message',placeholder:'Write your message…'});
+  const use=h('input',{type:'checkbox',id:'ce_sig'});use.checked=true;
+  const fr=h('iframe',{class:'gm-prev',sandbox:'',title:'Email preview',hidden:true});
+  const err=h('div',{class:'gm-err',role:'alert'});
+  const sigBox=h('div',{class:'gm-sig'});
   to.value=o.to||'';sub.value=o.subject||'';msg.value=o.body||'';
-  const upd=()=>{fr.srcdoc=buildHtml(msg.value,use.checked?sigHtml(p):'')};
+  const from=emailAcct&&emailAcct.status==='connected'?emailAcct.address:'Shared CRM mailbox';
+  let previewing=false;
+  const edit=h('div',{class:'gm-edit'},msg,sigBox);
+  const upd=()=>{const s=use.checked?sigHtml(p):'';sigBox.hidden=!s;sigBox.innerHTML=s?'<div class="gm-dash"></div>'+s:'';fr.srcdoc=buildHtml(msg.value,s)};
   tpl.addEventListener('change',()=>{const t=EMAIL_TPL.find(x=>x.id===tpl.value);if(!t||t.id==='blank')return;if(!o.reply)sub.value=fill(t.subject);msg.value=fill(t.body);upd()});
   msg.addEventListener('input',upd);use.addEventListener('change',upd);upd();
-  modalShell(o.reply?'Reply':'New email',true,h('div',{},
-    h('label',{class:'fl',for:'ce_t'},'Template',tpl),h('label',{class:'fl',for:'ce_to'},'To',to),h('label',{class:'fl',for:'ce_s'},'Subject',sub),h('label',{class:'fl',for:'ce_m'},'Message',msg),
-    h('label',{class:'fl',style:'display:flex;gap:8px;align-items:center'},use,'Add my signature'),
-    h('div',{class:'fl',style:'margin-top:14px'},'Preview'),fr,err),
-    close=>[h('button',{class:'btn ghost',text:'Edit signature',onclick:()=>openSignature(()=>{sigProf=null;close();composeEmail({...o,to:to.value,subject:sub.value,body:msg.value})})}),h('button',{class:'btn ghost',text:'Cancel',onclick:close}),
-      h('button',{class:'btn blue',text:'Send email',onclick:async e=>{
-        err.textContent='';const text=msg.value.trim();
-        if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(to.value.trim()))return err.textContent='Enter a valid email address.';
-        if(!sub.value.trim()||!text)return err.textContent='Subject and message are required.';
-        e.target.disabled=true;
-        try{await sendEmailNow({to:to.value.trim(),subject:sub.value.trim(),body:text+(use.checked&&sigText(p)?'\n\n-- \n'+sigText(p):''),html:buildHtml(text,use.checked?sigHtml(p):''),request_id:crypto.randomUUID(),inquiry_id:o.inquiry_id||null,client_id:o.client_id||null,reply_to_message_id:o.reply_to_message_id||null})}
-        catch(x){toast('Not sent: '+x.message,6000);try{await loadMessages()}catch(y){}e.target.disabled=false;return}
-        close();toast('Email accepted by the mail server.');await loadMessages();render();
-      }})]);
+
+  const dirty=()=>msg.value.trim()!==(o.body||'').trim()||sub.value.trim()!==(o.subject||'').trim()||to.value.trim()!==(o.to||'').trim();
+  const esc=e=>{
+    if(document.querySelector('.scrim'))return;
+    if(e.key==='Escape')tryClose();
+    else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();send()}
+  };
+  const scrim=h('div',{class:'gm-scrim',onclick:e=>{if(e.target===scrim)tryClose()}});
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)};
+  const tryClose=()=>{if(dirty()&&!confirm('Discard this draft?'))return;close()};
+
+  const sendBtn=h('button',{class:'gm-send',type:'button',text:'Send',title:'Send (Ctrl+Enter)',onclick:()=>send()});
+  const prevBtn=h('button',{class:'gm-tool',type:'button',text:'Preview',onclick:()=>{
+    previewing=!previewing;edit.hidden=previewing;fr.hidden=!previewing;prevBtn.textContent=previewing?'Edit':'Preview';if(previewing)upd()}});
+  async function send(){
+    if(sendBtn.disabled)return;
+    err.textContent='';const text=msg.value.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(to.value.trim()))return err.textContent='Enter a valid email address.';
+    if(!sub.value.trim()||!text)return err.textContent='Subject and message are required.';
+    sendBtn.disabled=true;sendBtn.textContent='Sending…';
+    try{await sendEmailNow({to:to.value.trim(),subject:sub.value.trim(),body:text+(use.checked&&sigText(p)?'\n\n-- \n'+sigText(p):''),html:buildHtml(text,use.checked?sigHtml(p):''),request_id:crypto.randomUUID(),inquiry_id:o.inquiry_id||null,client_id:o.client_id||null,reply_to_message_id:o.reply_to_message_id||null})}
+    catch(x){toast('Not sent: '+x.message,6000);try{await loadMessages()}catch(y){}sendBtn.disabled=false;sendBtn.textContent='Send';return}
+    close();toast('Email accepted by the mail server.');await loadMessages();render();
+  }
+  const row=(label,el)=>h('div',{class:'gm-row'},h('label',{for:el.id,text:label}),el);
+  const win=h('div',{class:'gm-win',role:'dialog','aria-modal':'true','aria-label':o.reply?'Reply':'New message'},
+    h('div',{class:'gm-head'},h('span',{text:o.reply?'Reply':'New Message'}),h('span',{class:'sp'}),h('button',{class:'gm-x',type:'button','aria-label':'Close',text:'×',onclick:tryClose})),
+    h('div',{class:'gm-row'},h('span',{class:'gm-l',text:'From'}),h('span',{class:'gm-from',text:from})),
+    row('To',to),row('Subject',sub),
+    edit,fr,err,
+    h('div',{class:'gm-foot'},sendBtn,
+      h('label',{class:'gm-chk'},'Template',tpl),
+      h('label',{class:'gm-chk'},use,'Signature'),
+      h('button',{class:'gm-tool',type:'button',text:'Edit signature',onclick:()=>openSignature(()=>{sigProf=null;close();composeEmail({...o,to:to.value,subject:sub.value,body:msg.value})})}),
+      h('span',{class:'sp'}),prevBtn,
+      h('button',{class:'gm-tool',type:'button',text:'Discard',onclick:tryClose})));
+  scrim.append(win);document.body.append(scrim);document.addEventListener('keydown',esc);
+  setTimeout(()=>{(!to.value?to:!sub.value?sub:msg).focus()},30);
 }
 /* ---- Connect Google: send as yourself and sync replies (Edge Functions crm-gmail-connect / crm-gmail-sync) ---- */
 let emailAcct=null,gConnecting=false;
