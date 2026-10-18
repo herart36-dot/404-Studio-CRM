@@ -1,89 +1,37 @@
-<style id="oh-css">
-#oh-btn{position:fixed;right:24px;bottom:96px;z-index:41;display:none;align-items:center;gap:8px;padding:10px 16px 10px 12px;border:1px solid rgba(34,211,238,.5);border-radius:999px;background:linear-gradient(135deg,#032d60,#0a4f9e);color:#e6f6ff;font:700 .82rem/1 Figtree,Inter,system-ui,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(3,45,96,.45),0 0 18px rgba(34,211,238,.28)}
-#oh-btn.on{display:inline-flex}#oh-btn i{width:8px;height:8px;border-radius:50%;background:#22d3ee;box-shadow:0 0 10px #22d3ee;animation:oh-p 2s infinite}
-@keyframes oh-p{50%{opacity:.35;transform:scale(.7)}}
-#oh{position:fixed;inset:0;z-index:60;display:none;overflow:hidden;color:#e6f1ff;font-family:Figtree,Inter,system-ui,sans-serif;background:radial-gradient(1200px 700px at 30% 45%,#06316a 0,#031634 48%,#020817 100%)}
-#oh.on{display:block;animation:oh-in .35s ease}@keyframes oh-in{from{opacity:0;transform:scale(1.02)}}
-#oh:before{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(74,168,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(74,168,255,.07) 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:radial-gradient(circle at 32% 50%,#000,transparent 72%);mask-image:radial-gradient(circle at 32% 50%,#000,transparent 72%)}
-#oh canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.oh-top{position:absolute;left:0;right:0;top:0;z-index:3;display:flex;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top,0px)) 20px 10px}
-.oh-top h2{margin:0;font-size:1.15rem;letter-spacing:-.02em;font-weight:800}.oh-top h2 b{background:linear-gradient(90deg,#22d3ee,#4aa8ff,#a78bfa,#22d3ee);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:oh-g 6s linear infinite}
-@keyframes oh-g{to{background-position:200% 0}}
-.oh-st{font:600 .74rem/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;color:#7dd3fc;opacity:.9;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.oh-x{border:1px solid rgba(125,211,252,.35);background:rgba(3,22,52,.6);color:#e6f1ff;border-radius:10px;width:36px;height:36px;font-size:1.1rem;cursor:pointer}.oh-x:hover{background:rgba(27,150,255,.3)}
-.oh-leg{position:absolute;left:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:2;display:flex;gap:6px 14px;flex-wrap:wrap;max-width:calc(100% - 500px);font-size:.72rem;color:#9cc4ea}
-.oh-leg span:before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--c);box-shadow:0 0 8px var(--c)}
-.oh-tip{position:fixed;z-index:70;pointer-events:none;display:none;padding:6px 10px;border-radius:8px;font-size:.76rem;background:rgba(2,8,23,.92);border:1px solid rgba(74,168,255,.5);color:#e6f1ff;max-width:240px}
-.oh-p{position:absolute;top:calc(64px + env(safe-area-inset-top,0px));right:20px;bottom:20px;width:min(440px,calc(100% - 40px));z-index:3;display:flex;flex-direction:column;border:1px solid rgba(74,168,255,.3);border-radius:18px;background:rgba(3,22,52,.74);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(27,150,255,.07);overflow:hidden}
-.oh-tabs{display:flex;gap:4px;padding:10px 10px 0}.oh-tabs button{flex:1;border:0;background:transparent;color:#9cc4ea;font:700 .82rem Figtree,Inter,sans-serif;padding:9px 6px;border-radius:10px 10px 0 0;border-bottom:2px solid transparent;cursor:pointer}
-.oh-tabs button[aria-selected=true]{color:#fff;border-color:#22d3ee;background:rgba(34,211,238,.08)}
-.oh-body{flex:1;min-height:0;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin}
-.oh-k{display:grid;grid-template-columns:1fr 1fr;gap:10px}.oh-k div{padding:12px;border-radius:12px;background:rgba(27,150,255,.1);border:1px solid rgba(74,168,255,.22)}
-.oh-k b{display:block;font-size:1.7rem;letter-spacing:-.03em;line-height:1.1}.oh-k span{font-size:.72rem;color:#9cc4ea;text-transform:uppercase;letter-spacing:.06em}
-.oh-k .w b{color:#fbbf24}.oh-k .d b{color:#fb7185}
-.oh-c{padding:12px 14px;border-radius:12px;background:rgba(2,8,23,.5);border:1px solid rgba(74,168,255,.2);font-size:.88rem;line-height:1.55;white-space:pre-wrap}
-.oh-c h4{margin:0 0 6px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#22d3ee}
-.oh-b{border:1px solid rgba(34,211,238,.5);background:linear-gradient(135deg,#0a4f9e,#1b96ff);color:#fff;border-radius:10px;padding:8px 14px;font:700 .8rem Figtree,Inter,sans-serif;cursor:pointer}.oh-b:disabled{opacity:.5;cursor:wait}
-.oh-b.g{background:transparent;border-color:rgba(125,211,252,.4);color:#cfe8ff}.oh-b.s{padding:5px 10px;font-size:.74rem}
-.oh-r{padding:11px 12px;border-radius:12px;background:rgba(2,8,23,.5);border:1px solid rgba(74,168,255,.2);display:grid;gap:7px}
-.oh-r.cold{border-color:rgba(251,113,133,.55)}.oh-rh{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.oh-rh b{font-size:.92rem}.oh-rh span{font-size:.72rem;color:#9cc4ea}
-.oh-bar{height:6px;border-radius:6px;background:rgba(125,211,252,.15);overflow:hidden}.oh-bar i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#22d3ee,#fbbf24);transition:width .9s cubic-bezier(.2,.8,.2,1)}
-.oh-a{display:flex;gap:6px;flex-wrap:wrap}.oh-r textarea{width:100%;min-height:120px;background:rgba(2,8,23,.7);color:#e6f1ff;border:1px solid rgba(74,168,255,.3);border-radius:8px;padding:8px;font:inherit;font-size:.82rem}
-.oh-m{max-width:92%;padding:9px 12px;border-radius:12px;font-size:.86rem;line-height:1.5;white-space:pre-wrap}.oh-m.u{align-self:flex-end;background:#0a4f9e}.oh-m.a{align-self:flex-start;background:rgba(2,8,23,.6);border:1px solid rgba(74,168,255,.22)}.oh-m.e{color:#fda4af}
-.oh-ac{border:1px solid #22d3ee;border-radius:12px;padding:10px 12px;background:rgba(34,211,238,.08);font-size:.84rem;display:grid;gap:6px}
-.oh-sg{display:flex;gap:6px;flex-wrap:wrap}.oh-in{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(74,168,255,.22)}
-.oh-in input{flex:1;min-width:0;background:rgba(2,8,23,.7);color:#e6f1ff;border:1px solid rgba(74,168,255,.35);border-radius:10px;padding:9px 12px;font:inherit}
-.oh-in input:focus,#oh button:focus-visible{outline:2px solid #22d3ee;outline-offset:2px}
-.oh-dots i{display:inline-block;width:6px;height:6px;margin-right:4px;border-radius:50%;background:#22d3ee;animation:oh-p 1s infinite}.oh-dots i:nth-child(2){animation-delay:.15s}.oh-dots i:nth-child(3){animation-delay:.3s}
-@media(max-width:860px){.oh-p{top:auto;left:0;right:0;bottom:0;width:auto;height:62vh;border-radius:18px 18px 0 0}.oh-leg{display:none}#oh-btn{bottom:156px;right:16px}}
-@media(prefers-reduced-motion:reduce){#oh *,#oh-btn i{animation:none!important}.oh-bar i{transition:none}}
-.oh-ac input,.oh-ac textarea{width:100%;background:rgba(2,8,23,.7);color:#e6f1ff;border:1px solid rgba(74,168,255,.3);border-radius:8px;padding:8px;font:inherit;font-size:.82rem}.oh-ac textarea{min-height:140px}.oh-ac span{color:#9cc4ea;font-size:.78rem}
-
-#oh-btn.mode{border-color:#34d399;box-shadow:0 8px 24px rgba(3,45,96,.45),0 0 22px rgba(52,211,153,.45)}#oh-btn.mode i{background:#34d399;box-shadow:0 0 10px #34d399}
-html.oh-ai #oai-fab{display:none!important}html.oh-ai #oh-btn{bottom:24px}html.oh-dock-open #oh-btn{right:408px}
-html.oh-ai:before{content:'';position:fixed;left:0;right:0;top:0;height:3px;z-index:90;pointer-events:none;background:linear-gradient(90deg,#22d3ee,#1b96ff,#a78bfa,#22d3ee);background-size:200% 100%;animation:oh-g 4s linear infinite}
-html.oh-ai body{background:radial-gradient(900px 480px at 0 0,#d3e6ff 0,transparent 60%),radial-gradient(800px 520px at 100% 0,#d0f2fb 0,transparent 55%),radial-gradient(900px 520px at 50% 115%,#e0dcfb 0,transparent 60%),#edf3fb!important;background-attachment:fixed}
-html.oh-ai .card,html.oh-ai .panel{border-color:rgba(27,150,255,.3)!important;box-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 28px rgba(27,150,255,.12)!important}
-#oh-amb{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;opacity:.7}
-#oh-fx{position:fixed;inset:0;z-index:80;display:grid;place-items:end center;color:#e6f1ff;background:radial-gradient(900px 600px at 50% 45%,#06316a,#020817 72%);transition:opacity .55s;font-family:Figtree,Inter,system-ui,sans-serif}#oh-fx.out{opacity:0;pointer-events:none}
-#oh-fx canvas{position:absolute;inset:0;width:100%;height:100%}.oh-fxt{position:relative;text-align:center;padding-bottom:11vh}.oh-fxt b{font-size:1.5rem;letter-spacing:-.02em}
-.oh-fxt ul{list-style:none;margin:10px 0 0;padding:0;min-height:5.6em;font:600 .8rem ui-monospace,SFMono-Regular,Menlo,monospace;color:#7dd3fc}.oh-fxt li{animation:oh-in .4s ease}
-#oh-act{position:fixed;inset:0;z-index:75;display:grid;place-items:center;padding:20px;background:rgba(2,8,23,.68);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font-family:Figtree,Inter,system-ui,sans-serif;animation:oh-in .25s ease}
-.oa-c{width:min(450px,100%);text-align:center;color:#e6f1ff;padding:20px 24px 22px;border-radius:20px;border:1px solid rgba(74,168,255,.4);background:radial-gradient(500px 260px at 50% 0,#06316a,#031634 70%);box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 40px rgba(27,150,255,.25)}
-.oa-c canvas{width:120px;height:120px}.oa-c h3{margin:2px 0 12px;font-size:1.25rem;letter-spacing:-.02em}.oa-c h3 b{background:linear-gradient(90deg,#22d3ee,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
-.oa-c ul{list-style:none;margin:0 0 14px;padding:0;text-align:left;display:grid;gap:8px;font-size:.86rem;line-height:1.4}.oa-c li:before{content:'✦';color:#22d3ee;margin-right:8px}.oa-c p{font-size:.74rem;color:#9cc4ea;margin:12px 0 0}.oa-b{display:flex;gap:10px;justify-content:center}
-#oh-dock{position:fixed;top:0;right:0;bottom:0;width:384px;z-index:55;display:none;flex-direction:column;background:rgba(3,22,52,.93);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#e6f1ff;border-left:1px solid rgba(74,168,255,.35);box-shadow:-18px 0 50px rgba(3,45,96,.25);font-family:Figtree,Inter,system-ui,sans-serif;padding-top:env(safe-area-inset-top,0px)}
-html.oh-dock-open #oh-dock{display:flex;animation:od-in .3s ease}@keyframes od-in{from{transform:translateX(30px);opacity:0}}html.oh-dock-open body{margin-right:384px}
-.od-h{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid rgba(74,168,255,.22)}.od-h div:nth-child(2){flex:1;min-width:0}.od-h b{display:block;font-size:.98rem}.od-h small{color:#7dd3fc;font-size:.7rem}
-.od-orb{width:30px;height:30px;border-radius:50%;flex:none;background:radial-gradient(circle at 30% 25%,#7ef0ff,#1b96ff 45%,#032d60);box-shadow:0 0 16px rgba(34,211,238,.7);animation:oh-p 2.4s infinite}
-.od-sw{width:42px;height:24px;flex:none;border-radius:99px;border:1px solid rgba(52,211,153,.7);background:rgba(52,211,153,.25);position:relative;cursor:pointer;padding:0}.od-sw i{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399}
-.od-ctx{padding:8px 14px 4px;font:600 .72rem ui-monospace,monospace;color:#7dd3fc}.od-ins,.od-qc{display:flex;gap:6px;flex-wrap:wrap;padding:4px 14px}
-.od-log{flex:1;min-height:0;overflow:auto;padding:10px 14px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin}.od-ap{margin:4px 14px 8px}
-#oh-dock button:focus-visible,#oh-act button:focus-visible{outline:2px solid #22d3ee;outline-offset:2px}
-@media(max-width:1100px){html.oh-dock-open body{margin-right:0}html.oh-dock-open #oh-btn{right:16px;bottom:calc(68vh + 12px)}#oh-dock{top:auto;left:0;width:auto;height:68vh;border-radius:18px 18px 0 0;border-left:0;border-top:1px solid rgba(74,168,255,.35)}}
-@media(prefers-reduced-motion:reduce){html.oh-ai:before,.od-orb{animation:none}}
-.od-lv{display:flex;gap:6px;padding:8px 14px 0}.od-lv button{flex:1;border:1px solid rgba(125,211,252,.3);background:rgba(3,22,52,.6);color:#9cc4ea;font:700 .74rem Figtree,Inter,sans-serif;padding:7px 6px;border-radius:9px;cursor:pointer}.od-lv button[aria-pressed=true]{color:#fff;border-color:#22d3ee;background:rgba(34,211,238,.14)}.od-lv .pro{flex:0 0 auto}
-#oh-btn.ping{animation:oh-ping 1.2s 3}@keyframes oh-ping{50%{box-shadow:0 0 0 9px rgba(251,113,133,.35)}}
-html.oh-reveal .card,html.oh-reveal .panel{animation:oh-rise .7s cubic-bezier(.2,.8,.2,1) both}
-@keyframes oh-rise{from{opacity:0;transform:translateY(18px) scale(.97);filter:blur(4px)}}
-html.oh-ai .card,html.oh-ai .panel{transition:transform .25s ease,box-shadow .25s ease}
-@media(prefers-reduced-motion:reduce){html.oh-reveal .card,html.oh-reveal .panel{animation:none}}
-#oh-fl{position:fixed;inset:0;z-index:50;pointer-events:none;font-family:Figtree,Inter,system-ui,sans-serif}
-#oh-fl canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-#oh-orb{position:absolute;left:0;top:0;width:60px;height:60px;border-radius:50%;border:0;padding:0;pointer-events:auto;cursor:pointer;background:radial-gradient(circle,rgba(34,211,238,.5),rgba(27,150,255,.16) 60%,transparent 72%);box-shadow:0 0 30px rgba(34,211,238,.45)}
-.fl-c{position:absolute;left:0;top:0;opacity:0;pointer-events:none;white-space:nowrap;max-width:calc(100vw - 130px);overflow:hidden;text-overflow:ellipsis;border:1px solid rgba(34,211,238,.5);background:rgba(3,22,52,.9);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#e6f6ff;font:700 .78rem/1 Figtree,Inter,sans-serif;padding:9px 13px;border-radius:999px;cursor:pointer;box-shadow:0 6px 20px rgba(3,45,96,.35),0 0 14px rgba(34,211,238,.22)}
-.fl-c.d{border-color:rgba(251,113,133,.7);box-shadow:0 6px 20px rgba(3,45,96,.35),0 0 14px rgba(251,113,133,.32)}.fl-c:hover{background:rgba(10,79,158,.96)}
-.fl-ask{position:absolute;left:0;top:0;display:none;pointer-events:auto;border:1px solid rgba(34,211,238,.55);background:linear-gradient(135deg,#032d60,#0a4f9e);color:#e6f6ff;font:700 .72rem/1 Figtree,Inter,sans-serif;padding:6px 10px;border-radius:999px;cursor:pointer;box-shadow:0 4px 14px rgba(3,45,96,.4),0 0 12px rgba(34,211,238,.3)}
-#oh-fl button:focus-visible{outline:2px solid #22d3ee;outline-offset:2px}
-.oh-tg{position:absolute;top:8px;right:8px;z-index:5;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(100,116,139,.6);background:rgba(3,22,52,.9);color:#cfeaff;border-radius:999px;padding:2px 8px 2px 2px;font:800 .68rem/1 Figtree,Inter,sans-serif;cursor:pointer;transition:box-shadow .2s,border-color .2s}
-.oh-tg canvas{width:26px;height:26px;border-radius:50%}.oh-tg i{width:26px;height:14px;border-radius:99px;background:#475569;position:relative;transition:.2s}.oh-tg i:after{content:'';position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:#fff;transition:.2s}
-.oh-tg[aria-checked=true]{border-color:#22d3ee;box-shadow:0 0 14px rgba(34,211,238,.55)}.oh-tg[aria-checked=true] i{background:#22d3ee}.oh-tg[aria-checked=true] i:after{left:14px}.oh-tg:focus-visible{outline:2px solid #22d3ee;outline-offset:2px}
-.oh-ai-on{outline:1px solid rgba(34,211,238,.55);box-shadow:0 0 0 1px rgba(34,211,238,.2),0 0 26px rgba(34,211,238,.26)!important}
-.oh-as{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:rgba(3,22,52,.93);color:#e6f1ff;border:1px solid rgba(74,168,255,.35);font:500 .8rem/1.5 Figtree,Inter,sans-serif;white-space:pre-wrap;display:flex;flex-direction:column;gap:8px;align-items:flex-start}.oh-as>b{color:#22d3ee;font-size:.74rem;letter-spacing:.04em}
-.oh-sw{display:inline-block;width:30px;height:16px;border-radius:99px;background:#22d3ee;position:relative;margin-left:6px}.oh-sw:after{content:'';position:absolute;top:2px;right:2px;width:12px;height:12px;border-radius:50%;background:#032d60}
+<style id="oa-css">
+#oai-fab,#oai-panel{display:none!important}
+#oa-fab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:41;display:none;align-items:center;gap:8px;padding:13px 18px;border:0;border-radius:999px;background:linear-gradient(135deg,#0176d3,#1b96ff);color:#fff;font:700 .88rem/1 Figtree,Inter,system-ui,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(1,118,211,.38)}
+#oa-fab.on{display:inline-flex}#oa-fab b{min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:99px;background:#fff;color:#0176d3;font-size:.74rem;display:grid;place-items:center}#oa-fab b[hidden]{display:none}
+#oa-fab.ping{animation:oa-p 1s 3}@keyframes oa-p{50%{box-shadow:0 0 0 10px rgba(27,150,255,.28)}}html.oa-open #oa-fab,html.oa-open #oa-bub{display:none!important}
+#oa-bub{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:41;max-width:250px;border:0;text-align:left;background:#0f2a4a;color:#fff;padding:11px 14px;border-radius:14px;font:600 .82rem/1.4 Figtree,Inter,sans-serif;cursor:pointer;box-shadow:0 10px 28px rgba(15,42,74,.3)}#oa-bub[hidden]{display:none}
+#oa{position:fixed;top:0;right:0;bottom:0;width:400px;z-index:55;display:flex;flex-direction:column;background:#fff;color:#0f172a;border-left:1px solid #dbe4f0;box-shadow:-14px 0 40px rgba(15,23,42,.12);font-family:Figtree,Inter,system-ui,sans-serif}#oa[hidden]{display:none}
+html.oa-open body{margin-right:400px}
+.oa-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #e5eaf2}.oa-av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#0176d3,#1b96ff)}.oa-ti{flex:1;min-width:0}.oa-ti b{display:block;font-size:.98rem}.oa-ti small{color:#64748b;font-size:.74rem}
+.oa-x{border:0;background:#eef3fa;color:#334155;width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:1rem}
+.oa-tabs{display:flex;border-bottom:1px solid #e5eaf2}.oa-tabs button{flex:1;border:0;background:#fff;padding:12px 6px;font:700 .82rem Figtree,Inter,sans-serif;color:#64748b;border-bottom:3px solid transparent;cursor:pointer}.oa-tabs button[aria-selected=true]{color:#0176d3;border-color:#0176d3}
+.oa-body{flex:1;min-height:0;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:#f6f8fc}
+.oa-step{font-size:.78rem;font-weight:700;color:#0176d3}.oa-lb{color:#64748b;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}
+.oa-card{background:#fff;border:1px solid #dbe4f0;border-radius:14px;padding:16px;box-shadow:0 4px 16px rgba(3,45,96,.08)}.oa-card h3{margin:4px 0 4px;font-size:1.08rem}.oa-card p{margin:0;color:#475569;font-size:.86rem;line-height:1.45}
+.oa-tag{font-weight:800;font-size:.66rem;letter-spacing:.08em;color:#0176d3;background:#e8f2fd;padding:3px 8px;border-radius:6px}
+.oa-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.oa-ex{display:flex;flex-direction:column;gap:10px;margin-top:12px}.oa-ex:empty{display:none}
+.oa-b{border:1px solid #c9d6e8;background:#fff;color:#0f2a4a;border-radius:10px;padding:10px 14px;font:700 .82rem Figtree,Inter,sans-serif;cursor:pointer}.oa-b.p{background:#0176d3;border-color:#0176d3;color:#fff}.oa-b.g{border-color:transparent;background:transparent;color:#64748b}.oa-b:disabled{opacity:.55;cursor:default}
+.oa-row{display:flex;flex-direction:column;gap:2px;text-align:left;padding:11px 13px;background:#fff;border:1px solid #e1e8f2;border-radius:11px;cursor:pointer;font-family:inherit}.oa-row b{font-size:.86rem;color:#0f172a}.oa-row span{font-size:.76rem;color:#64748b}.oa-row:hover{border-color:#0176d3}
+.oa-rc{font-size:.8rem;color:#166534;background:#ecfdf3;border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+.oa-okc{border-color:#bbf7d0;background:#f0fdf4}.oa-hi{background:#fff;border:1px solid #dbe4f0;border-radius:12px;padding:12px 14px;font-size:.86rem;line-height:1.5}
+.oa-chips{display:flex;flex-wrap:wrap;gap:8px}.oa-chips.col{flex-direction:column;align-items:stretch}.oa-chips.col .oa-b{text-align:left}
+.oa-in{display:flex;gap:8px;padding:12px;border-top:1px solid #e5eaf2;background:#fff}.oa-in input{flex:1;min-width:0;border:1px solid #c9d6e8;border-radius:10px;padding:11px 12px;font:500 .86rem Figtree,Inter,sans-serif;color:#0f172a;background:#fff}
+#oa .oh-m{max-width:92%;padding:10px 13px;border-radius:12px;font-size:.86rem;line-height:1.5;white-space:pre-wrap;word-break:break-word}#oa .oh-m.u{align-self:flex-end;background:#0176d3;color:#fff}#oa .oh-m.a{align-self:flex-start;background:#fff;border:1px solid #dbe4f0}#oa .oh-m.e{background:#fff1f2;color:#9f1239;border:1px solid #fecdd3}
+#oa .oh-dots{display:flex;gap:4px;padding:4px 2px}#oa .oh-dots i{width:7px;height:7px;border-radius:50%;background:#94a3b8;animation:oa-d 1s infinite}#oa .oh-dots i:nth-child(2){animation-delay:.15s}#oa .oh-dots i:nth-child(3){animation-delay:.3s}@keyframes oa-d{50%{transform:translateY(-4px);opacity:.4}}
+#oa .oh-ac{background:#fff;border:1px solid #bcd3f2;border-left:4px solid #0176d3;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:.84rem}#oa .oh-ac b{font-size:.9rem}#oa .oh-ac span{color:#475569}
+#oa .oh-ac input,#oa .oh-ac textarea{width:100%;box-sizing:border-box;border:1px solid #c9d6e8;border-radius:8px;padding:8px;font:inherit;background:#fff;color:inherit}#oa .oh-ac textarea{min-height:130px;resize:vertical}#oa .oh-a{display:flex;gap:8px}
+#oa .oh-b{border:0;border-radius:9px;padding:9px 14px;font:700 .8rem Figtree,Inter,sans-serif;background:#0176d3;color:#fff;cursor:pointer}#oa .oh-b.g{background:#eef3fa;color:#334155}#oa .oh-b:disabled{opacity:.55}
+#oa button:focus-visible,#oa-fab:focus-visible{outline:2px solid #0176d3;outline-offset:2px}
+@media(max-width:1100px){html.oa-open body{margin-right:0}}
+@media(max-width:760px){#oa{top:auto;left:0;width:auto;height:86vh;border-left:0;border-top:1px solid #dbe4f0;border-radius:18px 18px 0 0}#oa-fab{bottom:calc(76px + env(safe-area-inset-bottom,0px))}#oa-bub{bottom:calc(134px + env(safe-area-inset-bottom,0px))}}
+@media(prefers-reduced-motion:reduce){#oa-fab.ping,#oa .oh-dots i{animation:none}}
 </style>
-<script id="oh-js">(()=>{
-if(window.__ohub)return;window.__ohub=1;
+<script id="oa-js">(()=>{
+if(window.__oassist)return;window.__oassist=1;
 const RM=matchMedia('(prefers-reduced-motion:reduce)').matches,H=36e5,sbc=()=>window.__orchidSb,D=()=>window.__orc&&window.__orc.d;
 const E=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -91,9 +39,6 @@ const ago=h=>h<1?'<1h':h<48?Math.round(h)+'h':Math.round(h/24)+'d';
 const live=s=>s!=='won'&&s!=='lost';
 let think=false,sample=false,A=null,R=null,tab='brief',hist=[],busy=false;
 
-/* ---------- sample data, only used while your CRM is still empty ---------- */
-
-/* ---------- analysis: transparent heat score, runs in the browser ---------- */
 function analyse(){const d=D()||{};
  const inq=d.inquiries||[],tk=d.tasks||[],cs=d.cases||[],t0=ymd(new Date());
  const rows=inq.filter(i=>live(i.status)).map(i=>{const hrs=Math.max(0,(Date.now()-new Date(i.last_touch||i.created_at||Date.now()))/H);
@@ -102,68 +47,11 @@ function analyse(){const d=D()||{};
  const od=tk.filter(t=>!t.done&&t.due_date&&t.due_date<t0),oc=cs.filter(c=>!['resolved','closed','done'].includes(String(c.status).toLowerCase()));
  return{d,rows,od,oc,openT:tk.filter(t=>!t.done),cold:rows.filter(r=>r.cold),hot:rows.filter(r=>r.score>=60)}}
 function ctx(a){return'[Live analysis'+(sample?' (SAMPLE data)':'')+'] open inquiries '+a.rows.length+', going cold '+a.cold.length+', overdue tasks '+a.od.length+', open cases '+a.oc.length+'. Most at risk: '+(a.rows.slice(0,6).map(r=>r.i.name+' ('+r.i.status+', heat '+r.score+', silent '+ago(r.hrs)+')').join('; ')||'none')+'. Overdue: '+(a.od.slice(0,4).map(t=>t.title).join('; ')||'none')+'.'}
-function localBrief(a){const L=[],t=a.rows[0];if(!a.rows.length&&!a.openT.length)return'Nothing active yet. Add an inquiry or a task and I will start watching it.';
- if(a.cold.length)L.push('- '+a.cold.length+' inquir'+(a.cold.length>1?'ies are':'y is')+' going cold. Start with '+t.i.name+' (heat '+t.score+', silent '+ago(t.hrs)+').');
- if(a.od.length)L.push('- '+a.od.length+' overdue task'+(a.od.length>1?'s':'')+': '+a.od.slice(0,2).map(x=>x.title).join(', ')+'.');
- if(a.hot.length)L.push('- '+a.hot.length+' hot lead'+(a.hot.length>1?'s':'')+' worth a call today.');
- if(a.oc.length)L.push('- '+a.oc.length+' case'+(a.oc.length>1?'s':'')+' still open.');return L.join('\n')||'- Everything is on track. Nice.'}
-
 /* ---------- AI call: your deployed crm-ai Edge Function (key never in the browser) ---------- */
 async function callAI(msgs){const c=sbc(),{data:{session}}=await c.auth.getSession();if(!session)throw new Error('Please log in again.');think=true;
  try{for(const fn of ['crm-agent','crm-ai']){const r=await fetch(c.supabaseUrl+'/functions/v1/'+fn,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:c.supabaseKey},body:JSON.stringify({messages:msgs,today:ymd(new Date()),tz:Intl.DateTimeFormat().resolvedOptions().timeZone})});
   if(r.status===404&&fn==='crm-agent')continue;let d={};try{d=await r.json()}catch(e){}if(!r.ok||!d.reply)throw new Error(d.error||'The AI is busy. Try again in a minute.');return d}throw new Error('The AI is not deployed.')}finally{think=false}}
 function typeInto(n,txt,cb){if(RM||txt.length>1200){n.textContent=txt;cb&&cb();return}let i=0;const f=()=>{i=Math.min(txt.length,i+3);n.textContent=txt.slice(0,i);if(i<txt.length)requestAnimationFrame(f);else cb&&cb()};f()}
-function countUp(n,v){if(RM||!v){n.textContent=v;return}const t0=performance.now(),f=t=>{const p=Math.min(1,(t-t0)/700);n.textContent=Math.round(v*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
-
-/* ---------- three.js neural pipeline of your live data ---------- */
-function build(cv,a){const T=window.THREE;if(!T)return null;let rend;try{rend=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true,powerPreference:'low-power'})}catch(e){return null}
- rend.setPixelRatio(Math.min(devicePixelRatio||1,2));const sc=new T.Scene(),cam=new T.PerspectiveCamera(55,1,.1,300);cam.position.z=64;const g=new T.Group();sc.add(g);const AD=T.AdditiveBlending,col=c=>new T.Color(c);
- const core=new T.Mesh(new T.SphereGeometry(3.2,32,32),new T.MeshBasicMaterial({color:0x22d3ee})),halo=new T.Mesh(new T.SphereGeometry(5.4,32,32),new T.MeshBasicMaterial({color:0x1b96ff,transparent:true,opacity:.2,blending:AD,depthWrite:false}));
- const ico=new T.Mesh(new T.IcosahedronGeometry(7.6,1),new T.MeshBasicMaterial({color:0x4aa8ff,wireframe:true,transparent:true,opacity:.35}));g.add(core,halo,ico);
- const rings=[0,1,2].map(k=>{const r=new T.Mesh(new T.TorusGeometry(10.5+k*2.4,.07,8,96),new T.MeshBasicMaterial({color:k?0x1b96ff:0x22d3ee,transparent:true,opacity:.6,blending:AD}));r.rotation.set(k*1.1,k*.7,0);g.add(r);return r});
- const scan=new T.Mesh(new T.RingGeometry(.97,1,96),new T.MeshBasicMaterial({color:0x22d3ee,transparent:true,opacity:.5,side:T.DoubleSide,blending:AD}));scan.rotation.x=1.25;g.add(scan);
- const fib=(i,n,r)=>{const y=1-(i+.5)/n*2,rr=Math.sqrt(1-y*y),th=i*2.399963+r;return new T.Vector3(Math.cos(th)*rr*r,y*r,Math.sin(th)*rr*r)};
- const sp=[],pts=[];for(let i=0;i<320;i++)sp.push((Math.random()-.5)*190,(Math.random()-.5)*130,(Math.random()-.5)*130);
- const st=new T.BufferGeometry();st.setAttribute('position',new T.Float32BufferAttribute(sp,3));g.add(new T.Points(st,new T.PointsMaterial({color:0x7dd3fc,size:.5,transparent:true,opacity:.55,depthWrite:false})));
- const nodes=[],pos={},add=(kind,label,id,p,c,r,go)=>{const m=new T.Mesh(new T.SphereGeometry(r,16,16),new T.MeshBasicMaterial({color:c}));m.position.copy(p);m.userData={kind,label,go};g.add(m);nodes.push(m);pos[kind+id]=p;const gl=new T.Mesh(new T.SphereGeometry(r*2.3,12,12),new T.MeshBasicMaterial({color:c,transparent:true,opacity:.16,blending:AD,depthWrite:false}));gl.position.copy(p);g.add(gl);return m};
- const d=a.d,cl=(d.clients||[]).slice(0,50),inq=a.rows.slice(0,110),tk=(d.tasks||[]).slice(0,50),cs=a.oc.slice(0,40),links=[],alerts=[];
- cl.forEach((c,i)=>add('clients',c.name,c.id,fib(i,cl.length,17),0x34d399,1.25,'clients'));
- inq.forEach((r,i)=>{const c=r.cold?0xfb7185:r.score>=60?0xfbbf24:0x4aa8ff,m=add('inquiries',r.i.name+' · '+r.i.status+' · heat '+r.score+(r.cold?' · going cold':''),r.i.id,fib(i,inq.length,27),c,.9+r.score/120,'inquiries');
-  if(r.i.client_id&&pos['clients'+r.i.client_id])links.push([m.position,pos['clients'+r.i.client_id]]);if(r.cold||r.score>=60)alerts.push([new T.Vector3(),m.position,r.cold])});
- cs.forEach((c,i)=>add('cases',(c.subject||'Case')+' · '+(c.priority||''),c.id,fib(i,cs.length,34),0x2dd4bf,1,'cases'));
- tk.forEach((t,i)=>{const od=!t.done&&t.due_date&&t.due_date<ymd(new Date());add('tasks',t.title+(od?' · overdue':''),i,fib(i,tk.length,22).applyAxisAngle(new T.Vector3(1,0,0),.6),od?0xfb7185:0xa78bfa,.7,'tasks')});
- for(let i=0;i<26;i++){const p=fib(i,26,40+Math.random()*8);const m=new T.Mesh(new T.SphereGeometry(.35,8,8),new T.MeshBasicMaterial({color:0x4aa8ff,transparent:true,opacity:.35}));m.position.copy(p);g.add(m)}
- const lp=[];links.forEach(l=>lp.push(l[0].x,l[0].y,l[0].z,l[1].x,l[1].y,l[1].z));alerts.forEach(l=>lp.push(0,0,0,l[1].x,l[1].y,l[1].z));
- const lg=new T.BufferGeometry();lg.setAttribute('position',new T.Float32BufferAttribute(lp,3));g.add(new T.LineSegments(lg,new T.LineBasicMaterial({color:0x4aa8ff,transparent:true,opacity:.22,blending:AD})));
- const NP=Math.min(60,alerts.length*3),pg=new T.BufferGeometry(),pa=new Float32Array(NP*3);pg.setAttribute('position',new T.BufferAttribute(pa,3));g.add(new T.Points(pg,new T.PointsMaterial({color:0xffffff,size:1.1,transparent:true,opacity:.95,blending:AD,depthWrite:false})));
- const ray=new T.Raycaster(),mv=new T.Vector2(9,9),tip=$('.oh-tip');let mx=0,my=0,hov=null,t=0,raf=0,ptr={x:0,y:0};
- const move=e=>{const b=cv.getBoundingClientRect();mx=((e.clientX-b.left)/b.width-.5)*2;my=((e.clientY-b.top)/b.height-.5)*2;mv.set(mx,-my);ptr={x:e.clientX,y:e.clientY}};
- const click=()=>{if(hov&&hov.userData.go&&!sample){close();window.__orc.go(hov.userData.go)}};
- const lv=()=>{mv.set(9,9);tip.style.display='none'};cv.addEventListener('pointermove',move);cv.addEventListener('click',click);cv.addEventListener('pointerleave',lv);
- const size=()=>{const w=cv.clientWidth,h=cv.clientHeight;rend.setSize(w,h,false);cam.aspect=w/h;cam.position.x=0;g.position.x=innerWidth>860?-6:0;g.position.y=innerWidth>860?0:10;cam.updateProjectionMatrix()};size();addEventListener('resize',size);
- const frame=()=>{raf=requestAnimationFrame(frame);const k=think?3.2:1;t+=.016*k;if(!RM){g.rotation.y+=.0018*k;g.rotation.x+=(my*.3-g.rotation.x)*.04}
-  const s=1+Math.sin(t*2)*.06*(think?2.5:1);core.scale.setScalar(s);halo.scale.setScalar(1+Math.sin(t*1.4)*.1*k);ico.rotation.y-=.004*k;rings.forEach((r,i)=>{r.rotation.z+=(.004+i*.002)*k;r.material.color.set(think?0xa78bfa:i?0x1b96ff:0x22d3ee)});
-  const q=(t*.6)%1;scan.scale.setScalar(2+q*46);scan.material.opacity=.55*(1-q);
-  for(let i=0;i<NP;i++){const al=alerts[i%alerts.length],p=((t*.35*(al[2]?1.4:.8))+i*.173)%1;pa[i*3]=al[1].x*p;pa[i*3+1]=al[1].y*p;pa[i*3+2]=al[1].z*p}pg.attributes.position.needsUpdate=true;
-  ray.setFromCamera(mv,cam);const h=ray.intersectObjects(nodes,false)[0];hov=h?h.object:null;if(hov){tip.textContent=hov.userData.label;tip.style.display='block';tip.style.left=ptr.x+14+'px';tip.style.top=ptr.y+14+'px';cv.style.cursor='pointer'}else{tip.style.display='none';cv.style.cursor='default'}
-  rend.render(sc,cam)};frame();
- return()=>{cancelAnimationFrame(raf);removeEventListener('resize',size);cv.removeEventListener('pointermove',move);cv.removeEventListener('click',click);cv.removeEventListener('pointerleave',lv);rend.dispose();try{rend.forceContextLoss()}catch(e){}}}
-const $=s=>document.querySelector(s);
-
-/* ---------- panel tabs ---------- */
-function brief(b){const k=E('div','oh-k');[['Open inquiries',A.rows.length,''],['Going cold',A.cold.length,'w'],['Overdue tasks',A.od.length,'d'],['Open cases',A.oc.length,'']].forEach(x=>{const d=E('div',x[2]),n=E('b','','0');d.append(n,E('span','',x[0]));k.append(d);countUp(n,x[1])});
- const c=E('div','oh-c'),h4=E('h4','','AI morning brief'+(sample?' · sample data':'')),p=E('div');c.append(h4,p);typeInto(p,localBrief(A));
- const go=E('button','oh-b','✦ Ask AI to write it');go.onclick=async()=>{go.disabled=true;go.textContent='Thinking…';try{const d=await callAI([{role:'user',text:'Write my morning brief in at most 5 short "-" bullets, most urgent first. Use only this live analysis, invent nothing, propose no actions.\n'+ctx(A)}]);typeInto(p,d.reply)}catch(e){p.textContent=localBrief(A)+'\n\n('+e.message+')'}go.disabled=false;go.textContent='✦ Regenerate'};
- const note=E('div','oh-c');note.append(E('h4','','How heat is scored'),document.createTextNode('Status, contact details, priority and message depth raise heat. Every quiet hour lowers it. Going cold = silent over 24h (new) or 48h (others).'));
- b.append(k,c,go,note)}
-function radar(b){if(!A.rows.length){b.append(E('div','oh-c','No open inquiries to score yet.'));return}
- A.rows.slice(0,12).forEach(r=>{const i=r.i,row=E('div','oh-r'+(r.cold?' cold':'')),hd=E('div','oh-rh');hd.append(E('b','',i.name),E('span','',i.status+' · silent '+ago(r.hrs)+(r.cold?' · going cold':'')));
-  const bar=E('div','oh-bar'),f=E('i');bar.append(f);setTimeout(()=>f.style.width=r.score+'%',60);const ac=E('div','oh-a'),dr=E('button','oh-b s','✉ Compose email'),tc=E('button','oh-b g s','Log touch'),tk=E('button','oh-b g s','+ Task');
-  dr.onclick=async()=>{dr.disabled=true;dr.textContent='Thinking…';try{const d=await callAI([{role:'user',text:'Compose a follow-up email to '+i.name+' (inquiry id '+i.id+', '+i.status+', silent '+ago(r.hrs)+') based on everything in the CRM about them: their message, our emails, tasks and notes. Then propose sending it with a send_email action.'}]);
-    if(d.reply)row.append(E('div','oh-c',d.reply));(d.actions||[]).forEach(a=>actionCard(a,row));dr.remove()}catch(e){dr.disabled=false;dr.textContent='✉ Compose email';window.__orc.toast(e.message)}};
-  tc.onclick=()=>{if(sample)return;window.__orc.logTouch(i);tc.textContent='Logged'};
-  tk.onclick=async()=>{if(sample)return;const p=window.__orchidCrm&&window.__orchidCrm.plan({type:'create_task',title:'Follow up with '+i.name,due_date:ymd(new Date(Date.now()+864e5)),priority:r.cold?'high':'normal'});try{tk.textContent=await p.exec()&&'Added'}catch(e){window.__orc.toast(e.message||'Could not add')}};
-  ac.append(dr,tc,tk);row.append(hd,bar,ac);b.append(row)})}
 const W=async q=>{const r=await q;if(r.error)throw new Error(r.error.message||'Something went wrong.');return r},hx=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),meE=()=>String(D().me.email||'').toLowerCase();
 const TT={create_lead:'Add lead',create_task:'Add task',set_schedule:'Set schedule',create_client:'Add client',update_inquiry:'Update inquiry',log_touch:'Log a touch',update_task:'Update task',create_case:'Open a case',update_case:'Update case',add_case_note:'Add case note',create_deal:'Add deal',move_deal:'Move deal',send_email:'Send email',send_chat:'Send team chat'};
 const stage=async n=>{const st=(await W(sbc().from('crm_deal_stages').select('*').order('position'))).data||[],o=st.filter(x=>x.kind==='open');const s=o.find(x=>n&&x.name.toLowerCase().includes(String(n).toLowerCase()))||(n?null:o[0]);if(!s)throw new Error('No open deal stage called "'+n+'". Use the Deals tab for won or lost.');return s};
@@ -182,7 +70,7 @@ const EX={
  send_email:async a=>{const r=await sbc().functions.invoke('crm-send-email',{body:{to:a.to,subject:a.subject,body:a.body,html:'<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.55;white-space:pre-wrap">'+hx(a.body)+'</div>',request_id:crypto.randomUUID(),inquiry_id:a.inquiry_id||null,client_id:a.client_id||null,reply_to_message_id:null}});
   if(r.error){let m='Could not reach the email service.';try{const j=await r.error.context.json();if(j&&j.error)m=j.error}catch(e){}throw new Error(m)}if(!r.data||!r.data.ok)throw new Error((r.data&&r.data.error)||'The email was not sent.');return 'Email sent to '+a.to+'.'},
  send_chat:async a=>{await W(sbc().from('crm_team_messages').insert({sender_email:meE(),recipient_email:a.to,body:a.body}));return 'Message sent to '+a.to+'.'}};
-function actionCard(a,box){const viaPlan=['create_lead','create_task','set_schedule'].includes(a.type),p=viaPlan&&window.__orchidCrm&&window.__orchidCrm.plan(a),c=E('div','oh-ac');
+function actionCard(a,box){const viaPlan=!EX[a.type],p=viaPlan&&window.__orchidCrm&&window.__orchidCrm.plan(a),c=E('div','oh-ac');
  if(viaPlan&&(!p||p.error)){c.textContent=(p&&p.error)||'I could not prepare that action.';box.append(c);return}
  c.append(E('b','',viaPlan?p.title:(TT[a.type]||a.type)+(a.label?' · '+a.label:'')));let ta=null,sj=null;
  if(viaPlan)p.lines.forEach(l=>c.append(E('span','',l)));else{
@@ -191,154 +79,75 @@ function actionCard(a,box){const viaPlan=['create_lead','create_task','set_sched
   if(a.body!=null){ta=E('textarea');ta.value=a.body;ta.setAttribute('aria-label','Message (editable)');c.append(ta)}}
  const bar=E('div','oh-a'),ok=E('button','oh-b s',viaPlan?(p.confirm||'Confirm'):a.type==='send_email'||a.type==='send_chat'?'Send':'Confirm'),no=E('button','oh-b g s','Cancel');
  ok.onclick=async()=>{if(sj)a.subject=sj.value;if(ta)a.body=ta.value;ok.disabled=no.disabled=true;ok.textContent='Working…';
-  try{const m=viaPlan?await p.exec():await EX[a.type](a);c.replaceChildren(E('b','','✓ '+m));logAI(a.type,m);if(window.__orc.refresh)window.__orc.refresh().then(()=>{A=analyse()}).catch(()=>{})}catch(e){c.replaceChildren(E('b','',e.message||'Something went wrong.'),E('span','','Nothing was changed.'))}};
+  try{const m=viaPlan?await p.exec():await EX[a.type](a);c.replaceChildren(E('b','','✓ '+m));logAI(a.type,m);if(box.__ok)box.__ok(a,m);if(window.__orc.refresh)window.__orc.refresh().then(()=>{A=analyse()}).catch(()=>{})}catch(e){c.replaceChildren(E('b','',e.message||'Something went wrong.'),E('span','','Nothing was changed.'))}};
  no.onclick=()=>c.replaceChildren(E('span','','Cancelled.'));bar.append(ok,no);c.append(bar);box.append(c);c.__ok=ok;c.__t=a.type;return c}
-const CHIPS=['Plan my day','Compose an email to my hottest lead','What should I reply to my latest team chat?','Reply to my latest email','What to do on my overdue tasks?','Summarize my open cases','Add a task: call back tomorrow'];
-function mountChat(log,inHost,chips,intro){const sg=E('div','oh-sg');
- const say=async t=>{t=t.trim();if(!t||busy)return;busy=true;sg.remove();log.append(E('div','oh-m u',t));const w=E('div','oh-m a'),dd=E('div','oh-dots');dd.append(E('i'),E('i'),E('i'));w.append(dd);log.append(w);log.scrollTop=1e9;hist.push({role:'user',text:t});A=analyse();
-  try{const d=await callAI(hist.slice(0,-1).concat({role:'user',text:t+'\n\n'+ctx(A)+'\n[Screen] The user is on the "'+((D()||{}).view||'overview')+'" page of the CRM. Tailor your help to it.'+lvl()}));hist.push({role:'model',text:d.reply});w.textContent='';typeInto(w,d.reply,()=>{log.scrollTop=1e9});
-   const cards=(SET.level==='suggest'?[]:d.actions||[]).slice(0,4).map(a=>actionCard(a,log)),safe=cards.filter(c=>c&&c.__ok&&!['send_email','send_chat'].includes(c.__t));
-   if(SET.level==='full'&&safe.length)(async()=>{for(const c of safe){c.__ok.click();await new Promise(r=>setTimeout(r,700))}})();else if(safe.length>1){const b=E('button','oh-b s','Confirm all '+safe.length+' (emails and chats still need your Send)');b.onclick=async()=>{b.remove();for(const c of safe){c.__ok.click();await new Promise(r=>setTimeout(r,600))}};log.append(b)}}
-  catch(e){hist.pop();w.className='oh-m e';w.textContent=e.message}busy=false;log.scrollTop=1e9};
- if(intro)log.append(E('div','oh-m a',intro));if(chips){chips.forEach(s=>{const x=E('button','oh-b g s',s);x.onclick=()=>say(s);sg.append(x)});log.append(sg)}
- hist.forEach(m=>log.append(E('div','oh-m '+(m.role==='user'?'u':'a'),m.text)));if(hist.length)sg.remove();
- const f=E('div','oh-in'),inp=E('input');inp.placeholder='Ask anything or give a command…';inp.setAttribute('aria-label','Ask the Orchid AI');const sn=E('button','oh-b','Send');sn.onclick=()=>{const v=inp.value;inp.value='';say(v)};inp.onkeydown=e=>{if(e.key==='Enter')sn.click()};f.append(inp,sn);inHost.append(f);return{say,focus:()=>inp.focus()}}
-function ask(b){const log=E('div','oh-body');log.style.padding='0';b.append(log);const c=mountChat(log,b.parentNode,CHIPS,'I am your Orchid copilot. I read your inquiries, clients, tasks, cases, deals, inbox and team chat, compose and send emails, reply in team chat, create and update records, and advise on what to do next. You review every action before it runs.');b.style.overflow='hidden';setTimeout(c.focus,80)}
-function paint(){const p=$('.oh-p');p.querySelectorAll('.oh-in').forEach(n=>n.remove());const b=$('.oh-body');b.replaceChildren();b.style.overflow='';p.querySelectorAll('[role=tab]').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.t===tab)));({brief,radar,ask})[tab](b)}
 
-/* ---------- AI mode: activation prompt, 3D transformation, ambient mesh, docked copilot ---------- */
-const KEY='orchid_ai_mode',LK='orchid_ai_level',SET={level:'assist',proactive:true};try{SET.level=localStorage.getItem(LK)||'assist'}catch(e){}
+const $=s=>document.querySelector(s);
 const uid=async()=>{try{const{data:{session}}=await sbc().auth.getSession();return session&&session.user.id}catch(e){return null}};
-async function loadPrefs(){try{const u=await uid();if(!u)return null;const{data,error}=await sbc().from('crm_ai_settings').select('*').eq('user_id',u).maybeSingle();return error?null:data}catch(e){return null}}
-async function savePrefs(p){try{const u=await uid();if(u)await sbc().from('crm_ai_settings').upsert({user_id:u,...p,updated_at:new Date().toISOString()})}catch(e){}}
-async function logAI(kind,summary){try{const u=await uid();if(u)await sbc().from('crm_ai_activity').insert({user_id:u,kind,summary:String(summary).slice(0,500)})}catch(e){}}
-const lvl=()=>'\n[Assist level] '+({suggest:'ADVISE ONLY. Do not propose any actions.',assist:'Propose actions for the user to confirm.',full:'FULL ASSIST. Be proactive: propose every useful action (up to 4). Safe ones run automatically; emails and chats still need the user Send.'}[SET.level]);
-function setLevel(l){SET.level=l;try{localStorage.setItem(LK,l)}catch(e){}savePrefs({assist_level:l});logAI('level',l);dockRefresh()}
-let ON=false,dock=null,dsay=null,restored=false,dockLast=0,AMB=null;
-function fx(on,done){const T=window.THREE,box=E('div');box.id='oh-fx';box.innerHTML='<canvas></canvas><div class="oh-fxt"><b></b><ul></ul></div>';document.body.append(box);
- const L=on?['Linking inquiries and clients…','Reading inbox and team chat…','Calibrating the copilot…','AI mode is live']:['Saving your preferences…','Releasing the copilot…','Back to standard mode'],ul=box.querySelector('ul'),dur=RM||!T?1000:on?3800:2200;
- box.querySelector('b').textContent=on?'Transforming Orchid into AI mode':'Returning to standard mode';L.forEach((m,i)=>setTimeout(()=>ul.append(E('li','',m)),i*dur/L.length));
- let raf,rend,fin=false;const end=()=>{if(fin)return;fin=true;cancelAnimationFrame(raf);done&&done();box.classList.add('out');setTimeout(()=>{rend&&rend.dispose();box.remove()},600)};setTimeout(end,dur);if(RM||!T)return;
- try{rend=new T.WebGLRenderer({canvas:box.querySelector('canvas'),alpha:true,antialias:true})}catch(e){return}
- rend.setPixelRatio(Math.min(devicePixelRatio||1,2));rend.setSize(innerWidth,innerHeight,false);const sc=new T.Scene(),cam=new T.PerspectiveCamera(55,innerWidth/innerHeight,.1,400),g=new T.Group(),AD=T.AdditiveBlending;sc.add(g);
- const N=innerWidth<700?900:1800,S=new Float32Array(N*3),G=new Float32Array(N*3),P=new Float32Array(N*3),C=new Float32Array(N*3),c1=new T.Color(0x22d3ee),c2=new T.Color(0xa78bfa),cc=new T.Color();
- for(let i=0;i<N;i++){const r=50+Math.random()*70,a=Math.random()*6.283,b=Math.acos(2*Math.random()-1);S.set([r*Math.sin(b)*Math.cos(a),r*Math.cos(b),r*Math.sin(b)*Math.sin(a)],i*3);
-  const y=1-(i+.5)/N*2,rr=Math.sqrt(1-y*y),th=i*2.399963,R=7+Math.random()*1.5;G.set([Math.cos(th)*rr*R,y*R,Math.sin(th)*rr*R],i*3);cc.copy(c1).lerp(c2,Math.random());C.set([cc.r,cc.g,cc.b],i*3)}
- const pg=new T.BufferGeometry();pg.setAttribute('position',new T.BufferAttribute(P,3));pg.setAttribute('color',new T.BufferAttribute(C,3));g.add(new T.Points(pg,new T.PointsMaterial({size:1.3,vertexColors:true,transparent:true,opacity:.95,blending:AD,depthWrite:false})));
- const core=new T.Mesh(new T.SphereGeometry(3,32,32),new T.MeshBasicMaterial({color:0x22d3ee})),ico=new T.Mesh(new T.IcosahedronGeometry(6,1),new T.MeshBasicMaterial({color:0x4aa8ff,wireframe:true,transparent:true,opacity:.5})),shock=new T.Mesh(new T.RingGeometry(.97,1,96),new T.MeshBasicMaterial({color:0x22d3ee,transparent:true,opacity:0,side:T.DoubleSide,blending:AD}));shock.rotation.x=1.2;g.add(core,ico,shock);
- const rg=[0,1].map(k=>{const r=new T.Mesh(new T.TorusGeometry(11+k*3,.08,8,96),new T.MeshBasicMaterial({color:k?0x1b96ff:0x22d3ee,transparent:true,opacity:.7,blending:AD}));r.rotation.x=k*1.2;g.add(r);return r});
- const t0=performance.now(),ease=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
- const f=()=>{raf=requestAnimationFrame(f);const p=Math.min(1,(performance.now()-t0)/dur),q=on?ease(p):1-ease(p),sw=(1-q)*3,cs=Math.cos(sw),sn=Math.sin(sw);g.rotation.y+=.012;cam.position.z=on?85-q*30:55+(1-q)*30;
-  for(let i=0;i<N;i++){const x=S[i*3]*(1-q)+G[i*3]*q,z=S[i*3+2]*(1-q)+G[i*3+2]*q;P[i*3]=x*cs-z*sn;P[i*3+1]=S[i*3+1]*(1-q)+G[i*3+1]*q;P[i*3+2]=x*sn+z*cs}
-  pg.attributes.position.needsUpdate=true;const k=.35+q*.65;core.scale.setScalar(k*(1+Math.sin(p*30)*.05));ico.scale.setScalar(k);rg.forEach((r,i)=>{r.scale.setScalar(k);r.rotation.z+=.02*(i+1)});
-  const sp=on?Math.max(0,(p-.8)/.2):Math.min(1,p/.35);shock.scale.setScalar(1+sp*60);shock.material.opacity=(on?p>.8:true)?.8*(1-sp):0;cam.lookAt(0,0,0);rend.render(sc,cam)};f()}
-function orb(cv){const T=window.THREE;if(!T||RM)return null;let r;try{r=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true})}catch(e){return null}r.setSize(240,240,false);const s=new T.Scene(),c=new T.PerspectiveCamera(50,1,.1,100);c.position.z=22;
- const a=new T.Mesh(new T.SphereGeometry(3,24,24),new T.MeshBasicMaterial({color:0x22d3ee})),b=new T.Mesh(new T.IcosahedronGeometry(6,1),new T.MeshBasicMaterial({color:0x1b96ff,wireframe:true})),t=[0,1].map(k=>new T.Mesh(new T.TorusGeometry(8.5+k*2,.1,8,64),new T.MeshBasicMaterial({color:k?0xa78bfa:0x22d3ee})));s.add(a,b,...t);t[1].rotation.x=1.1;let id;
- const f=()=>{id=requestAnimationFrame(f);b.rotation.y+=.01;t[0].rotation.z+=.02;t[1].rotation.y+=.015;a.scale.setScalar(1+Math.sin(Date.now()/300)*.08);r.render(s,c)};f();return()=>{cancelAnimationFrame(id);r.dispose()}}
-function ambient(){const T=window.THREE;if(AMB||!T||RM)return;const cv=E('canvas');cv.id='oh-amb';document.body.prepend(cv);let rend;try{rend=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:false,powerPreference:'low-power'})}catch(e){cv.remove();return}
- const sc=new T.Scene(),cam=new T.PerspectiveCamera(60,1,1,400),N=innerWidth<860?34:62,P=[],V=[];cam.position.z=90;
- for(let i=0;i<N;i++){P.push(new T.Vector3((Math.random()-.5)*190,(Math.random()-.5)*110,(Math.random()-.5)*60));V.push(new T.Vector3((Math.random()-.5)*.06,(Math.random()-.5)*.06,(Math.random()-.5)*.03))}
- const pg=new T.BufferGeometry(),pa=new Float32Array(N*3),ML=N*6,lg=new T.BufferGeometry(),la=new Float32Array(ML*6);pg.setAttribute('position',new T.BufferAttribute(pa,3));lg.setAttribute('position',new T.BufferAttribute(la,3));
- sc.add(new T.Points(pg,new T.PointsMaterial({color:0x1b96ff,size:2.2,transparent:true,opacity:.6,depthWrite:false})),new T.LineSegments(lg,new T.LineBasicMaterial({color:0x4aa8ff,transparent:true,opacity:.25})));
- const size=()=>{rend.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()};size();addEventListener('resize',size);let raf,mx=0,my=0;const mm=e=>{mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5};addEventListener('pointermove',mm);
- const f=()=>{raf=requestAnimationFrame(f);if(document.hidden)return;let n=0;for(let i=0;i<N;i++){const p=P[i];p.add(V[i]);if(Math.abs(p.x)>95)V[i].x*=-1;if(Math.abs(p.y)>55)V[i].y*=-1;if(Math.abs(p.z)>30)V[i].z*=-1;pa[i*3]=p.x;pa[i*3+1]=p.y;pa[i*3+2]=p.z;
-  for(let j=i+1;j<N&&n<ML;j++)if(p.distanceToSquared(P[j])<720){la.set([p.x,p.y,p.z,P[j].x,P[j].y,P[j].z],n*6);n++}}
-  lg.setDrawRange(0,n*2);pg.attributes.position.needsUpdate=true;lg.attributes.position.needsUpdate=true;cam.position.x+=(mx*14-cam.position.x)*.03;cam.position.y+=(-my*8-cam.position.y)*.03;cam.lookAt(0,0,0);rend.render(sc,cam)};f();
- AMB=()=>{cancelAnimationFrame(raf);removeEventListener('resize',size);removeEventListener('pointermove',mm);rend.dispose();cv.remove();AMB=null}}
-const VC={overview:['Plan my day','What needs my attention?'],inquiries:['Who should I follow up first?','Compose an email to my hottest lead'],clients:['Which clients need attention?'],tasks:['What to do on my overdue tasks?','Prioritize my tasks'],cases:['Summarize my open cases','Which case is most at risk?'],chat:['What should I reply to my latest team chat?'],messages:['Reply to my latest email'],deals:['Which deals are at risk?','Suggest next steps for my deals']};
-function buildDock(){dock=E('aside');dock.id='oh-dock';dock.setAttribute('aria-label','Orchid AI copilot');
- dock.innerHTML='<div class="od-h"><div class="od-orb"></div><div><b>Orchid AI</b><small>Full assist · ON</small></div><button class="oh-b g s" data-a="hub" title="Open the 3D command center">3D view</button><button class="od-sw" data-a="off" role="switch" aria-checked="true" aria-label="Turn AI mode off"><i></i></button><button class="oh-x" data-a="close" aria-label="Close panel">✕</button></div><div class="od-ctx"></div><div class="od-lv" role="group" aria-label="Assist level"><button data-l="suggest">Suggest</button><button data-l="assist">Assist</button><button data-l="full">Full</button><button class="pro" data-a="pro" title="Proactive alerts">🔔</button></div><div class="od-ins"></div><div class="od-qc"></div><button class="oh-b od-ap" data-a="auto">⚡ Autopilot: prepare my day</button><div class="od-log"></div>';
- document.body.append(dock);const log=dock.querySelector('.od-log'),c=mountChat(log,dock,null,'AI mode is on. I can see the screen you are on and will flag what needs attention. Ask me anything, or press Autopilot and I will prepare your day. You approve every action before it runs.');dsay=c;
- dock.onclick=e=>{const l=e.target.closest('[data-l]');if(l){setLevel(l.dataset.l);return}const a=e.target.closest('[data-a]');if(!a)return;const k=a.dataset.a;if(k==='close')openDock(false);else if(k==='hub')open();else if(k==='off'){if(confirm('Turn off AI mode? The CRM goes back to standard mode.'))setMode(false)}else if(k==='pro'){SET.proactive=!SET.proactive;savePrefs({proactive:SET.proactive});dockRefresh()}else if(k==='auto')c.say('Run autopilot: review everything and prepare my day. Give me a prioritized plan of at most 5 steps, then propose the most valuable actions ready to confirm (up to 4): follow-up emails for leads going cold, tasks for what is overdue, case notes or status updates. Do not send anything yet.')}}
-function dockRefresh(){if(!dock)return;dockLast=Date.now();dock.querySelectorAll('[data-l]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.l===SET.level)));dock.querySelector('[data-a=pro]').setAttribute('aria-pressed',String(SET.proactive));dock.querySelector('.od-h small').textContent=({suggest:'Suggest only',assist:'Assist',full:'Full assist'}[SET.level])+' · ON';const a=A=analyse(),v=(D()||{}).view||'overview',ins=[];dock.querySelector('.od-ctx').textContent='ON '+v[0].toUpperCase()+v.slice(1)+' · '+a.rows.length+' open inquiries';
- if(a.cold.length)ins.push(['⚠ '+a.cold.length+' going cold','Draft follow-up emails for my leads that are going cold and propose sending them']);if(a.od.length)ins.push(['⏰ '+a.od.length+' overdue','What should I do about my overdue tasks? Propose updates for them']);if(a.hot.length)ins.push(['🔥 '+a.hot.length+' hot leads','Which hot leads should I contact today and what should I say?']);if(a.oc.length)ins.push(['🧰 '+a.oc.length+' open cases','Summarize my open cases and tell me which is most at risk']);
- const mk=(t,q,c)=>{const b=E('button','oh-b g s',t);b.onclick=()=>dsay.say(q);return b};dock.querySelector('.od-ins').replaceChildren(...ins.slice(0,4).map(x=>mk(x[0],x[1])));dock.querySelector('.od-qc').replaceChildren(...(VC[v]||['Plan my day','What can you do?']).map(x=>mk(x,x)))}
-function openDock(v){if(!ON)return;if(!dock)buildDock();document.documentElement.classList.toggle('oh-dock-open',v);if(v)btn.classList.remove('ping');if(v){dockRefresh();setTimeout(()=>dsay.focus(),80)}}
-/* ---------- per-tool AI switches (shared mini 3D orb on each) ---------- */
-const TOOLS={},RES={},Q=[];let qb=false,MINI=null;try{Object.assign(TOOLS,JSON.parse(localStorage.getItem('orchid_ai_tools')||'{}'))}catch(e){}
-async function pump(){if(qb)return;qb=true;while(Q.length){try{await Q.shift()()}catch(e){}await new Promise(r=>setTimeout(r,800))}qb=false}
-const tkey=c=>{const h=c.querySelector('h1,h2,h3,h4,.card-title,.title');return((D()||{}).view||'overview')+'|'+(h?h.textContent:(c.textContent||'').slice(0,120)).replace(/\s+/g,' ').trim().slice(0,40)};
-function show(st,c,key){st.replaceChildren(E('b','','✦ AI ASSIST'),E('div','',RES[key]));const r=E('button','oh-b g s','↻ Refresh');r.onclick=()=>{delete RES[key];assist(c,key)};st.append(r)}
-async function assist(c,key){let st=c.querySelector(':scope>.oh-as');if(!st){st=E('div','oh-as');c.append(st)}
- st.style.display='none';const x=(c.innerText||'').replace(/\s+/g,' ').slice(0,700);st.style.display='';
- st.replaceChildren(E('b','','✦ AI ASSIST'));const dd=E('div','oh-dots');dd.append(E('i'),E('i'),E('i'));st.append(dd);
- try{A=analyse();const d=await callAI([{role:'user',text:'Assist me with this tool on the "'+((D()||{}).view||'overview')+'" page: "'+x+'". Give max 4 short "-" bullets of insight, then propose up to 3 useful actions.\n\n'+ctx(A)+lvl()}]);
-  RES[key]=d.reply;show(st,c,key);const cards=(SET.level==='suggest'?[]:d.actions||[]).slice(0,3).map(a=>actionCard(a,st));
-  if(SET.level==='full')cards.filter(k=>k&&k.__ok&&!['send_email','send_chat'].includes(k.__t)).forEach((k,i)=>setTimeout(()=>k.__ok.click(),700*(i+1)))}
- catch(e){RES[key]='⚠ '+e.message;show(st,c,key)}}
-function inject(c){const key=c.__key=tkey(c);if(getComputedStyle(c).position==='static')c.style.position='relative';
- const tg=E('button','oh-tg');tg.type='button';tg.setAttribute('role','switch');tg.setAttribute('aria-label','AI assist for this tool');tg.innerHTML='<canvas width="52" height="52"></canvas><span>AI</span><i></i>';
- const sync=()=>{const on=TOOLS[key]!==false;tg.setAttribute('aria-checked',String(on));c.classList.toggle('oh-ai-on',on);const st=c.querySelector(':scope>.oh-as');if(!on&&st)st.remove();if(on&&RES[key]!==undefined&&!st){const n=E('div','oh-as');c.append(n);show(n,c,key)}};
- tg.onclick=e=>{e.stopPropagation();TOOLS[key]=TOOLS[key]===false;try{localStorage.setItem('orchid_ai_tools',JSON.stringify(TOOLS))}catch(x){}savePrefs({tools:TOOLS});logAI('tool',(TOOLS[key]?'on: ':'off: ')+key);sync()};
- c.append(tg);sync()}
-function scan(){if(!ON)return;document.querySelectorAll('.card,.panel').forEach(c=>{if(c.closest('#oh-fl,#oh-dock,#oh,#oh-act')||(c.parentElement&&c.parentElement.closest('.card,.panel')))return;const b=c.getBoundingClientRect();if(b.width<180||b.height<70)return;if(!c.querySelector(':scope>.oh-tg'))inject(c);
-  const key=c.__key;if(TOOLS[key]!==false&&RES[key]===undefined&&!c.__q&&b.top<innerHeight&&b.bottom>0){c.__q=1;Q.push(()=>{c.__q=0;return TOOLS[key]!==false&&RES[key]===undefined?assist(c,key):0});pump()}})}
-function miniOn(){const T=window.THREE;if(MINI||!T||RM)return;let r;try{r=new T.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true})}catch(e){return}
- r.setSize(64,64,false);const sc=new T.Scene(),cam=new T.PerspectiveCamera(45,1,.1,50);cam.position.z=15;const core=new T.Mesh(new T.SphereGeometry(2,16,16),new T.MeshBasicMaterial()),ico=new T.Mesh(new T.IcosahedronGeometry(4.4,1),new T.MeshBasicMaterial({wireframe:true})),ring=new T.Mesh(new T.TorusGeometry(6,.18,8,48),new T.MeshBasicMaterial());ring.rotation.x=1.1;sc.add(core,ico,ring);
- const cols=[[0x64748b,0x475569,0x475569],[0x22d3ee,0x4aa8ff,0xa78bfa]];let raf,t=0,last=0;
- const f=n=>{raf=requestAnimationFrame(f);if(document.hidden||n-last<33)return;last=n;t+=.05;[0,1].forEach(on=>{const cl=cols[on];core.material.color.set(cl[0]);ico.material.color.set(cl[1]);ring.material.color.set(cl[2]);const sp=on?1.6:.4;ico.rotation.y=t*sp;ico.rotation.x=t*sp*.5;ring.rotation.z=t*sp;core.scale.setScalar(1+Math.sin(t*3)*.08*on);r.render(sc,cam);
-   document.querySelectorAll('.oh-tg[aria-checked="'+(on?'true':'false')+'"] canvas').forEach(c=>{const x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.drawImage(r.domElement,0,0,c.width,c.height)})})};
- requestAnimationFrame(f);MINI=()=>{cancelAnimationFrame(raf);r.dispose();MINI=null}}
-function cleanTools(){MINI&&MINI();Q.length=0;document.querySelectorAll('.oh-tg,.oh-as').forEach(n=>n.remove());document.querySelectorAll('.oh-ai-on').forEach(n=>n.classList.remove('oh-ai-on'))}
-let FL=null;
-function flOn(){if(FL)return;const T=window.THREE,box=E('div');box.id='oh-fl';box.innerHTML='<canvas></canvas><button id="oh-orb" aria-label="Toggle the floating AI assists" aria-expanded="true"></button>';document.body.append(box);
- const cv=box.querySelector('canvas'),orbB=box.querySelector('#oh-orb'),ask=E('button','fl-ask','✦ Ask AI');ask.setAttribute('aria-label','Ask AI about this section');box.append(ask);
- let rend=null,sc,cam,g,ico,rings,lg,la,pg,pa,sat=[],chips=[],sig='',cur=null,raf,t=0,op=0,open=true,mx=innerWidth,my=innerHeight,tx=0,ty=0,hx=innerWidth-110,PN=18;
- if(T&&!RM){try{rend=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true,powerPreference:'low-power'})}catch(e){rend=null}}
- if(rend){const AD=T.AdditiveBlending;rend.setPixelRatio(Math.min(devicePixelRatio||1,2));rend.setSize(innerWidth,innerHeight,false);sc=new T.Scene();cam=new T.OrthographicCamera(0,innerWidth,0,-innerHeight,-500,500);cam.position.z=100;g=new T.Group();
-  const core=new T.Mesh(new T.SphereGeometry(9,24,24),new T.MeshBasicMaterial({color:0x22d3ee})),halo=new T.Mesh(new T.SphereGeometry(15,24,24),new T.MeshBasicMaterial({color:0x1b96ff,transparent:true,opacity:.25,blending:AD,depthWrite:false}));
-  ico=new T.Mesh(new T.IcosahedronGeometry(21,1),new T.MeshBasicMaterial({color:0x4aa8ff,wireframe:true,transparent:true,opacity:.6}));
-  rings=[0,1].map(k=>{const r=new T.Mesh(new T.TorusGeometry(28+k*5,.9,8,72),new T.MeshBasicMaterial({color:k?0x1b96ff:0x22d3ee,transparent:true,opacity:.8,blending:AD}));r.rotation.x=k*1.2;g.add(r);return r});g.add(core,halo,ico);sc.add(g);
-  for(let i=0;i<9;i++){const m=new T.Mesh(i%2?new T.OctahedronGeometry(5+Math.random()*6):new T.IcosahedronGeometry(5+Math.random()*6),new T.MeshBasicMaterial({color:i%3?0x4aa8ff:0xa78bfa,wireframe:true,transparent:true,opacity:.5}));m.position.set(Math.random()*innerWidth,-Math.random()*innerHeight,-50);m.userData.v=[(Math.random()-.5)*.35,(Math.random()-.5)*.35,Math.random()*.02+.005];sc.add(m);sat.push(m)}
-  la=new Float32Array(12*6);lg=new T.BufferGeometry();lg.setAttribute('position',new T.BufferAttribute(la,3));sc.add(new T.LineSegments(lg,new T.LineBasicMaterial({color:0x22d3ee,transparent:true,opacity:.4,blending:AD})));
-  pa=new Float32Array(PN*3);pg=new T.BufferGeometry();pg.setAttribute('position',new T.BufferAttribute(pa,3));sc.add(new T.Points(pg,new T.PointsMaterial({color:0xffffff,size:3,transparent:true,opacity:.9,blending:AD,depthWrite:false})))}
- const items=()=>{const a=A=analyse(),v=(D()||{}).view||'overview',L=[];
-  if(a.cold.length)L.push(['⚠ '+a.cold.length+' going cold — draft follow-ups','Draft follow-up emails for my leads that are going cold and propose sending them',1]);
-  if(a.od.length)L.push(['⏰ '+a.od.length+' overdue — fix them','What should I do about my overdue tasks? Propose updates for them',1]);
-  if(a.hot.length)L.push(['🔥 '+a.hot.length+' hot leads — contact today','Which hot leads should I contact today and what should I say?']);
-  if(a.oc.length)L.push(['🧰 '+a.oc.length+' open cases — what is at risk?','Summarize my open cases and tell me which is most at risk']);
-  const q=(VC[v]||['Plan my day'])[0];L.push(['✦ '+q,q]);L.push(['⚡ Autopilot: prepare my day','__auto']);L.push(['💬 Full chat','__chat']);L.push(['🧭 3D command center','__hub']);return L.slice(0,innerWidth<700?5:7)};
- const refresh=()=>{FL.last=Date.now();const L=items(),k=L.map(x=>x[0]).join('|');if(k===sig)return;sig=k;chips.forEach(c=>c.el.remove());chips=L.map(x=>{const el=E('button','fl-c'+(x[2]?' d':''),x[0]);box.append(el);
-   el.onclick=()=>{if(x[1]==='__hub')return open();openDock(true);if(x[1]==='__chat')return;if(x[1]==='__auto')dock.querySelector('[data-a=auto]').click();else dsay.say(x[1])};return{el,w:0,x:0,y:0}});
-  requestAnimationFrame(()=>chips.forEach(c=>c.w=c.el.offsetWidth))};
- orbB.onclick=()=>{open=!open;orbB.setAttribute('aria-expanded',String(open))};
- const pm=e=>{mx=e.clientX;my=e.clientY;const tg=e.target;if(tg===ask)return;const c=tg.closest&&!tg.closest('#oh-fl,#oh-dock,#oh,#oh-act')&&tg.closest('.card,.panel');
-  if(0){const b=c.getBoundingClientRect();if(b.width>180&&b.height>70&&b.top<innerHeight-40){cur=c;ask.style.display='block';ask.style.transform='translate('+Math.min(innerWidth-96,b.right-92)+'px,'+Math.max(6,b.top+8)+'px)';return}}cur=null;ask.style.display='none'};
- ask.onclick=()=>{if(!cur)return;const x=(cur.innerText||'').replace(/\s+/g,' ').slice(0,300);openDock(true);dsay.say('Help me with this part of the screen: "'+x+'". Explain what matters and propose the best actions.')};
- const rs=()=>{if(rend){rend.setSize(innerWidth,innerHeight,false);cam.right=innerWidth;cam.bottom=-innerHeight;cam.updateProjectionMatrix()}};addEventListener('pointermove',pm,{passive:true});addEventListener('resize',rs);
- const f=()=>{raf=requestAnimationFrame(f);if(document.hidden)return;const k=think?3:1,mob=innerWidth<700;t+=.016*k;op+=((open?1:0)-op)*.1;
-  const hT=innerWidth-(mob?56:110)-(document.documentElement.classList.contains('oh-dock-open')&&innerWidth>1100?384:0),hy=innerHeight-(mob?150:130);hx+=(hT-hx)*.08;
-  tx+=(Math.max(-36,Math.min(36,(mx-hx)*.04))-tx)*.05;ty+=(Math.max(-36,Math.min(36,(my-hy)*.04))-ty)*.05;const ox=hx+tx,oy=hy+ty+Math.sin(t*1.3)*7;
-  orbB.style.transform='translate('+(ox-30)+'px,'+(oy-30)+'px)';
-  chips.forEach((c,i)=>{c.x=ox-46-c.w+Math.sin(t*1.1+i*1.7)*5;c.y=oy-(54+i*46)*op+Math.cos(t*1.3+i)*4;c.el.style.transform='translate('+c.x+'px,'+(c.y-17)+'px)';c.el.style.opacity=op.toFixed(2);c.el.style.pointerEvents=op>.6?'auto':'none'});
-  if(rend){g.position.set(ox,-oy,0);g.rotation.y+=.012*k;g.rotation.x=.3+Math.sin(t)*.1;ico.rotation.z-=.006*k;rings.forEach((r,i)=>{r.rotation.z+=(.01+i*.006)*k;r.material.color.set(think?0xa78bfa:i?0x1b96ff:0x22d3ee)});g.scale.setScalar(1+Math.sin(t*2)*.05*(think?2.5:1));
-   sat.forEach(m=>{const v=m.userData.v;m.position.x+=v[0];m.position.y+=v[1];if(m.position.x<-20)m.position.x=innerWidth+20;if(m.position.x>innerWidth+20)m.position.x=-20;if(m.position.y>20)m.position.y=-innerHeight-20;if(m.position.y<-innerHeight-20)m.position.y=20;m.rotation.x+=v[2];m.rotation.y+=v[2]*1.3});
-   chips.forEach((c,i)=>{if(i>=12)return;la.set([ox,-oy,0,c.x+c.w,-c.y,0],i*6);for(let j=0;j<3;j++){const n=i*3+j;if(n>=PN)break;const p=((t*.4+j/3+i*.13)%1)*op;pa[n*3]=ox+(c.x+c.w-ox)*p;pa[n*3+1]=-oy+(-c.y+oy)*p;pa[n*3+2]=0}});
-   lg.setDrawRange(0,chips.length*2);lg.attributes.position.needsUpdate=true;pg.setDrawRange(0,Math.min(PN,chips.length*3));pg.attributes.position.needsUpdate=true;rend.render(sc,cam)}};
- FL={last:0,refresh,off(){cancelAnimationFrame(raf);removeEventListener('pointermove',pm);removeEventListener('resize',rs);if(rend){rend.dispose();try{rend.forceContextLoss()}catch(e){}}box.remove();FL=null}};refresh();f()}
-function flOff(){FL&&FL.off()}
-function applyOn(){flOn();miniOn();ON=true;const h=document.documentElement;h.classList.add('oh-reveal');setTimeout(()=>h.classList.remove('oh-reveal'),1600);document.documentElement.classList.add('oh-ai');ambient();btn.innerHTML='<i></i>AI Hub · ON<b class="oh-sw" role="switch" aria-checked="true" aria-label="Turn off AI Hub"></b>';btn.classList.add('mode');btn.setAttribute('aria-label','Toggle the Orchid AI panel (Ctrl+K)')}
-function untilt(){document.querySelectorAll('.oh-tilt').forEach(n=>{n.style.transform='';n.classList.remove('oh-tilt')})}
-function applyOff(){ON=false;untilt();flOff();cleanTools();document.documentElement.classList.remove('oh-ai','oh-dock-open');AMB&&AMB();if(dock){dock.remove();dock=null}btn.innerHTML='<i></i>AI Hub';btn.classList.remove('mode');btn.setAttribute('aria-label','Switch Orchid to AI mode (Ctrl+K)')}
-function setMode(v){try{localStorage.setItem(KEY,v?'1':'0')}catch(e){}savePrefs({ai_mode:v});logAI('mode',v?'AI mode turned on':'AI mode turned off');fx(v,()=>{v?applyOn():applyOff()})}
-function askActivate(){if(document.getElementById('oh-act'))return;const m=E('div');m.id='oh-act';m.setAttribute('role','dialog');m.setAttribute('aria-modal','true');m.setAttribute('aria-label','Switch Orchid to AI mode');
- m.innerHTML='<div class="oa-c"><canvas width="240" height="240"></canvas><h3>Transform Orchid into <b>fully AI-assisted mode</b>?</h3><ul><li>A floating 3D assistant that follows you across every page and orbits the CRM with live suggestions</li><li>A 3D AI switch on every tool, so you choose exactly where AI assists you</li><li>Live alerts: leads going cold, overdue tasks, open cases</li><li>Composes and sends emails, replies in team chat, creates and updates leads, tasks, cases and deals</li><li>Autopilot prepares your day; Confirm all runs the safe steps in one tap</li></ul><div class="oa-b"><button class="oh-b g" data-n>Not now</button><button class="oh-b" data-y>✦ Activate AI mode</button></div><p>You stay in control: nothing is sent or saved until you confirm. Turn AI Hub off anytime with the switch on the AI Hub button.</p></div>';
- document.body.append(m);const stop=orb(m.querySelector('canvas')),ek=e=>{if(e.key==='Escape')close()},close=()=>{stop&&stop();m.remove();document.removeEventListener('keydown',ek)};document.addEventListener('keydown',ek);
- m.querySelector('[data-n]').onclick=close;m.querySelector('[data-y]').onclick=()=>{close();setMode(true)};m.onclick=e=>{if(e.target===m)close()};m.querySelector('[data-y]').focus()}
+async function logAI(kind,s){try{const u=await uid();if(u)await sbc().from('crm_ai_activity').insert({user_id:u,kind,summary:String(s).slice(0,500)})}catch(e){}}
+const VIEW={overview:'Home',inquiries:'Inquiries',clients:'Clients',tasks:'Tasks',cases:'Cases',deals:'Deals',messages:'Inbox',chat:'Team chat',calendar:'Calendar',sales:'Sales',automation:'Automations',productivity:'Productivity',tools:'Tools',members:'Members',team:'Team',approvals:'Approvals'};
+const VC={inquiries:['Who should I follow up first?','Write an email to my hottest lead'],tasks:['Plan my day','Which task should I do first?'],cases:['Summarize my open cases','Which case is most at risk?'],deals:['Which deals are at risk?','Suggest next steps for my deals'],clients:['Which clients need attention?'],messages:['Reply to my latest email'],chat:['What should I reply to my latest team chat?'],calendar:['Add an event for tomorrow']};
+const EG=['Add a lead: Anna Cruz, 0917 123 4567, wants a quote','Add a task for tomorrow: call Cafe Luna','Write a reply to my latest email','Set a meeting with Maria on Friday at 2pm','Tell me everything I should do today'];
+const done=new Set(),skip=new Set(),logs=[],tmr=()=>ymd(new Date(Date.now()+864e5));
+let P,fab,bub,inp,open=false,pin=null,lastN=0,shown=false;tab='next';
+const pg=()=>VIEW[(D()||{}).view]||'this page',scr=()=>{const b=P.querySelector('.oa-body');b.scrollTop=b.scrollHeight};
+
+/* ---------- the queue: what needs the person, most urgent first ---------- */
+function queue(){const a=A=analyse(),q=[],t0=ymd(new Date());
+ a.od.forEach(t=>q.push({k:'t'+t.id,w:90,type:'task',t,title:t.title,why:'Overdue since '+t.due_date+'.'}));
+ a.rows.forEach(r=>{const i=r.i,hot=r.score>=60;if(r.cold||hot||i.status==='new')q.push({k:'i'+i.id,w:r.cold?80+r.score/10:hot?60:50,type:'inq',r,title:i.name,why:(r.cold?'Going cold: ':hot?'Hot lead: ':'New, not contacted yet: ')+i.status+', heat '+r.score+', silent '+ago(r.hrs)+'.'})});
+ a.openT.filter(t=>t.due_date===t0).forEach(t=>q.push({k:'t'+t.id,w:55,type:'task',t,title:t.title,why:'Due today.'}));
+ a.oc.slice(0,5).forEach(c=>q.push({k:'c'+c.id,w:40,type:'case',c,title:c.subject||'Case',why:'Open case'+(c.priority?' · '+c.priority+' priority':'')+'.'}));
+ const seen=new Set();return q.filter(x=>!done.has(x.k)&&!seen.has(x.k)&&seen.add(x.k)).sort((x,y)=>(skip.has(x.k)-skip.has(y.k))||y.w-x.w).slice(0,15)}
+
+/* ---------- one-tap actions for each kind of item ---------- */
+function acts(x,ex){const T=tmr(),ai=async p=>{ex.replaceChildren();const w=E('div','oh-m a'),dd=E('div','oh-dots');dd.append(E('i'),E('i'),E('i'));w.append(dd);ex.append(w);
+  try{const d=await callAI([{role:'user',text:p+'\n\n'+ctx(A)}]);w.textContent='';typeInto(w,d.reply);(d.actions||[]).slice(0,3).forEach(a=>actionCard(a,ex))}catch(e){w.className='oh-m e';w.textContent=e.message}return null};
+ if(x.type==='task')return[['✓ Mark it done',()=>EX.update_task({id:x.t.id,done:true}).then(()=>'Done: '+x.t.title),1],['Do it tomorrow',()=>EX.update_task({id:x.t.id,due_date:T}).then(()=>'Moved to tomorrow: '+x.t.title)],['How do I do this?',()=>ai('Give me a short concrete plan (max 3 bullets) to finish this task today: "'+x.t.title+'". If an email, task or note would help, propose it as an action.')]];
+ if(x.type==='inq'){const i=x.r.i,r=x.r,L=[['✉ Write the email for me',()=>ai('Compose a follow-up email to '+i.name+' (inquiry id '+i.id+', '+i.status+', silent '+ago(r.hrs)+') based on everything in the CRM about them: their message, our emails, tasks and notes. Then propose sending it with a send_email action.'),1],['☎ I already contacted them',()=>EX.log_touch({id:i.id})]];
+  if(i.status==='new')L.push(['Mark as contacted',()=>EX.update_inquiry({id:i.id,status:'contacted',label:i.name})]);
+  L.push(['+ Follow-up task for tomorrow',async()=>{const p=window.__orchidCrm.plan({type:'create_task',title:'Follow up with '+i.name,due_date:T,priority:r.cold?'high':'normal'});if(p.error)throw new Error(p.error);return p.exec()}]);return L}
+ return[['What should I do?',()=>ai('Case "'+(x.c.subject||'')+'" (id '+x.c.id+', '+(x.c.priority||'')+'): tell me in max 3 bullets what to do next, and propose a case note or status update as an action if useful.'),1],['Open the cases page',()=>{setOpen(false);window.__orc.go('cases');return null}]]}
+function finish(x,m){done.add(x.k);pin=null;logs.unshift('✓ '+m);logs.length=Math.min(logs.length,6);logAI(x.type,m);window.__orc.refresh&&window.__orc.refresh().catch(()=>{});paint()}
+function card(x,b){const c=E('div','oa-card'),ex=E('div','oa-ex'),bar=E('div','oa-btns');ex.__ok=(a,m)=>finish(x,m);
+ c.append(E('span','oa-tag',{task:'TASK',inq:'LEAD',case:'CASE'}[x.type]),E('h3','',x.title),E('p','',x.why));
+ const bs=()=>bar.querySelectorAll('button');
+ acts(x,ex).forEach(([l,fn,pri])=>{const bt=E('button','oa-b'+(pri?' p':''),l);bt.onclick=async()=>{bs().forEach(n=>n.disabled=true);bt.textContent='Working…';try{const m=await fn();if(m)finish(x,m);else{bs().forEach(n=>n.disabled=false);bt.textContent=l}}catch(e){bs().forEach(n=>n.disabled=false);bt.textContent=l;ex.append(E('div','oh-m e',e.message||'Something went wrong.'))}};bar.append(bt)});
+ const sk=E('button','oa-b g','Skip for now');sk.onclick=()=>{skip.add(x.k);pin=null;paint()};bar.append(sk);c.append(bar,ex);b.append(c)}
+function nextTab(b){const q=queue();
+ if(!q.length){const ok=E('div','oa-card oa-okc');ok.append(E('h3','','You are all caught up ✓'),E('p','','Nothing urgent right now. I keep watching your CRM and will tell you the moment something needs you. You can also tell me anything to do in the “Ask / do it for me” tab.'));b.append(ok)}
+ else{const x=q.find(i=>i.k===pin)||q[0];q.splice(q.indexOf(x),1);q.unshift(x);b.append(E('div','oa-step','NEXT STEP · '+q.length+' waiting · just tap, I do the work'));card(x,b);
+  if(q.length>1){b.append(E('small','oa-lb','Up next'));q.slice(1,6).forEach(y=>{const r=E('button','oa-row');r.append(E('b','',y.title),E('span','',y.why));r.onclick=()=>{pin=y.k;paint()};b.append(r)})}}
+ if(logs.length){const rc=E('div','oa-rc');rc.append(E('b','','Done so far'),...logs.slice(0,4).map(l=>E('div','',l)));b.append(rc)}}
+
+/* ---------- chat: say it in plain words, it does it ---------- */
+async function say(t){t=t.trim();if(!t||busy)return;busy=true;if(tab!=='ask'){tab='ask';paint()}const log=$('.oa-log');log.querySelectorAll('.oa-fu,.oa-hi').forEach(n=>n.remove());
+ log.append(E('div','oh-m u',t));const w=E('div','oh-m a'),dd=E('div','oh-dots');dd.append(E('i'),E('i'),E('i'));w.append(dd);log.append(w);scr();hist.push({role:'user',text:t});A=analyse();
+ try{const d=await callAI(hist.slice(0,-1).concat({role:'user',text:t+'\n\n'+ctx(A)+'\n[Screen] The user is on the "'+((D()||{}).view||'overview')+'" page. Act like a patient guide: do the work for them, propose actions to confirm, keep it short and simple, and end with the single best next step.'}));
+  hist.push({role:'model',text:d.reply});w.textContent='';typeInto(w,d.reply,scr);(d.actions||[]).slice(0,4).forEach(a=>actionCard(a,log));
+  const fu=E('div','oa-chips oa-fu');[['Do the next step for me','Do the next best step for me and propose the action.'],['Explain it simply','Explain that again in simple words, step by step.']].forEach(([l,q])=>{const b=E('button','oa-b g',l);b.onclick=()=>say(q);fu.append(b)});log.append(fu)}
+ catch(e){hist.pop();w.className='oh-m e';w.textContent=e.message}busy=false;scr()}
+function askTab(b){const log=E('div','oa-log');log.style.cssText='display:flex;flex-direction:column;gap:10px';b.append(log);
+ if(!hist.length){log.append(E('div','oa-hi','Tell me what you want and I will do it. I read your leads, clients, tasks, cases, deals, inbox and team chat, write and send emails, add records and update them. You confirm before anything changes.'));
+  const g=E('div','oa-chips');(VC[(D()||{}).view]||[]).concat(['What should I do today?']).forEach(s=>{const x=E('button','oa-b',s);x.onclick=()=>say(s);g.append(x)});
+  const e2=E('div','oa-chips col');EG.forEach(s=>{const x=E('button','oa-b g',s);x.onclick=()=>{inp.value=s;inp.focus()};e2.append(x)});log.append(E('small','oa-lb','Tap to start on '+pg()),g,E('small','oa-lb','Or say it your way (tap to edit first)'),e2)}
+ hist.forEach(m=>log.append(E('div','oh-m '+(m.role==='user'?'u':'a'),m.text)))}
 
 /* ---------- shell ---------- */
-let root,btn;
-function open(){if(!D()||!D().me)return;A=analyse();root.classList.add('on');$('.oh-st').textContent='● ORCHID CORE ONLINE · scanned '+((A.d.inquiries||[]).length+(A.d.clients||[]).length+(A.d.tasks||[]).length+(A.d.cases||[]).length)+' records'+(sample?' · sample data':'');
- const go=()=>{R=build($('#oh canvas'),A);if(!R)$('.oh-st').textContent+=' · 3D unavailable on this device'};window.THREE?go():setTimeout(go,600);paint();document.addEventListener('keydown',esc)}
-function close(){root.classList.remove('on');if(R){R();R=null}document.removeEventListener('keydown',esc)}
-const esc=e=>{if(e.key==='Escape')close()};
-function init(){if(!window.THREE){const t=document.createElement('script');t.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';t.async=true;document.head.append(t)}
- root=E('div');root.id='oh';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','Orchid AI Hub');
- root.innerHTML='<canvas></canvas><div class="oh-top"><h2>Orchid <b>AI Hub</b></h2><div class="oh-st"></div><button class="oh-x" aria-label="Close">✕</button></div><div class="oh-tip"></div><div class="oh-leg"><span style="--c:#4aa8ff">Inquiry</span><span style="--c:#fbbf24">Hot lead</span><span style="--c:#fb7185">Going cold / overdue</span><span style="--c:#34d399">Client</span><span style="--c:#2dd4bf">Case</span><span style="--c:#a78bfa">Task</span></div><div class="oh-p"><div class="oh-tabs" role="tablist"><button role="tab" data-t="brief">Brief</button><button role="tab" data-t="radar">Radar</button><button role="tab" data-t="ask">Ask AI</button></div><div class="oh-body"></div></div>';
- document.body.append(root);root.querySelector('.oh-x').onclick=close;root.querySelectorAll('[role=tab]').forEach(t=>t.onclick=()=>{tab=t.dataset.t;paint()});
- btn=E('button','','');btn.id='oh-btn';btn.type='button';btn.innerHTML='<i></i>AI Hub';btn.setAttribute('aria-label','Switch Orchid to AI mode (Ctrl+K)');btn.onclick=e=>{if(ON&&e.target.closest('.oh-sw')){if(confirm('Turn off AI Hub? Every tool returns to standard mode.'))setMode(false);return}ON?openDock(!document.documentElement.classList.contains('oh-dock-open')):askActivate()};document.body.append(btn);
- addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'&&btn.classList.contains('on')){e.preventDefault();if(root.classList.contains('on'))close();else if(ON)openDock(true);else askActivate()}});
- setInterval(()=>{const d=D();btn.classList.toggle('on',!!(d&&d.me)&&!root.classList.contains('on'));if(!restored&&d&&d.me){restored=true;try{if(localStorage.getItem(KEY)==='1')applyOn()}catch(e){}loadPrefs().then(p=>{if(!p)return;SET.level=p.assist_level||SET.level;SET.proactive=p.proactive!==false;if(p.tools)Object.assign(TOOLS,p.tools);if(p.ai_mode&&!ON)applyOn();else if(!p.ai_mode&&ON)applyOff()})}if(ON&&dock&&document.documentElement.classList.contains('oh-dock-open')&&Date.now()-dockLast>3000)dockRefresh();if(ON&&FL&&Date.now()-FL.last>3000)FL.refresh();if(ON)scan()},1000);addEventListener('pointermove',e=>{if(!ON||RM||innerWidth<860)return;const c=e.target.closest&&e.target.closest('.card,.panel');untilt();if(!c)return;const b=c.getBoundingClientRect();if(b.width>700||c.contains(document.activeElement)&&document.activeElement.matches('input,textarea,select'))return;c.classList.add('oh-tilt');c.style.transform='perspective(900px) rotateY('+(((e.clientX-b.left)/b.width-.5)*6).toFixed(2)+'deg) rotateX('+((.5-(e.clientY-b.top)/b.height)*6).toFixed(2)+'deg)'},{passive:true});
- let sig='';setInterval(()=>{if(!ON||!SET.proactive||!D()||!D().me)return;const a=analyse(),n=a.cold.length+'/'+a.od.length;if(sig&&n!==sig&&(a.cold.length||a.od.length)){const m='AI: '+a.cold.length+' lead(s) going cold, '+a.od.length+' overdue task(s)';try{window.__orc.toast(m)}catch(e){}btn.classList.add('ping');logAI('alert',m)}sig=n},60000)}
+function paint(){if(!P)return;const b=P.querySelector('.oa-body'),n=Qs();P.querySelector('.oa-pg').textContent='You are on: '+pg();
+ P.querySelectorAll('[role=tab]').forEach(t=>{t.setAttribute('aria-selected',String(t.dataset.t===tab));if(t.dataset.t==='next')t.textContent='Next steps'+(n?' · '+n:'')});b.replaceChildren();(tab==='next'?nextTab:askTab)(b)}
+const Qs=()=>queue().length;
+function setOpen(v){open=v;document.documentElement.classList.toggle('oa-open',v);P.hidden=!v;fab.setAttribute('aria-expanded',String(v));if(v){bub.hidden=true;paint();setTimeout(()=>inp.focus(),80)}}
+function init(){fab=E('button','');fab.id='oa-fab';fab.type='button';fab.setAttribute('aria-label','Open Orchid Assist (Ctrl+K)');fab.innerHTML='<span>✦ Assist</span><b hidden></b>';bub=E('button','');bub.id='oa-bub';bub.hidden=true;
+ P=E('aside');P.id='oa';P.hidden=true;P.setAttribute('aria-label','Orchid Assist');
+ P.innerHTML='<div class="oa-h"><div class="oa-av">✦</div><div class="oa-ti"><b>Orchid Assist</b><small class="oa-pg"></small></div><button class="oa-x" aria-label="Close">✕</button></div><div class="oa-tabs" role="tablist"><button role="tab" data-t="next">Next steps</button><button role="tab" data-t="ask">Ask / do it for me</button></div><div class="oa-body"></div><div class="oa-in"><input aria-label="Tell Orchid Assist what to do" placeholder="Tell me what to do…"><button class="oh-b">Send</button></div>';
+ document.body.append(fab,bub,P);inp=P.querySelector('.oa-in input');const sn=P.querySelector('.oa-in button'),go=()=>{const v=inp.value;inp.value='';say(v)};
+ sn.onclick=go;inp.onkeydown=e=>{if(e.key==='Enter')go()};fab.onclick=bub.onclick=()=>setOpen(true);P.querySelector('.oa-x').onclick=()=>setOpen(false);
+ P.querySelectorAll('[role=tab]').forEach(t=>t.onclick=()=>{tab=t.dataset.t;paint()});
+ addEventListener('keydown',e=>{if(e.key==='Escape'&&open)setOpen(false);if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'&&fab.classList.contains('on')){e.preventDefault();setOpen(!open)}});
+ setInterval(()=>{const d=D(),ok=!!(d&&d.me);fab.classList.toggle('on',ok);if(!ok)return;const n=Qs(),bd=fab.querySelector('b');bd.hidden=!n;bd.textContent=n;
+  if(n>lastN&&!open){fab.classList.remove('ping');void fab.offsetWidth;fab.classList.add('ping')}lastN=n;
+  if(open){const t=P.querySelector('[data-t=next]');t.textContent='Next steps'+(n?' · '+n:'');P.querySelector('.oa-pg').textContent='You are on: '+pg()}
+  if(!shown&&n&&!open){shown=true;let s=null;try{s=sessionStorage.getItem('oa_b')}catch(e){}if(!s){bub.textContent='✦ I found '+n+' thing'+(n>1?'s':'')+' for you today. Tap and I will walk you through them.';bub.hidden=false;try{sessionStorage.setItem('oa_b','1')}catch(e){}setTimeout(()=>{bub.hidden=true},14000)}}},4000)}
 document.readyState==='loading'?addEventListener('DOMContentLoaded',init):init()
 })();</script>
