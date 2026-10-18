@@ -404,6 +404,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--brand);box-shadow:0 0
   .top-in>.sp{display:block!important;flex:1}
   .top-in>.muted{display:none!important}
 }
+.mprev{width:100%;height:280px;border:1px solid var(--line);border-radius:10px;background:#fff;margin-top:6px}.sigprev{border:1px solid var(--line);border-radius:10px;padding:16px;background:#fff;margin-top:6px;overflow:auto}.f2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}@media(max-width:560px){.f2{grid-template-columns:1fr}}
 </style>
 <style id="orchid-innovative-ui">
 /* =========================================================
@@ -2000,15 +2001,104 @@ async function sendEmailNow(p){
   if(r.error){let msg='Could not reach the email service. Check your connection and try again.';try{const j=await r.error.context.json();if(j&&j.error)msg=j.error}catch(e){}throw new Error(msg)}
   const d=r.data||{};if(!d.ok)throw new Error(d.error||'The email was not sent.');return d;
 }
-function composeEmail(o={}){
-  openForm({title:o.reply?'Reply':'New email',saveText:'Send email',
-    fields:[{k:'to',label:'To',type:'email',req:true,placeholder:'name@example.com'},{k:'subject',label:'Subject',req:true},{k:'body',label:'Message',type:'textarea',req:true}],
-    values:{to:o.to||'',subject:o.subject||'',body:o.body||''},
-    onSave:async v=>{
-      try{await sendEmailNow({to:v.to,subject:v.subject,body:v.body,request_id:crypto.randomUUID(),inquiry_id:o.inquiry_id||null,client_id:o.client_id||null,reply_to_message_id:o.reply_to_message_id||null})}
-      catch(e){toast('Not sent: '+e.message,6000);try{await loadMessages()}catch(x){}throw e}
-      toast('Email accepted by the mail server.');await loadMessages();render();
-    }});
+/* ---- Email templates, signature builder and HTML compose (sends html + plain-text body to crm-send-email) ---- */
+const eh=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const EMAIL_TPL=[
+  {id:'blank',name:'Blank',subject:'',body:''},
+  {id:'intro',name:'Introduction',subject:'Thanks for reaching out, {{first}}',body:'Hi {{first}},\n\nThanks for your inquiry. I would love to learn more about what you need. When are you free for a quick call this week?\n\nBest regards,'},
+  {id:'follow',name:'Follow-up',subject:'Following up',body:'Hi {{first}},\n\nI wanted to follow up on my last message. Do you have any questions I can answer?\n\nBest regards,'},
+  {id:'quote',name:'Quote sent',subject:'Your quote from {{company}}',body:'Hi {{first}},\n\nYour quote is ready. Tell me if you would like to change anything and I will update it the same day.\n\nBest regards,'},
+  {id:'thanks',name:'Thank you',subject:'Thank you, {{first}}',body:'Hi {{first}},\n\nThank you for choosing {{company}}. We are glad to work with you.\n\nBest regards,'}
+];
+let sigProf=null;
+const sigDefault=()=>({name:(me&&me.name)||'',title:'',company:'',phone:'',email:(me&&me.email)||'',website:'',address:'',logo_url:'',color:'#2563eb',layout:'side'});
+async function loadSig(){
+  if(sigProf)return sigProf;
+  try{const r=await sb.from('crm_email_profiles').select('signature').eq('user_email',lc(me.email)).maybeSingle();if(!r.error&&r.data&&r.data.signature)return sigProf={...sigDefault(),...r.data.signature}}catch(e){}
+  try{const l=localStorage.getItem('orchid_sig');if(l)return sigProf={...sigDefault(),...JSON.parse(l)}}catch(e){}
+  return sigProf=sigDefault();
+}
+async function saveSig(p){
+  sigProf=p;try{localStorage.setItem('orchid_sig',JSON.stringify(p))}catch(e){}
+  const r=await sb.from('crm_email_profiles').upsert({user_email:lc(me.email),signature:p});return !r.error;
+}
+function sigHtml(p){
+  if(!p||!(p.name||p.company))return '';
+  const c=/^#[0-9a-f]{6}$/i.test(p.color)?p.color:'#2563eb',stack=p.layout==='stack';
+  const lg=p.logo_url?'<img src="'+eh(p.logo_url)+'" alt="'+eh(p.company||'Logo')+'" width="96" style="display:block;border:0;max-width:96px;height:auto">':'';
+  const a=(href,t)=>'<a href="'+eh(href)+'" style="color:'+c+';text-decoration:none">'+eh(t)+'</a>';
+  const rows=[
+    p.name&&'<div style="font-size:15px;font-weight:700;color:#0f172a">'+eh(p.name)+'</div>',
+    (p.title||p.company)&&'<div style="font-size:13px;color:#475569">'+eh([p.title,p.company].filter(Boolean).join(' | '))+'</div>',
+    p.phone&&'<div style="font-size:12px;color:#334155;margin-top:8px">'+a('tel:'+p.phone.replace(/[^\d+]/g,''),p.phone)+'</div>',
+    p.email&&'<div style="font-size:12px">'+a('mailto:'+p.email,p.email)+'</div>',
+    p.website&&'<div style="font-size:12px">'+a(/^https?:/i.test(p.website)?p.website:'https://'+p.website,p.website.replace(/^https?:\/\//i,''))+'</div>',
+    p.address&&'<div style="font-size:12px;color:#64748b;margin-top:4px">'+eh(p.address)+'</div>'
+  ].filter(Boolean).join('');
+  const font='font-family:Arial,Helvetica,sans-serif;line-height:1.45';
+  if(stack)return '<table cellpadding="0" cellspacing="0" border="0" style="'+font+'">'+(lg?'<tr><td style="padding-bottom:10px">'+lg+'</td></tr>':'')+'<tr><td style="border-top:3px solid '+c+';padding-top:10px">'+rows+'</td></tr></table>';
+  return '<table cellpadding="0" cellspacing="0" border="0" style="'+font+'"><tr>'+(lg?'<td valign="top" style="padding-right:16px;border-right:3px solid '+c+'">'+lg+'</td>':'')+'<td valign="top" style="padding-left:'+(lg?16:0)+'px'+(lg?'':';border-left:3px solid '+c+';padding-left:12px')+'">'+rows+'</td></tr></table>';
+}
+const sigText=p=>[p.name,[p.title,p.company].filter(Boolean).join(' | '),p.phone,p.email,p.website].filter(Boolean).join('\n');
+const buildHtml=(text,sig)=>'<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#1e293b">'+eh(text).replace(/\n/g,'<br>')+(sig?'<div style="margin-top:24px">'+sig+'</div>':'')+'</div>';
+async function uploadLogo(file){
+  if(file.size>1048576)throw new Error('Logo must be under 1 MB.');
+  const ext=(file.name.split('.').pop()||'png').toLowerCase().replace(/[^a-z0-9]/g,'')||'png';
+  const path=lc(me.email).replace(/[^a-z0-9]/g,'_')+'/logo-'+Date.now()+'.'+ext;
+  const r=await sb.storage.from('email-assets').upload(path,file,{contentType:file.type,upsert:true});
+  if(r.error)throw new Error('Upload failed. Run the email_templates.sql setup in Supabase, or paste a logo URL instead.');
+  return sb.storage.from('email-assets').getPublicUrl(path).data.publicUrl;
+}
+function modalShell(title,wide,body,actions){
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)};
+  const esc=e=>{if(e.key==='Escape')close()};
+  const scrim=h('div',{class:'scrim',onclick:e=>{if(e.target===scrim)close()}},h('div',{class:'modal'+(wide?' wide':''),role:'dialog','aria-modal':'true','aria-label':title},h('h2',{text:title}),body,h('div',{class:'row'},...actions(close))));
+  document.body.append(scrim);document.addEventListener('keydown',esc);return close;
+}
+async function openSignature(after){
+  const p={...await loadSig()};
+  const F=[['name','Full name'],['title','Job title'],['company','Company'],['phone','Phone'],['email','Email'],['website','Website'],['address','Address']];
+  const prev=h('div',{class:'sigprev'}),err=h('div',{class:'err',role:'alert'});
+  const upd=()=>{prev.innerHTML=sigHtml(p)||'<span class="muted">Add your name or company to see the preview.</span>'};
+  const els=F.map(([k,l])=>{const i=h('input',{id:'sg_'+k});i.value=p[k]||'';i.addEventListener('input',()=>{p[k]=i.value;upd()});return h('label',{class:'f',for:'sg_'+k},l,i)});
+  const logo=h('input',{id:'sg_logo',placeholder:'https://…/logo.png'});logo.value=p.logo_url||'';logo.addEventListener('input',()=>{p.logo_url=logo.value.trim();upd()});
+  const file=h('input',{type:'file',accept:'image/png,image/jpeg,image/gif',onchange:async()=>{const f=file.files[0];if(!f)return;err.textContent='';try{p.logo_url=await uploadLogo(f);logo.value=p.logo_url;upd()}catch(e){err.textContent=e.message}}});
+  const col=h('input',{type:'color',value:p.color||'#2563eb'});col.addEventListener('input',()=>{p.color=col.value;upd()});
+  const lay=h('select',{},h('option',{value:'side',text:'Logo on the left'}),h('option',{value:'stack',text:'Logo on top'}));lay.value=p.layout||'side';lay.addEventListener('change',()=>{p.layout=lay.value;upd()});
+  upd();
+  modalShell('Email signature',true,h('div',{},h('div',{class:'f2'},...els),
+    h('label',{class:'f',for:'sg_logo'},'Logo (PNG or JPG, under 1 MB, about 300 px wide)',logo),file,
+    h('div',{class:'f2'},h('label',{class:'f'},'Accent color',col),h('label',{class:'f'},'Layout',lay)),
+    h('div',{class:'f',style:'margin-top:14px'},'Preview'),prev,err),
+    close=>[h('button',{class:'btn ghost',text:'Cancel',onclick:close}),h('button',{class:'btn blue',text:'Save signature',onclick:async e=>{e.target.disabled=true;const ok=await saveSig(p);e.target.disabled=false;toast(ok?'Signature saved.':'Saved on this device only. Run email_templates.sql in Supabase to sync it.',4500);close();if(after)after()}})]);
+}
+async function composeEmail(o={}){
+  const p=await loadSig();
+  const rec=(o.client_id&&clients.find(c=>c.id===o.client_id))||(o.inquiry_id&&inquiries.find(i=>i.id===o.inquiry_id))||null;
+  const first=((rec&&rec.name)||'').trim().split(/\s+/)[0]||'there';
+  const fill=s=>String(s).replace(/\{\{first\}\}/g,first).replace(/\{\{company\}\}/g,p.company||'our team');
+  const tpl=h('select',{id:'ce_t'},...EMAIL_TPL.map(t=>h('option',{value:t.id,text:t.name})));
+  const to=h('input',{id:'ce_to',type:'email',placeholder:'name@example.com'}),sub=h('input',{id:'ce_s'}),msg=h('textarea',{id:'ce_m',style:'min-height:150px'});
+  const use=h('input',{type:'checkbox'});use.checked=true;
+  const fr=h('iframe',{class:'mprev',sandbox:'',title:'Email preview'}),err=h('div',{class:'err',role:'alert'});
+  to.value=o.to||'';sub.value=o.subject||'';msg.value=o.body||'';
+  const upd=()=>{fr.srcdoc=buildHtml(msg.value,use.checked?sigHtml(p):'')};
+  tpl.addEventListener('change',()=>{const t=EMAIL_TPL.find(x=>x.id===tpl.value);if(!t||t.id==='blank')return;if(!o.reply)sub.value=fill(t.subject);msg.value=fill(t.body);upd()});
+  msg.addEventListener('input',upd);use.addEventListener('change',upd);upd();
+  modalShell(o.reply?'Reply':'New email',true,h('div',{},
+    h('label',{class:'f',for:'ce_t'},'Template',tpl),h('label',{class:'f',for:'ce_to'},'To',to),h('label',{class:'f',for:'ce_s'},'Subject',sub),h('label',{class:'f',for:'ce_m'},'Message',msg),
+    h('label',{class:'f',style:'display:flex;gap:8px;align-items:center'},use,'Add my signature'),
+    h('div',{class:'f',style:'margin-top:14px'},'Preview'),fr,err),
+    close=>[h('button',{class:'btn ghost',text:'Edit signature',onclick:()=>openSignature(()=>{sigProf=null;close();composeEmail({...o,to:to.value,subject:sub.value,body:msg.value})})}),h('button',{class:'btn ghost',text:'Cancel',onclick:close}),
+      h('button',{class:'btn blue',text:'Send email',onclick:async e=>{
+        err.textContent='';const text=msg.value.trim();
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(to.value.trim()))return err.textContent='Enter a valid email address.';
+        if(!sub.value.trim()||!text)return err.textContent='Subject and message are required.';
+        e.target.disabled=true;
+        try{await sendEmailNow({to:to.value.trim(),subject:sub.value.trim(),body:text+(use.checked&&sigText(p)?'\n\n-- \n'+sigText(p):''),html:buildHtml(text,use.checked?sigHtml(p):''),request_id:crypto.randomUUID(),inquiry_id:o.inquiry_id||null,client_id:o.client_id||null,reply_to_message_id:o.reply_to_message_id||null})}
+        catch(x){toast('Not sent: '+x.message,6000);try{await loadMessages()}catch(y){}e.target.disabled=false;return}
+        close();toast('Email accepted by the mail server.');await loadMessages();render();
+      }})]);
 }
 /* ---- Connect Google: send as yourself and sync replies (Edge Functions crm-gmail-connect / crm-gmail-sync) ---- */
 let emailAcct=null,gConnecting=false;
@@ -2041,6 +2131,7 @@ function emailConnBar(){
     :'Connect your Google (Gmail or Workspace) account to send as yourself and sync replies. Until then, email goes out from the shared mailbox.';
   return h('div',{class:'card',style:'padding:12px 16px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap'},
     h('span',{class:'s',style:'flex:1;min-width:220px;margin:0',text:txt}),
+    h('button',{class:'btn ghost sm',text:'Email signature',onclick:()=>openSignature()}),
     ok?h('button',{class:'btn ghost sm',text:'Sync now',onclick:syncGmailNow}):h('button',{class:'btn blue sm',text:a?'Reconnect Google':'Connect Google',onclick:connectGoogle}),
     a?h('button',{class:'btn ghost sm danger',text:'Disconnect',onclick:disconnectGoogle}):null,
     a&&a.last_error?h('div',{class:'err',style:'width:100%',text:a.last_error}):null);
