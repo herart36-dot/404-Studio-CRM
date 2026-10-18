@@ -389,6 +389,10 @@ body[data-v=land],body[data-v=boot]{background:#faf8fd}
 /* ---- v3 clean, text-first ---- */
 .gl{background:#fff;border:1px solid var(--ln);border-radius:18px;padding:28px;box-shadow:0 18px 44px rgba(11,27,52,.08);display:grid;gap:14px}.gl b{font-size:1.15rem}.gl ul{margin:0;padding:0;list-style:none;display:grid}.gl li{padding:11px 0;border-top:1px solid var(--ln)}.gl div{color:var(--mut);border-top:1px solid var(--ln);padding-top:14px}.gl strong{font-size:1.6rem;color:var(--a)}.gl a{font-weight:800;color:var(--a)}
 .ox-day{grid-template-columns:1fr}.cx-ov{display:block;max-width:46em}.cx-g em{display:block;margin-top:10px;font-style:normal;font-size:.88rem;color:var(--a);font-weight:700}.cx-t th[scope=row]{background:none;font-weight:700}.cx-t th:last-child,.cx-t td:last-child{color:var(--a)}.cx-fn{color:var(--mut);font-size:.85rem;margin:10px 0 0}
+.gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;margin-top:6px;padding:13px 18px;border:1px solid #d3e0ef;border-radius:999px;background:#fff;color:#1f2937;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(3,45,96,.08);transition:box-shadow .15s,transform .15s,border-color .15s}
+.gbtn:hover:not(:disabled){box-shadow:0 10px 24px rgba(3,45,96,.14);transform:translateY(-1px);border-color:#b7cbe4}.gbtn:disabled{opacity:.6;cursor:default}.gbtn svg{width:20px;height:20px;flex:none}
+.gor{display:flex;align-items:center;gap:12px;margin:18px 0 2px;color:#64748b;font-size:.8rem}.gor:before,.gor:after{content:"";flex:1;height:1px;background:#dde5ef}
+.gnote{margin:10px 2px 0;font-size:.78rem;color:#64748b;line-height:1.45}
 </style>
 <style id="orchid-join-css">
 .iq.jn{max-width:640px}.iq .g2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
@@ -760,6 +764,7 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
   <div class="flogo"><div class="wm" style="font-size:1.9rem"><b>O</b>rchid</div></div>
   <h1 id="title">Log in</h1>
   <p class="sub" id="sub">Use the email your admin added.</p>
+  <div id="gwrap"><button id="gbtn" class="gbtn" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continue with Google</button><p class="gnote">Signing in with Google also connects your Gmail and Google Calendar to the CRM.</p><div class="gor"><span>or use your password</span></div></div>
   <input id="email" class="field" type="email" placeholder="Email" autocomplete="username" maxlength="320" aria-label="Email">
   <input id="pass" class="field" type="password" placeholder="Password" autocomplete="current-password" maxlength="200" aria-label="Password">
   <input id="pass2" class="field" type="password" placeholder="Confirm password" autocomplete="new-password" maxlength="200" aria-label="Confirm password" hidden>
@@ -874,7 +879,7 @@ function sqRead(){
 const clearSq=()=>{['sa','sa2','sqc'].forEach(id=>{$(id).value=''});$('sq').selectedIndex=0};
 // after a good login: make sure a security question exists. If the database part is not installed yet, do not block anyone.
 async function afterAuth(email){
-  try{const r=await clients[routeFor(email)].rpc('orchid_sq_status');
+  try{if(await window.__orchidIsGoogle(email))throw 0;const r=await clients[routeFor(email)].rpc('orchid_sq_status');
     if(!r.error&&r.data&&r.data.has===false){
       who=email;document.body.dataset.v='login';clearTimeout(timer);tiles.forEach(t=>t.classList.remove('dim'));
       $('land').hidden=true;$('story').hidden=true;$('pick').hidden=true;$('form').hidden=false;mode='sq';renderForm();return false}
@@ -971,6 +976,7 @@ async function boot(){
   if(!hasSess&&!location.search&&!location.hash)await new Promise(r=>('requestIdleCallback' in window)?requestIdleCallback(r,{timeout:2000}):setTimeout(r,400));
   await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';s.onload=res;s.onerror=()=>rej(new Error('Could not load the sign-in service. Check your connection and refresh.'));document.head.appendChild(s)});
   for(const k of Object.keys(APPS))clients[k]=window.supabase.createClient(APPS[k].url,APPS[k].key);
+  if(window.__orchidGoogleInit)window.__orchidGoogleInit();
   const qs=new URLSearchParams(location.search+'&'+location.hash.slice(1)),oe=qs.get('error_description');
   if(oe){history.replaceState(null,'',location.pathname);showLogin();return say(oe)}
   if(qs.get('logout')){history.replaceState(null,'',location.pathname);return logoutAll()}
@@ -1606,8 +1612,37 @@ window.__first=1;addEventListener('hashchange',go);go();
 </script>
 
 <script>
+/* Sign in with Google: Supabase Google provider + Gmail and Calendar scopes. */
+(()=>{
+  const SCOPES='openid email profile https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.events';
+  const g=id=>document.getElementById(id);let saved='';
+  window.__orchidIsGoogle=async email=>{try{const s=(await clients[routeFor(email)].auth.getSession()).data.session;return !!(s&&s.user.app_metadata&&s.user.app_metadata.provider==='google')}catch(e){return false}};
+  async function saveLink(sess){
+    const t=sess&&sess.provider_token;if(!t)return;
+    const key=sess.user.id+':'+t.slice(-12);if(saved===key)return;saved=key;
+    try{const r=await clients.crm.functions.invoke('crm-google-link',{body:{access_token:t,refresh_token:sess.provider_refresh_token||null}});if(r.error)console.warn('[Orchid] Could not save the Google connection:',r.error.message)}
+    catch(e){console.warn('[Orchid] Could not save the Google connection:',e.message)}
+  }
+  window.__orchidGoogleInit=()=>{clients.crm.auth.onAuthStateChange((ev,sess)=>{if(sess&&sess.provider_token)setTimeout(()=>saveLink(sess),0)})};
+  g('gbtn').onclick=async()=>{
+    const b=g('gbtn');if(!clients.crm)return say('Still loading, try again in a moment.');
+    say('');b.disabled=true;
+    try{const{error}=await clients.crm.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,scopes:SCOPES,queryParams:{access_type:'offline',prompt:'consent'}}});if(error)throw error}
+    catch(e){say(e.message||'Could not start Google sign-in.');b.disabled=false}
+  };
+  /* show the Google button only on the normal log in / create screens */
+  const _rf=renderForm;renderForm=function(){_rf.apply(this,arguments);g('gwrap').hidden=!(mode==='in'||mode==='up')};
+})();
+</script>
+<script>
 /* Orchid CRM now lives in its own page (crm.html). Index only links to it. */
-window.__orchidOpenCrm=function(){location.assign('crm.html')};
+window.__orchidOpenCrm=function(){
+  /* loop guard: if we just tried to open crm.html a moment ago, stop and explain instead of bouncing forever */
+  var now=Date.now(),last=0;try{last=+sessionStorage.getItem('orchid_crm_try')||0}catch(e){}
+  if(now-last<8000){try{say('The CRM page did not open. Make sure crm.html is uploaded in the same folder as index.html, then reload.',false,'pmsg')}catch(e){}return}
+  try{sessionStorage.setItem('orchid_crm_try',String(now))}catch(e){}
+  location.assign('crm.html');
+};
 </script>
 </body>
 </html>
