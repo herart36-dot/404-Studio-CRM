@@ -3667,6 +3667,7 @@ async function init(){
   render();
   sweep();
   subChat();subApprovals();startAutomation();
+  autoConnectGoogle(session);
   timers.push(setInterval(()=>{if(!leaving)pollChat()},20000),setInterval(()=>{if(!leaving)syncApprovals()},20000));
   timers.push(setInterval(async()=>{if(leaving)return;try{await loadPresence();await loadMessages();if(view==='productivity')await loadProd();const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()}catch(e){console.error(e)}},30000));
   timers.push(setInterval(()=>{if(leaving)return;sweep();const a=document.activeElement;if(view!=='chat'&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()},60000));
@@ -3830,7 +3831,7 @@ function aiPlan(a){
 const GCAL_SCOPE='https://www.googleapis.com/auth/calendar.events';
 /* Paste your Google OAuth Client ID between the quotes to skip the setup box in the Calendar tab. It is not a secret. */
 const GOOGLE_CLIENT_ID='235514449340-bcbibut5iiufk75djnmsgkhreeg6dsoi.apps.googleusercontent.com';
-const G={cid:GOOGLE_CLIENT_ID,tok:null,exp:0,events:[],err:'',loading:false,loaded:false};
+const G={cid:GOOGLE_CLIENT_ID,tok:null,exp:0,events:[],err:'',loading:false,loaded:false,auto:false,tried:false,failAt:0};
 try{if(!G.cid)G.cid=localStorage.getItem('orchid_g_cid')||'';const s=JSON.parse(sessionStorage.getItem('orchid_g_tok')||'null');if(s&&s.exp>Date.now()+60000){G.tok=s.t;G.exp=s.exp}}catch(e){}
 const gConnected=()=>!!G.tok&&G.exp>Date.now()+30000;
 const pad2=n=>String(n).padStart(2,'0');
@@ -3848,7 +3849,7 @@ function loadGis(){return new Promise((res,rej)=>{
 function gAuth(prompt){
   return loadGis().then(()=>new Promise((res,rej)=>{
     if(!G.cid)return rej(new Error('Add your Google OAuth Client ID first.'));
-    const tc=google.accounts.oauth2.initTokenClient({client_id:G.cid,scope:GCAL_SCOPE,
+    const tc=google.accounts.oauth2.initTokenClient({client_id:G.cid,scope:GCAL_SCOPE,hint:(me&&me.email)||undefined,
       callback:r=>{
         if(r.error)return rej(new Error(r.error_description||r.error));
         G.tok=r.access_token;G.exp=Date.now()+(Number(r.expires_in)||3600)*1000;
@@ -3861,8 +3862,9 @@ function gAuth(prompt){
 async function gToken(){
   if(gConnected())return G.tok;
   let on=false;try{on=localStorage.getItem('orchid_g_on')==='1'}catch(e){}
-  if(!G.cid||!on)return null;
-  try{return await gAuth('none')}catch(e){return null}
+  if(!G.cid||!(on||G.auto))return null;
+  if(Date.now()-G.failAt<300000)return null;
+  try{return await gAuth('none')}catch(e){G.failAt=Date.now();return null}
 }
 async function gcal(path,opt={}){
   const t=await gToken();if(!t)throw new Error('Google Calendar is not connected.');
@@ -3899,6 +3901,29 @@ async function ensureCal(){
   if(await gToken())return true;
   if(!G.cid){toast('Add your Google OAuth Client ID on the Calendar tab first.',5000);view='calendar';q='';render();return false}
   try{await gAuth('');return true}catch(e){toast(e.message,6000);return false}
+}
+
+/* ---- Auto-connect Google (Gmail + Calendar) right after login ---- */
+async function autoConnectGoogle(session){
+  G.auto=true;
+  try{
+    /* Gmail: a Google sign-in hands us tokens once. Save them on the server so mail sends and syncs with no button. */
+    if(session&&session.provider_refresh_token&&session.provider_token&&!(emailAcct&&emailAcct.status==='connected')){
+      try{const r=await sb.functions.invoke('crm-google-link',{body:{access_token:session.provider_token,refresh_token:session.provider_refresh_token}});
+        if(!r.error){await loadMessages();render()}else console.warn('[Orchid] Gmail auto-connect:',await fnError(r,'failed'))}catch(e){console.warn('[Orchid] Gmail auto-connect:',e.message)}
+    }
+    /* Calendar: try the fresh Google sign-in token first, then a silent Google token. */
+    if(!gConnected()){
+      if(session&&session.provider_token&&session.user&&session.user.app_metadata&&session.user.app_metadata.provider==='google'){
+        G.tok=session.provider_token;G.exp=Date.now()+40*60000;
+        await loadEvents();
+        if(G.err){G.tok=null;G.exp=0;G.err='';G.loaded=false;G.events=[]}
+      }
+      if(!gConnected()){try{await gAuth('none')}catch(e){G.failAt=Date.now()}}
+    }
+    if(gConnected()&&!G.loaded)await loadEvents();
+  }catch(e){console.error(e)}
+  G.tried=true;render();
 }
 
 /* ---- Calendar tab ---- */
@@ -3949,8 +3974,8 @@ function calConn(conn){
           h('li',{text:'Copy the Client ID and paste it above.'}))));
   }
   return h('div',{class:'card',style:'padding:12px 16px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap'},
-    h('span',{class:'s',style:'flex:1;min-width:220px;margin:0',text:conn?'Google Calendar is connected. Events you add here go to your primary calendar.':'Google Calendar is not connected on this device yet.'}),
-    conn?null:h('button',{class:'btn blue sm',text:'Connect Google Calendar',onclick:async()=>{try{await gAuth('');await loadEvents();render();toast('Google Calendar connected.')}catch(e){toast(e.message,6000)}}}),
+    h('span',{class:'s',style:'flex:1;min-width:220px;margin:0',text:conn?'Google Calendar is connected. Events you add here go to your primary calendar.':(G.tried?'Google Calendar could not connect automatically. Sign in with Google to link it.':'Connecting Google Calendar…')}),
+    conn||!G.tried?null:h('button',{class:'btn blue sm',text:'Try again',onclick:async()=>{try{await gAuth('');await loadEvents();render();toast('Google Calendar connected.')}catch(e){toast(e.message,6000)}}}),
     conn?h('button',{class:'btn ghost sm danger',text:'Disconnect',onclick:()=>{try{google.accounts.oauth2.revoke(G.tok,()=>{})}catch(e){}G.tok=null;G.exp=0;G.events=[];G.loaded=false;try{sessionStorage.removeItem('orchid_g_tok');localStorage.removeItem('orchid_g_on')}catch(e){}render();toast('Google Calendar disconnected.')}}):null,
     GOOGLE_CLIENT_ID?null:h('button',{class:'btn ghost sm',text:'Change Client ID',onclick:()=>{if(!confirm('Remove the saved Client ID and disconnect?'))return;G.cid='';G.tok=null;G.exp=0;try{localStorage.removeItem('orchid_g_cid');localStorage.removeItem('orchid_g_on');sessionStorage.removeItem('orchid_g_tok')}catch(e){}render()}}));
 }
