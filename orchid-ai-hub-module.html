@@ -48,12 +48,9 @@ const live=s=>s!=='won'&&s!=='lost';
 let think=false,sample=false,A=null,R=null,tab='brief',hist=[],busy=false;
 
 /* ---------- sample data, only used while your CRM is still empty ---------- */
-function demo(){const n=Date.now(),mk=(i,name,st,h,pr,em,ph,msg)=>({id:'s'+i,name,status:st,priority:pr,email:em,phone:ph,message:msg,created_at:new Date(n-(h+6)*H).toISOString(),last_touch:new Date(n-h*H).toISOString()});
- return{inquiries:[mk(1,'Maria Santos','quoted',5,'high','m@x.ph','0917','Need a full quote for 40 units, deadline next week'),mk(2,'Lito Reyes','new',52,'high','l@x.ph','','Asking about bulk pricing and delivery to Cebu'),mk(3,'Anna Cruz','contacted',130,'normal','a@x.ph','0918','Following up on last month proposal'),mk(4,'Jun Tan','new',2,'normal','j@x.ph','','Hello'),mk(5,'Bea Lim','quoted',90,'normal','b@x.ph','0920','Comparing us with two other suppliers, wants discount'),mk(6,'Carlo Diaz','contacted',30,'low','','0922','Maybe later this year'),mk(7,'Ivy Go','new',70,'high','i@x.ph','0923','Urgent: event on the 30th, need confirmation this week'),mk(8,'Paolo Uy','quoted',12,'normal','p@x.ph','','Waiting for board approval'),mk(9,'Rina Co','contacted',200,'normal','r@x.ph','','Sent brochure')],
- clients:[{id:'c1',name:'Acme Foods'},{id:'c2',name:'Luna Events'},{id:'c3',name:'Sol Retail'}],tasks:[{title:'Send contract',due_date:ymd(new Date(n-864e5*2)),done:false},{title:'Call Maria',due_date:ymd(new Date(n+864e5)),done:false}],cases:[{id:'k1',status:'open',priority:'high',subject:'Late delivery'}]}}
 
 /* ---------- analysis: transparent heat score, runs in the browser ---------- */
-function analyse(){let d=D()||{};sample=!(d.inquiries||[]).length&&!(d.clients||[]).length;if(sample)d=demo();
+function analyse(){const d=D()||{};
  const inq=d.inquiries||[],tk=d.tasks||[],cs=d.cases||[],t0=ymd(new Date());
  const rows=inq.filter(i=>live(i.status)).map(i=>{const hrs=Math.max(0,(Date.now()-new Date(i.last_touch||i.created_at||Date.now()))/H);
   let s=({new:42,contacted:32,quoted:48}[i.status]||35)+(i.email?8:0)+(i.phone?7:0)+(i.priority==='high'?12:i.priority==='low'?-6:0)+((i.message||'').length>40?5:0)-Math.min(38,hrs/5);
