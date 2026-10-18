@@ -390,6 +390,65 @@ body[data-v=land],body[data-v=boot]{background:#faf8fd}
 .gl{background:#fff;border:1px solid var(--ln);border-radius:18px;padding:28px;box-shadow:0 18px 44px rgba(11,27,52,.08);display:grid;gap:14px}.gl b{font-size:1.15rem}.gl ul{margin:0;padding:0;list-style:none;display:grid}.gl li{padding:11px 0;border-top:1px solid var(--ln)}.gl div{color:var(--mut);border-top:1px solid var(--ln);padding-top:14px}.gl strong{font-size:1.6rem;color:var(--a)}.gl a{font-weight:800;color:var(--a)}
 .ox-day{grid-template-columns:1fr}.cx-ov{display:block;max-width:46em}.cx-g em{display:block;margin-top:10px;font-style:normal;font-size:.88rem;color:var(--a);font-weight:700}.cx-t th[scope=row]{background:none;font-weight:700}.cx-t th:last-child,.cx-t td:last-child{color:var(--a)}.cx-fn{color:var(--mut);font-size:.85rem;margin:10px 0 0}
 </style>
+<style id="orchid-join-css">
+.iq.jn{max-width:640px}.iq .g2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.iq .jn-ph{display:flex;gap:8px}.iq .jn-ph .dial{flex:0 0 74px;margin-top:5px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:14px;background:#f8fafc;font-weight:700;font-size:.9rem}
+.iq .jn-ph input{flex:1;min-width:0}
+.iq .pick2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.iq .opt{display:block;text-align:left;border:1.5px solid var(--line);border-radius:18px;padding:16px;background:#fff;cursor:pointer;font:inherit;color:var(--ink);margin:0}
+.iq .opt:hover,.iq .opt:focus-visible{border-color:#0176d3;background:#f3f9ff;outline:none}
+.iq .opt b{display:block;font-size:1.02rem}.iq .opt small{display:block;color:var(--muted);font-weight:500;margin-top:4px;font-size:.84rem;line-height:1.4}
+.iq .opt .tag{display:inline-block;font-size:.7rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0176d3;margin-bottom:6px}
+.iq .pay{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.iq .pm{margin:0;display:block;cursor:pointer}.iq .pm input{position:absolute;opacity:0;width:0;height:0;margin:0}
+.iq .pm span{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;padding:12px 6px;border:1.5px solid var(--line);border-radius:14px;font-weight:700;font-size:.84rem;background:#fff}
+.iq .pm span em{font-style:normal;font-weight:500;font-size:.7rem;color:var(--muted)}
+.iq .pm input:checked+span{border-color:#0176d3;background:#eaf5fe}.iq .pm input:focus-visible+span{outline:2px solid #0176d3;outline-offset:2px}
+.iq .sum{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#f1f5fb;margin-top:14px;font-weight:700}
+.iq .sum small{font-weight:500;color:var(--muted)}
+.iq .fine{font-size:.78rem;color:var(--muted);font-weight:500;margin-top:8px;line-height:1.45}
+.iq .agree{display:flex;gap:9px;align-items:flex-start;font-weight:500;font-size:.84rem;margin-top:12px}.iq .agree input{width:auto;margin:3px 0 0}
+@media(max-width:560px){.iq .g2,.iq .pick2{grid-template-columns:1fr}.iq .pay{grid-template-columns:1fr 1fr}}
+/* demo workspace */
+body.dm-on{overflow:hidden}
+#dm{position:fixed;inset:0;z-index:55;background:#f3f5fa;display:flex;flex-direction:column;color:var(--ink);--dm:#2563eb}
+#dm[hidden]{display:none}
+.dm-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.dm-top .wm{font-size:1.35rem}.dm-pill{font-size:.74rem;font-weight:800;padding:4px 10px;border-radius:99px;background:#fef3c7;color:#92400e}
+.dm-top select{border:1px solid var(--line);border-radius:10px;padding:7px 10px;font:inherit;font-size:.85rem;font-weight:700;background:#fff;max-width:230px}
+.dm-sp{flex:1}.dm-b{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:8px 16px;font:inherit;font-weight:700;font-size:.85rem;cursor:pointer}
+.dm-b.p{background:var(--dm);border-color:var(--dm);color:#fff}.dm-b:hover{filter:brightness(.96)}.dm-b.sm{padding:5px 12px;font-size:.78rem}
+.dm-wrap{flex:1;display:flex;min-height:0}
+.dm-side{width:220px;flex:0 0 220px;background:#1f2430;padding:14px 10px;overflow:auto}
+.dm-side button{display:block;width:100%;text-align:left;border:0;background:transparent;color:#d6dbe6;font:inherit;font-weight:600;font-size:.9rem;padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:2px}
+.dm-side button:hover{background:rgba(255,255,255,.07)}.dm-side button[aria-current=true]{background:var(--dm);color:#fff}
+.dm-main{flex:1;overflow:auto;padding:20px clamp(14px,3vw,30px) 60px}
+.dm-main h2{margin:0 0 4px;font-size:1.35rem}.dm-sub{color:var(--muted);margin:0 0 16px;font-size:.92rem}
+.dm-banner{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-left:4px solid var(--dm);border-radius:14px;padding:12px 14px;margin-bottom:16px;font-size:.9rem}
+.dm-banner button{margin-left:auto;border:0;background:none;font-size:1.2rem;cursor:pointer;color:var(--muted)}
+.dm-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.dm-tile{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px}.dm-tile b{display:block;font-size:1.6rem;letter-spacing:-.02em}.dm-tile span{color:var(--muted);font-size:.8rem;font-weight:600}
+.dm-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.dm-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dm-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.dm-chip{background:color-mix(in srgb,var(--dm) 12%,#fff);color:var(--dm);font-weight:700;font-size:.8rem;padding:5px 11px;border-radius:99px}
+.dm-kan{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(210px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px}
+.dm-col{background:#e9edf5;border-radius:14px;padding:10px;min-height:200px}.dm-col h4{margin:2px 4px 8px;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:#475569;display:flex;justify-content:space-between}
+.dm-deal{background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:8px;box-shadow:0 1px 2px rgba(15,23,42,.08)}.dm-deal b{display:block;font-size:.9rem}.dm-deal small{color:var(--muted);display:block;margin:2px 0 6px}
+.dm-deal .v{font-weight:800;color:var(--dm);font-size:.88rem}
+table.dm-t{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:.88rem}
+.dm-t th{background:#f1f5fb;text-align:left;padding:10px 12px;font-size:.74rem;text-transform:uppercase;letter-spacing:.04em;color:#475569}.dm-t td{padding:10px 12px;border-top:1px solid var(--line)}
+.dm-tw{overflow-x:auto}
+.dm-st{display:inline-block;font-size:.72rem;font-weight:800;padding:2px 9px;border-radius:99px;background:#e2e8f0}.dm-st.g{background:#d1fae5;color:#065f46}.dm-st.a{background:#fef3c7;color:#92400e}.dm-st.b{background:#dbeafe;color:#1d4ed8}.dm-st.r{background:#fee2e2;color:#991b1b}
+.dm-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}.dm-row:first-child{border-top:0}.dm-row .gr{flex:1;min-width:180px}.dm-row small{color:var(--muted);display:block}
+.dm-prog{height:8px;border-radius:9px;background:#e2e8f0;overflow:hidden;margin-top:6px}.dm-prog i{display:block;height:100%;background:var(--dm);transition:width .25s}
+.dm-steps{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.dm-steps label{display:flex;gap:6px;align-items:center;font-size:.82rem;font-weight:600;background:#f1f5fb;padding:5px 10px;border-radius:99px;cursor:pointer}.dm-steps input{accent-color:var(--dm)}
+.dm-bars{display:flex;align-items:flex-end;gap:12px;height:170px;margin-top:8px}.dm-bars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%;font-size:.75rem;font-weight:700;color:var(--muted)}.dm-bars i{display:block;width:100%;background:var(--dm);border-radius:8px 8px 0 0;opacity:.85}
+.dm-in{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;font-size:.88rem;background:#fff;min-width:0}
+.dm-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#14122e;color:#fff;padding:10px 18px;border-radius:99px;font-size:.88rem;font-weight:600;z-index:80;max-width:90vw;text-align:center}
+.dm-stars{color:#f59e0b;letter-spacing:2px}
+.dm-cta{background:linear-gradient(135deg,var(--dm),#06b6d4);color:#fff;border-radius:18px;padding:18px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:18px}.dm-cta b{font-size:1.05rem}.dm-cta span{flex:1;min-width:200px;opacity:.92;font-size:.9rem}.dm-cta .dm-b{border-color:#fff}
+@media(max-width:760px){.dm-wrap{flex-direction:column}.dm-side{width:auto;flex:0 0 auto;display:flex;overflow-x:auto;padding:8px}.dm-side button{width:auto;white-space:nowrap}.dm-grid2{grid-template-columns:1fr}}
+</style>
 </head>
 <body data-v="land">
 <script>try{if(Object.keys(localStorage).some(function(k){return /^sb-.+-auth-token$/.test(k)}))document.body.dataset.v='boot'}catch(e){}</script>
@@ -550,6 +609,7 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
         </div>
         <div class="ox-act">
           <button class="ox-btn js-start" type="button">Get started</button>
+          <button class="ox-btn alt js-demo" type="button">Try the demo</button>
           <button class="ox-btn alt js-inq" type="button">Send an inquiry</button>
         </div>
         <p class="ox-note">Already have a password? <button class="ox-lnk in js-login" type="button">Log in</button></p>
@@ -579,7 +639,7 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
 
     
     <div class="ox-stats" data-pg="home"><div><p style="margin:0"><b>$8</b><span>a month, one simple price</span></p><p style="margin:0"><b>5+</b><span>quiet days trigger a going-cold alert</span></p><p style="margin:0"><b>24/7</b><span>live waiting timer on every inquiry</span></p><p style="margin:0"><b>0</b><span>sales calls needed</span></p></div></div>
-    <section class="cx" id="crmx" data-pg="products"><div class="cx-in"><nav class="cx-sub"><b>Orchid CRM</b><button type="button" onclick="document.getElementById('cxf').scrollIntoView({behavior:'smooth'})">Functions</button><button type="button" onclick="document.getElementById('cxd').scrollIntoView({behavior:'smooth'})">Why it is different</button><button type="button" onclick="document.getElementById('cxc').scrollIntoView({behavior:'smooth'})">Compare</button><button type="button" onclick="document.getElementById('cxq').scrollIntoView({behavior:'smooth'})">FAQ</button><button type="button" class="js-login cta">Start my CRM</button></nav><div class="cx-ov"><span class="ox-kick">Overview</span><h2>Know who is waiting, who has gone quiet, and what comes next.</h2><p>Orchid CRM is a simple home for every inquiry, client and task. It is built for agencies, clinics, service teams, support desks and small sales teams that want to respond faster and follow up better, without a sales call or a per-seat price maze.</p><div class="ox-act"><button class="ox-btn js-login" type="button">Start my CRM</button><button class="ox-btn alt js-inq" type="button">Talk to us</button></div></div><h3 class="cx-h" id="cxf">What Orchid CRM does</h3><div class="cx-g"><article><i>1</i><h4>Inquiries with a live waiting timer</h4><p>Every new inquiry shows how long it has been waiting.</p><em>The longest-waiting client is always visible, so replies do not slip.</em></article><article><i>2</i><h4>Going-cold alerts</h4><p>Clients who have been quiet for five or more days are flagged.</p><em>You follow up before the relationship fades.</em></article><article><i>3</i><h4>Cases with routing</h4><p>Each case is sent to the right person on your team.</p><em>Every issue has a clear owner.</em></article><article><i>4</i><h4>SLA tracking</h4><p>Cases are tracked against your response targets.</p><em>Risk shows early instead of arriving as a complaint.</em></article><article><i>5</i><h4>Team chat log for every client</h4><p>Every conversation with a client is kept in one log.</p><em>Anyone can pick up where a colleague left off.</em></article><article><i>6</i><h4>Clients, tasks and cases in one home</h4><p>Clients, what you owe them and what they asked for sit together.</p><em>No jumping between inboxes and spreadsheets.</em></article></div><h3 class="cx-h" id="cxd">Why it is different</h3><div class="cx-g"><article><h4>Response time comes first</h4><p>The live waiting timer puts how long people have waited at the centre of your day.</p></article><article><h4>One flat price</h4><p>$8 a month. No per-seat maze, so the cost is easy to predict.</p></article><article><h4>No sales call</h4><p>Log in and start. You do not need a demo or a quote.</p></article><article><h4>Nothing to learn</h4><p>A simple layout that is comfortable to use on a phone.</p></article><article><h4>Everything in one home</h4><p>Clients, tasks, cases and your team's conversations live together, so you do not need separate tools.</p></article><article><h4>Private by design</h4><p>Only members your admin adds can log in, and CRM data stays with your team.</p></article></div><h3 class="cx-h" id="cxc">How it compares with other CRM platforms</h3><table class="cx-t"><thead><tr><th></th><th>Many CRM platforms</th><th>Orchid CRM</th></tr></thead><tbody><tr><th scope="row">Pricing</th><td>Tiers and per-seat pricing can be hard to predict</td><td>$8 a month, one simple price</td></tr><tr><th scope="row">Getting started</th><td>Demos and sales calls are common</td><td>Log in and start</td></tr><tr><th scope="row">Learning curve</th><td>Feature-heavy tools can take time to set up</td><td>Simple and phone friendly</td></tr><tr><th scope="row">Response times</th><td>Usually something you configure</td><td>Live waiting timer built in</td></tr><tr><th scope="row">Follow-up</th><td>Depends on how you set it up</td><td>Going-cold alerts after 5+ quiet days</td></tr><tr><th scope="row">Access</th><td>Varies by product</td><td>Approved members only</td></tr></tbody></table><p class="cx-fn">A general comparison. Features and pricing vary by product.</p><div class="cx-pr"><div><span class="ox-kick">Pricing</span><h3>$8 a month, no per-seat maze.</h3><p>One simple price. Cancel anytime.</p></div><button class="ox-btn js-login" type="button">Start my CRM</button></div><h3 class="cx-h" id="cxq">CRM questions</h3><div class="ox-faq"><details><summary>Is there a setup fee or sales call?</summary><p>No. Log in and start. There is no sales call and no per-seat maze.</p></details><details><summary>Who can see my client data?</summary><p>Only people your admin has added can log in, and your CRM data stays with your team.</p></details><details><summary>Can I use it on my phone?</summary><p>Yes. It is phone friendly and made so there is nothing to learn.</p></details><details><summary>Can I cancel?</summary><p>Yes, anytime.</p></details></div></div></section>
+    <section class="cx" id="crmx" data-pg="products"><div class="cx-in"><nav class="cx-sub"><b>Orchid CRM</b><button type="button" onclick="document.getElementById('cxf').scrollIntoView({behavior:'smooth'})">Functions</button><button type="button" onclick="document.getElementById('cxd').scrollIntoView({behavior:'smooth'})">Why it is different</button><button type="button" onclick="document.getElementById('cxc').scrollIntoView({behavior:'smooth'})">Compare</button><button type="button" onclick="document.getElementById('cxq').scrollIntoView({behavior:'smooth'})">FAQ</button><button type="button" class="js-sub cta">Start my CRM</button></nav><div class="cx-ov"><span class="ox-kick">Overview</span><h2>Know who is waiting, who has gone quiet, and what comes next.</h2><p>Orchid CRM is a simple home for every inquiry, client and task. It is built for agencies, clinics, service teams, support desks and small sales teams that want to respond faster and follow up better, without a sales call or a per-seat price maze.</p><div class="ox-act"><button class="ox-btn js-sub" type="button">Start my CRM</button><button class="ox-btn alt js-inq" type="button">Talk to us</button></div></div><h3 class="cx-h" id="cxf">What Orchid CRM does</h3><div class="cx-g"><article><i>1</i><h4>Inquiries with a live waiting timer</h4><p>Every new inquiry shows how long it has been waiting.</p><em>The longest-waiting client is always visible, so replies do not slip.</em></article><article><i>2</i><h4>Going-cold alerts</h4><p>Clients who have been quiet for five or more days are flagged.</p><em>You follow up before the relationship fades.</em></article><article><i>3</i><h4>Cases with routing</h4><p>Each case is sent to the right person on your team.</p><em>Every issue has a clear owner.</em></article><article><i>4</i><h4>SLA tracking</h4><p>Cases are tracked against your response targets.</p><em>Risk shows early instead of arriving as a complaint.</em></article><article><i>5</i><h4>Team chat log for every client</h4><p>Every conversation with a client is kept in one log.</p><em>Anyone can pick up where a colleague left off.</em></article><article><i>6</i><h4>Clients, tasks and cases in one home</h4><p>Clients, what you owe them and what they asked for sit together.</p><em>No jumping between inboxes and spreadsheets.</em></article></div><h3 class="cx-h" id="cxd">Why it is different</h3><div class="cx-g"><article><h4>Response time comes first</h4><p>The live waiting timer puts how long people have waited at the centre of your day.</p></article><article><h4>One flat price</h4><p>$8 a month. No per-seat maze, so the cost is easy to predict.</p></article><article><h4>No sales call</h4><p>Log in and start. You do not need a demo or a quote.</p></article><article><h4>Nothing to learn</h4><p>A simple layout that is comfortable to use on a phone.</p></article><article><h4>Everything in one home</h4><p>Clients, tasks, cases and your team's conversations live together, so you do not need separate tools.</p></article><article><h4>Private by design</h4><p>Only members your admin adds can log in, and CRM data stays with your team.</p></article></div><h3 class="cx-h" id="cxc">How it compares with other CRM platforms</h3><table class="cx-t"><thead><tr><th></th><th>Many CRM platforms</th><th>Orchid CRM</th></tr></thead><tbody><tr><th scope="row">Pricing</th><td>Tiers and per-seat pricing can be hard to predict</td><td>$8 a month, one simple price</td></tr><tr><th scope="row">Getting started</th><td>Demos and sales calls are common</td><td>Log in and start</td></tr><tr><th scope="row">Learning curve</th><td>Feature-heavy tools can take time to set up</td><td>Simple and phone friendly</td></tr><tr><th scope="row">Response times</th><td>Usually something you configure</td><td>Live waiting timer built in</td></tr><tr><th scope="row">Follow-up</th><td>Depends on how you set it up</td><td>Going-cold alerts after 5+ quiet days</td></tr><tr><th scope="row">Access</th><td>Varies by product</td><td>Approved members only</td></tr></tbody></table><p class="cx-fn">A general comparison. Features and pricing vary by product.</p><div class="cx-pr"><div><span class="ox-kick">Pricing</span><h3>$8 a month, no per-seat maze.</h3><p>One simple price. Cancel anytime.</p></div><button class="ox-btn js-sub" type="button">Start my CRM</button></div><h3 class="cx-h" id="cxq">CRM questions</h3><div class="ox-faq"><details><summary>Is there a setup fee or sales call?</summary><p>No. Log in and start. There is no sales call and no per-seat maze.</p></details><details><summary>Who can see my client data?</summary><p>Only people your admin has added can log in, and your CRM data stays with your team.</p></details><details><summary>Can I use it on my phone?</summary><p>Yes. It is phone friendly and made so there is nothing to learn.</p></details><details><summary>Can I cancel?</summary><p>Yes, anytime.</p></details></div></div></section>
     
 
     <section class="ox-sec" id="day" style="padding-top:0" data-pg="solutions">
@@ -599,7 +659,7 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
         <div class="ox-pc">
           <div class="ox-amt">$8<small>a month</small></div>
           <ul><li>Inquiries with a live waiting timer</li><li>Clients, tasks and cases in one calm home</li><li>SLA tracking so you never miss a reply</li><li>Team chat log for every client</li><li>Phone friendly, nothing to learn</li></ul>
-          <button class="ox-btn js-login" type="button">Start my CRM</button>
+          <button class="ox-btn js-sub" type="button">Start my CRM</button>
           <p class="ox-fine">Cancel anytime.</p>
         </div>
       </div>
@@ -637,7 +697,7 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
         <div><div class="wm"><b>O</b>rchid</div><p>A calm CRM that helps teams respond faster and follow up better.</p></div>
         <div><h5>Products</h5><a href="#try" data-go="crm">Orchid CRM</a></div>
         <div><h5>Explore</h5><a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#security">Privacy</a></div>
-        <div><h5>Get started</h5><button class="js-login" type="button">Log in</button><button class="js-login" type="button">Create your password</button><button class="js-inq" type="button">Send an inquiry</button></div>
+        <div><h5>Get started</h5><button class="js-login" type="button">Log in</button><button class="js-login" type="button">Create your password</button><button class="js-demo" type="button">Try the demo</button><button class="js-inq" type="button">Send an inquiry</button></div>
       </div>
       <div class="ox-fb">&copy; 2026 Orchid. All rights reserved.</div>
     </div>
@@ -899,7 +959,7 @@ function openStart(){
   document.body.append(scrim);document.addEventListener('keydown',esc);email.focus();
 }
 document.querySelectorAll('.js-login,#loginBtn').forEach(b=>b.addEventListener('click',()=>{closeMenus();showLogin()}));
-document.querySelectorAll('.js-start').forEach(b=>b.addEventListener('click',()=>{closeMenus();openStart()}));
+document.querySelectorAll('.js-start').forEach(b=>b.addEventListener('click',()=>{closeMenus();window.openJoin?openJoin():openStart()}));
 document.querySelectorAll('.js-inq,#inqBtn').forEach(b=>b.addEventListener('click',()=>{closeMenus();openInquiry()}));
 
 // ---- landing page: menus, sticky header shadow, scroll reveal ----
@@ -916,6 +976,320 @@ addEventListener('scroll',()=>lpnav.classList.toggle('sc',scrollY>8),{passive:tr
 boot().catch(e=>{showLogin();say(e.message||'Something went wrong.')});
 setTimeout(()=>{if(document.body.dataset.v==='boot')showLand()},7000);   // never get stuck on the loading spinner
 </script>
+<script>
+/* ======================================================================
+   Join flow: Get started -> Subscribe (details + payment method) or Explore a demo (industry-matched)
+   ====================================================================== */
+(function(){
+/* ---- Payment: paste your hosted checkout links here (PayMongo Links, Stripe Payment Links, etc.).
+   Card, GCash and Maya details are always typed on the provider's own secure page, never in this form.
+   Leave a link empty and the person is told a payment link will be emailed to them. ---- */
+const PAY_LINKS={default:'',card:'',gcash:'',maya:'',grabpay:''};
+const PAY_METHODS=[['card','Card','Visa · Mastercard'],['gcash','GCash','E-wallet'],['maya','Maya','E-wallet'],['grabpay','GrabPay','E-wallet']];
+const PRICE='$8';
+const INDUSTRIES=[['hospitality','Hospitality & Travel'],['professional','Professional Services'],['smallbiz','Small business'],['finance','Financial Services & Insurance'],['manufacturing','Manufacturing & Automotive']];
+const SIZES=['Just me','2 to 10','11 to 50','51 to 200','201 to 500','More than 500'];
+const COUNTRIES=[['Philippines','+63'],['United States','+1'],['Canada','+1'],['United Kingdom','+44'],['Australia','+61'],['Singapore','+65'],['Malaysia','+60'],['Indonesia','+62'],['Thailand','+66'],['Vietnam','+84'],['Hong Kong','+852'],['Japan','+81'],['South Korea','+82'],['India','+91'],['United Arab Emirates','+971'],['Saudi Arabia','+966'],['Germany','+49'],['France','+33'],['Spain','+34'],['New Zealand','+64'],['Other','+']];
+const INQUIRY_TO='herart36@gmail.com';
+const f=(t,a={},...c)=>{const e=document.createElement(t);for(const k in a){if(k==='text')e.textContent=a[k];else if(typeof a[k]==='function')e.addEventListener(k.replace(/^on/,''),a[k]);else if(a[k]===true)e.setAttribute(k,'');else if(a[k]!==false&&a[k]!=null)e.setAttribute(k,a[k])}c.flat().forEach(x=>x!=null&&x!==false&&e.append(x.nodeType?x:document.createTextNode(x)));return e};
+const emailOk=s=>/^\S+@\S+\.\S+$/.test(s);
+const phoneOk=s=>(s.match(/\d/g)||[]).length>=7;
+const lab=(t,el)=>f('label',{},t,el);
+function modal(cls,label,...kids){
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape')close()};
+  const box=f('div',{class:'iq '+cls,role:'dialog','aria-modal':'true','aria-label':label},...kids);
+  const scrim=f('div',{class:'iq-scrim'},box);scrim.addEventListener('click',e=>{if(e.target===scrim)close()});
+  document.body.append(scrim);document.addEventListener('keydown',esc);
+  return{box,close,scrim};
+}
+const sel=(opts,ph)=>{const s=f('select');if(ph)s.append(f('option',{value:'',text:ph}));opts.forEach(o=>s.append(Array.isArray(o)?f('option',{value:o[0],text:o[1]}):f('option',{text:o})));return s};
+/* save a lead into the CRM inquiries table (same table the Get started form already used) */
+async function saveLead(source,name,email,phone,lines){
+  const c=(typeof clients!=='undefined')&&clients.crm;if(!c)throw new Error('loading');
+  const r=await c.from('crm_inquiries').insert({name,email,phone:phone||null,source,status:'new',message:lines.join('\n')});
+  if(r.error)throw r.error;
+}
+const mailto=(subject,lines)=>'mailto:'+INQUIRY_TO+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(lines.join('\n'));
+
+/* ---- 1. chooser ---- */
+function openJoin(){
+  const m=modal('', 'Get started with Orchid',
+    f('h2',{text:'How would you like to start?'}),f('p',{class:'sub',text:'Join with your own CRM, or look around first. Both take about a minute.'}),
+    f('div',{class:'pick2'},
+      f('button',{class:'opt',type:'button',onclick:()=>{m.close();openSubscribe()}},f('span',{class:'tag',text:'Join'}),f('b',{text:'Subscribe · '+PRICE+' a month'}),f('small',{text:'Your own Orchid CRM. Pay by card, GCash or Maya. Cancel anytime.'})),
+      f('button',{class:'opt',type:'button',onclick:()=>{m.close();openDemoForm()}},f('span',{class:'tag',text:'Free'}),f('b',{text:'Explore a demo'}),f('small',{text:'No card needed. We set the demo up for your industry with sample data.'}))),
+    f('div',{class:'r2',style:'justify-content:space-between'},f('button',{class:'b gh',type:'button',text:'Just have a question?',onclick:()=>{m.close();window.openInquiry&&window.openInquiry()}}),f('button',{class:'b gh',type:'button',text:'Close',onclick:()=>m.close()})));
+}
+
+/* ---- 2. subscribe ---- */
+function openSubscribe(pre={}){
+  const first=f('input',{type:'text',maxlength:'60',autocomplete:'given-name'}),last=f('input',{type:'text',maxlength:'60',autocomplete:'family-name'}),
+    job=f('input',{type:'text',maxlength:'80',autocomplete:'organization-title'}),comp=f('input',{type:'text',maxlength:'120',autocomplete:'organization'}),
+    size=sel(SIZES,'Select company size'),country=sel(COUNTRIES.map(c=>c[0])),email=f('input',{type:'email',maxlength:'200',autocomplete:'email'}),
+    phone=f('input',{type:'tel',maxlength:'30',autocomplete:'tel-national'}),ind=sel(INDUSTRIES.concat([['other','Other']]),'Select your industry'),
+    hp=f('input',{type:'text',tabindex:'-1',autocomplete:'off','aria-hidden':'true'}),err=f('div',{class:'e',role:'alert'}),
+    agree=f('input',{type:'checkbox',id:'jn_ag'});
+  country.value='Philippines';
+  const dial=f('div',{class:'dial',text:'+63'});country.addEventListener('change',()=>{dial.textContent=(COUNTRIES.find(c=>c[0]===country.value)||[0,'+'])[1]});
+  first.value=pre.first||'';comp.value=pre.company||'';email.value=pre.email||'';phone.value=pre.phone||'';if(pre.industry)ind.value=pre.industry;
+  let method='card';
+  const pay=f('div',{class:'pay',role:'radiogroup','aria-label':'Payment method'},PAY_METHODS.map(([k,t,s])=>{
+    const r=f('input',{type:'radio',name:'jn_pm',value:k});if(k===method)r.checked=true;r.addEventListener('change',()=>{method=k});
+    return f('label',{class:'pm'},r,f('span',{},t,f('em',{text:s})))}));
+  const send=f('button',{class:'b go',type:'button',text:'Continue to payment'});
+  const m=modal('jn','Subscribe to Orchid CRM',
+    f('h2',{text:'Create your Orchid CRM'}),f('p',{class:'sub',text:'Tell us about you, pick how you want to pay, and we will set up your CRM.'}),
+    f('div',{class:'g2'},lab('First name',first),lab('Last name',last),lab('Job title',job),lab('Company',comp),lab('Company size',size),lab('Country/region',country),lab('Work email',email),lab('Phone',f('div',{class:'jn-ph'},dial,phone))),
+    lab('Industry (we match your CRM to it)',ind),
+    f('div',{class:'gs-step',text:'Payment method'}),pay,
+    f('div',{class:'sum'},f('span',{},'Orchid CRM',f('br'),f('small',{text:'Billed monthly. Cancel anytime.'})),f('span',{text:PRICE+' / month'})),
+    f('p',{class:'fine',text:'You enter your card or wallet details on the payment provider\'s secure page. Orchid never sees or stores them.'}),
+    f('label',{class:'agree',for:'jn_ag'},agree,f('span',{text:'I agree to the terms of service and privacy policy.'})),
+    f('div',{class:'hp'},lab('Leave empty',hp)),err,
+    f('div',{class:'r2'},f('button',{class:'b gh',type:'button',text:'Cancel',onclick:()=>m.close()}),send));
+  send.onclick=async()=>{
+    err.textContent='';if(hp.value)return m.close();
+    const v={first:first.value.trim(),last:last.value.trim(),job:job.value.trim(),comp:comp.value.trim(),email:email.value.trim(),phone:phone.value.trim()};
+    if(!v.first||!v.last)return err.textContent='Please enter your first and last name.';
+    if(!v.comp)return err.textContent='Please enter your company.';
+    if(!size.value)return err.textContent='Select your company size.';
+    if(!emailOk(v.email))return err.textContent='Enter a valid work email.';
+    if(!phoneOk(v.phone))return err.textContent='Enter a phone number we can reach you on.';
+    if(!ind.value)return err.textContent='Select your industry.';
+    if(!agree.checked)return err.textContent='Please accept the terms to continue.';
+    const mName=PAY_METHODS.find(x=>x[0]===method)[1],indName=(INDUSTRIES.find(x=>x[0]===ind.value)||[0,'Other'])[1],ph=dial.textContent+' '+v.phone;
+    const lines=['Subscribe signup','Plan: Orchid CRM '+PRICE+'/month','Payment method: '+mName+' (awaiting payment)','Company: '+v.comp,'Job title: '+(v.job||'not given'),'Company size: '+size.value,'Industry: '+indName,'Country: '+country.value];
+    const nm=v.first+' '+v.last;
+    send.disabled=true;send.textContent='Saving…';
+    let saved=true;try{await saveLead('Subscribe signup',nm,v.email,ph,lines)}catch(e){console.error(e);saved=false}
+    const link=PAY_LINKS[method]||PAY_LINKS.default;
+    let body;
+    if(!saved)body=f('div',{class:'dn'},f('h2',{text:'One more step'}),f('p',{class:'sub',text:'Tap the button to open your email app with your sign-up ready, then press Send.'}),f('div',{class:'r2',style:'justify-content:center'},f('a',{class:'b go',href:mailto('Orchid CRM subscribe: '+nm,['Email: '+v.email,'Phone: '+ph].concat(lines)),text:'Open my email'}),f('button',{class:'b gh',type:'button',text:'Close',onclick:()=>m.close()})));
+    else if(/^https:\/\//.test(link))body=f('div',{class:'dn'},f('h2',{text:'Almost there, '+v.first+'!'}),f('p',{class:'sub',text:'Your details are saved. Finish with '+mName+' on the secure payment page.'}),f('div',{class:'r2',style:'justify-content:center'},f('a',{class:'b go',href:link,target:'_blank',rel:'noopener noreferrer',text:'Pay '+PRICE+' with '+mName}),f('button',{class:'b gh',type:'button',text:'Later',onclick:()=>m.close()})),f('p',{class:'fine',text:'We activate your CRM as soon as the payment is confirmed, and email '+v.email+' so you can create your password.'}));
+    else body=f('div',{class:'dn'},f('h2',{text:'You are in, '+v.first+'!'}),f('p',{class:'sub',text:'We saved your details. We will email a secure '+mName+' payment link to '+v.email+', and your CRM is activated as soon as payment is confirmed.'}),f('div',{class:'r2',style:'justify-content:center'},f('button',{class:'b go',type:'button',text:'Close',onclick:()=>m.close()}),f('button',{class:'b gh',type:'button',text:'Try the demo meanwhile',onclick:()=>{m.close();startDemo(ind.value&&DEMOS[ind.value]?ind.value:'smallbiz',{name:v.first,company:v.comp})}})));
+    m.box.replaceChildren(body);
+  };
+  first.focus();
+}
+
+/* ---- 3. demo sign-up ---- */
+function openDemoForm(){
+  const first=f('input',{type:'text',maxlength:'60',autocomplete:'given-name'}),comp=f('input',{type:'text',maxlength:'120',autocomplete:'organization'}),
+    email=f('input',{type:'email',maxlength:'200',autocomplete:'email'}),phone=f('input',{type:'tel',maxlength:'30',autocomplete:'tel'}),
+    ind=sel(INDUSTRIES,'Select your industry'),hp=f('input',{type:'text',tabindex:'-1',autocomplete:'off','aria-hidden':'true'}),err=f('div',{class:'e',role:'alert'});
+  const go=f('button',{class:'b go',type:'button',text:'Start my demo'});
+  const m=modal('','Explore the Orchid demo',
+    f('h2',{text:'Explore the demo'}),f('p',{class:'sub',text:'Tell us a little about you and we will open a demo set up for your industry. No card needed.'}),
+    lab('Your name',first),lab('Company',comp),lab('Work email',email),lab('Phone number',phone),lab('Your industry',ind),
+    f('div',{class:'hp'},lab('Leave empty',hp)),err,
+    f('div',{class:'r2'},f('button',{class:'b gh',type:'button',text:'Cancel',onclick:()=>{}}),go));
+  m.scrim.querySelector('.b.gh').onclick=m.close;
+  go.onclick=async()=>{
+    err.textContent='';if(hp.value)return m.close();
+    const v={n:first.value.trim(),c:comp.value.trim(),e:email.value.trim(),p:phone.value.trim()};
+    if(!v.n)return err.textContent='Please enter your name.';
+    if(!v.c)return err.textContent='Please enter your company.';
+    if(!emailOk(v.e))return err.textContent='Enter a valid work email.';
+    if(!phoneOk(v.p))return err.textContent='Enter a phone number we can reach you on.';
+    if(!ind.value)return err.textContent='Select your industry so we can match the demo.';
+    go.disabled=true;go.textContent='Opening…';
+    saveLead('Demo request',v.n,v.e,v.p,['Demo request','Company: '+v.c,'Industry: '+DEMOS[ind.value].name]).catch(e=>console.error(e));  /* never blocks the demo */
+    m.close();startDemo(ind.value,{name:v.n,company:v.c,email:v.e,phone:v.p});
+  };
+  first.focus();
+}
+
+/* ---- 4. demo workspace, one set of tools per industry ---- */
+const D=(n,t,v,s,x)=>({n,t,v,s,x});
+const DEMOS={
+hospitality:{name:'Hospitality & Travel',color:'#0d9488',
+  blurb:'Guest data, booking milestones, every channel in one inbox, and post-stay feedback.',
+  tools:['Guest profiles','Booking milestones','Multi-channel inbox','Post-stay feedback'],
+  tiles:[['Occupancy, next 30 days','78%'],['Open inquiries','12'],['Average rating','4.7 / 5'],['Arrivals this week','9']],
+  nav:[['overview','Overview'],['pipeline','Bookings'],['table:guests','Guests'],['miles','Milestones'],['inbox','Inbox'],['feedback','Feedback'],['tasks','Tasks']],
+  stages:['Inquiry','Quoted','Booked','Checked in','Stayed'],
+  deals:[D('Maria Santos','Boracay villa · 4 nights',1500,2),D('Tan Family','Cebu resort · 6 nights',2800,1),D('Kenji Mori','Palawan tour package',2200,0),D('Sofia Reyes','Manila city stay · 2 nights',480,3),D('Liam Carter','Siargao surf week',1900,4)],
+  tables:{guests:{title:'Guest profiles',sub:'Preferences and history, so every stay feels personal.',cols:['Guest','Country','Stays','Preferences','Last stay'],rows:[['Maria Santos','Philippines','4','Sea view, late check-out','Aug 2026'],['Kenji Mori','Japan','2','Quiet floor, vegetarian','Jun 2026'],['Liam Carter','Australia','1','Surf lessons, early breakfast','Sep 2026'],['Sofia Reyes','Spain','3','City view, airport pickup','Oct 2026'],['Tan Family','Singapore','5','Kids club, connecting rooms','Jul 2026']]}},
+  miles:{title:'Booking milestones',sub:'Tick off each step so nothing is missed between booking and feedback.',items:[{n:'Maria Santos · Boracay villa',steps:['Deposit paid','Pre-arrival info sent','Airport pickup booked','Checked in','Checked out','Survey sent'],done:3},{n:'Tan Family · Cebu resort',steps:['Deposit paid','Pre-arrival info sent','Airport pickup booked','Checked in','Checked out','Survey sent'],done:1}]},
+  inbox:{title:'Multi-channel inbox',sub:'Email, WhatsApp, Facebook and website chat in one place.',items:[{ch:'WhatsApp',from:'Maria Santos',msg:'Can we add an extra bed for our daughter?',t:'2m'},{ch:'Email',from:'Kenji Mori',msg:'Do you offer a Palawan island hopping package?',t:'18m'},{ch:'Facebook',from:'Anna Cruz',msg:'Is the resort pet friendly?',t:'1h'},{ch:'Website chat',from:'Tom Becker',msg:'Any rooms free for 12-15 December?',t:'3h'}]},
+  feedback:{items:[{n:'Liam Carter',r:5,c:'Best surf week ever. The team remembered everything.'},{n:'Sofia Reyes',r:4,c:'Lovely stay. Check-in took a bit long.'},{n:'Tan Family',r:5,c:'Kids loved it. Easy booking from start to finish.'}]},
+  tasks:['Send pre-arrival info to Maria Santos','Confirm airport pickup for Sofia Reyes','Reply to Kenji about island hopping','Send survey to guests who checked out']},
+professional:{name:'Professional Services',color:'#4f46e5',
+  blurb:'Client pipelines, project milestones, and billable hours for agencies, law firms and consultants.',
+  tools:['Client pipeline','Project milestones','Billable hours','Client records'],
+  tiles:[['Pipeline value','$27,500'],['Active projects','6'],['Billable hours, this month','112 h'],['Unbilled','$3,840']],
+  nav:[['overview','Overview'],['pipeline','Pipeline'],['table:clients','Clients'],['miles','Projects'],['time','Time & billing'],['tasks','Tasks']],
+  stages:['Lead','Proposal','Engaged','Delivered','Invoiced'],
+  deals:[D('Atlas Consulting','Operations audit',3800,0),D('Northwind Legal','Contract review retainer',4200,1),D('Bright Studio','Brand strategy project',6500,2),D('Harbor Dental','Website redesign',5200,3),D('Cedar Holdings','Advisory, Q4',7800,4)],
+  tables:{clients:{title:'Client records',sub:'Every client, contact and engagement in one place.',cols:['Client','Contact','Engagement','Open projects','Billed this year'],rows:[['Bright Studio','Ana Lopez','Retainer','2','$18,400'],['Northwind Legal','Mark Tan','Project','1','$9,200'],['Harbor Dental','Dr. Reyes','Project','1','$5,200'],['Cedar Holdings','L. Cedar','Advisory','1','$22,000']]}},
+  miles:{title:'Projects and milestones',sub:'Milestones keep delivery on track and tell you when to invoice.',items:[{n:'Brand strategy · Bright Studio',steps:['Kickoff','Discovery','Draft','Review','Final delivery'],done:2},{n:'Operations audit · Atlas Consulting',steps:['Kickoff','Interviews','Findings','Report'],done:1},{n:'Website redesign · Harbor Dental',steps:['Kickoff','Wireframes','Design','Build','Launch'],done:4}]},
+  time:{rate:120,rows:[{p:'Brand strategy · Bright Studio',h:12.5},{p:'Contract review · Northwind Legal',h:8},{p:'Operations audit · Atlas',h:5.5}]},
+  tasks:['Send proposal to Atlas Consulting','Invoice Harbor Dental for launch','Book kickoff with Northwind Legal','Log this week\'s hours']},
+smallbiz:{name:'Small business',color:'#ea580c',
+  blurb:'Leads, customers, orders and follow-ups, simple enough to run from your phone.',
+  tools:['Leads and inquiries','Customer list','Orders and quotes','Follow-up reminders'],
+  tiles:[['New leads this week','7'],['Open quotes','5'],['Sales this month','$8,420'],['Follow-ups due','4']],
+  nav:[['overview','Overview'],['pipeline','Leads'],['table:customers','Customers'],['table:orders','Orders'],['tasks','Follow-ups']],
+  stages:['New','Contacted','Quoted','Won'],
+  deals:[D('Maria Santos','Weekly bundle',1500,0),D('Cafe Luna','Catering for 40',800,1),D('J. Reyes','Custom order',2400,2),D('Green Leaf Salon','Monthly supplies',640,3)],
+  tables:{customers:{title:'Customers',sub:'Who they are, what they bought, and when to reach out next.',cols:['Customer','Phone','Last order','Total spent','Notes'],rows:[['Maria Santos','+63 917 555 0142','Oct 3','$3,200','Likes weekend delivery'],['Cafe Luna','+63 918 555 0188','Sep 28','$1,950','Pays on the 15th'],['J. Reyes','+63 920 555 0117','Oct 9','$2,400','Wants a quote for bulk'],['Green Leaf Salon','+63 927 555 0163','Oct 1','$840','Repeat monthly']]},
+    orders:{title:'Orders and quotes',sub:'Track every order from quote to paid.',cols:['Order','Customer','Amount','Status','Due'],rows:[['#1042','Maria Santos','$1,500','Quoted','Oct 24'],['#1041','Cafe Luna','$800','Paid','Oct 20'],['#1040','J. Reyes','$2,400','Pending','Oct 26'],['#1039','Green Leaf Salon','$640','Paid','Oct 15']],status:3}},
+  tasks:['Call J. Reyes about the custom order','Send quote to Maria Santos','Thank Cafe Luna for the catering order','Restock supplies for Green Leaf']},
+finance:{name:'Financial Services & Insurance',color:'#1d4ed8',
+  blurb:'Client portfolios, compliance checks, lead generation, renewal stages and every interaction on record.',
+  tools:['Client portfolios','Compliance checklist','Renewal stages','Interaction log'],
+  tiles:[['Assets under advice','$4.2M'],['Renewals due, 30 days','8'],['Compliance complete','86%'],['New leads this month','14']],
+  nav:[['overview','Overview'],['pipeline','Lead pipeline'],['table:clients','Client portfolios'],['renew','Renewals'],['comply','Compliance'],['inbox','Interactions'],['tasks','Tasks']],
+  stages:['Prospect','Meeting','Application','Underwriting','Active'],
+  deals:[D('Dela Cruz Family','Life insurance · $1,200 / yr',1200,1),D('Pioneer Logistics','Business insurance',5600,2),D('A. Navarro','Investment onboarding',25000,0),D('Santos Trust','Retirement plan',18000,3),D('Lim Enterprises','Fleet policy',7400,4)],
+  tables:{clients:{title:'Client portfolios',sub:'Holdings, policies and risk profile for each client.',cols:['Client','Product','Value','Risk profile','Advisor'],rows:[['Santos Trust','Retirement plan','$420,000','Moderate','R. Aquino'],['Lim Enterprises','Fleet policy','$7,400 / yr','n/a','J. Uy'],['Dela Cruz Family','Life + education','$1,200 / yr','Conservative','R. Aquino'],['A. Navarro','Investment portfolio','$150,000','Growth','M. Co']]}},
+  renew:{items:[{n:'Dela Cruz Family',p:'Life insurance',d:12,a:'$1,200'},{n:'Lim Enterprises',p:'Fleet policy',d:26,a:'$7,400'},{n:'Pioneer Logistics',p:'Business insurance',d:41,a:'$5,600'}]},
+  comply:{items:[{n:'A. Navarro',checks:['ID verified (KYC)','Risk profile signed','Disclosures sent','Annual review'],done:[1,0,0,0]},{n:'Santos Trust',checks:['ID verified (KYC)','Risk profile signed','Disclosures sent','Annual review'],done:[1,1,1,0]},{n:'Lim Enterprises',checks:['ID verified (KYC)','Risk profile signed','Disclosures sent','Annual review'],done:[1,1,1,1]}]},
+  inbox:{title:'Interaction log',sub:'Calls, emails, SMS and meetings recorded against each client.',items:[{ch:'Phone',from:'Dela Cruz Family',msg:'Asked about adding an education rider.',t:'10m'},{ch:'Email',from:'A. Navarro',msg:'Sent signed risk questionnaire.',t:'1h'},{ch:'SMS',from:'Lim Enterprises',msg:'Please send the renewal quote.',t:'2h'},{ch:'Meeting',from:'Santos Trust',msg:'Annual review booked for Friday.',t:'1d'}]},
+  tasks:['Send renewal reminder to Dela Cruz Family','Collect disclosures from A. Navarro','Prepare annual review for Santos Trust','Follow up with new referral leads']},
+manufacturing:{name:'Manufacturing & Automotive',color:'#b45309',
+  blurb:'Distributor and dealer relationships, equipment lifecycle, orders and demand forecasting.',
+  tools:['Dealer and distributor views','Order pipeline','Equipment lifecycle','Demand forecast'],
+  tiles:[['Open orders','$44,700'],['Active dealers','23'],['On-time delivery','94%'],['Service due, 30 days','6']],
+  nav:[['overview','Overview'],['pipeline','Orders'],['table:dealers','Dealers'],['life','Equipment lifecycle'],['forecast','Demand forecast'],['tasks','Tasks']],
+  stages:['Quote','PO received','In production','Shipped','Delivered'],
+  deals:[D('Cebu Fleet Services','Service kits · 40 units',3100,0),D('Visayas Motors','12 hydraulic pumps',9600,1),D('Metro Auto Parts','500 brake kits',18400,2),D('Northern Equipment','Spare parts lot',5200,3),D('Mindanao Agri Co.','Tractor parts',7400,4)],
+  tables:{dealers:{title:'Dealers and distributors',sub:'One view of every dealer: tier, volume and what they owe.',cols:['Dealer','Region','Tier','Orders this year','Open balance'],rows:[['Metro Auto Parts','Luzon','Gold','$142,000','$18,400'],['Visayas Motors','Visayas','Gold','$96,500','$9,600'],['Northern Equipment','Luzon','Silver','$41,200','$0'],['Mindanao Agri Co.','Mindanao','Silver','$38,900','$7,400']]}},
+  life:{items:[{n:'Hydraulic pump HX-200 · Visayas Motors',age:'3.2 years in service',pct:70,next:'Service due in 21 days'},{n:'Press line P-7 · Metro Auto Parts',age:'6.8 years in service',pct:88,next:'Replacement quote recommended'},{n:'Tractor T-410 · Mindanao Agri',age:'1.4 years in service',pct:30,next:'Next service in 4 months'}]},
+  forecast:{months:['Nov','Dec','Jan','Feb','Mar','Apr'],vals:[62,74,58,66,81,90],note:'Units forecast per month from open quotes, dealer history and seasonality.'},
+  tasks:['Confirm shipping date for Metro Auto Parts','Send service reminder to Visayas Motors','Review Q1 forecast with dealers','Quote press line replacement']}
+};
+let DM=null; /* current demo state */
+const dmEl=()=>document.getElementById('dm');
+function startDemo(key,who){
+  if(!DEMOS[key])key='smallbiz';
+  const d=DEMOS[key];
+  DM={key,who:who||{},view:'overview',deals:d.deals.map(x=>({...x})),tasks:d.tasks.map(t=>({t,done:false})),
+    miles:d.miles?d.miles.items.map(m=>({...m,flags:m.steps.map((_,i)=>i<m.done)})):[],
+    inbox:d.inbox?d.inbox.items.map(x=>({...x,replied:false})):[],
+    renew:d.renew?d.renew.items.map(x=>({...x,st:'Upcoming'})):[],
+    comply:d.comply?d.comply.items.map(x=>({n:x.n,checks:x.checks,flags:x.done.map(Boolean)})):[],
+    time:d.time?{rate:d.time.rate,rows:d.time.rows.map(x=>({...x}))}:null,
+    banner:true};
+  let root=dmEl();if(!root){root=f('div',{id:'dm',role:'dialog','aria-modal':'true','aria-label':'Orchid demo'});document.body.append(root)}
+  root.hidden=false;document.body.classList.add('dm-on');dmRender();
+}
+function dmExit(){const r=dmEl();if(r)r.hidden=true;document.body.classList.remove('dm-on')}
+function dmToast(t){const x=f('div',{class:'dm-toast',role:'status',text:t});document.body.append(x);setTimeout(()=>x.remove(),2600)}
+const usd=n=>'$'+Number(n).toLocaleString();
+function dmRender(){
+  const d=DEMOS[DM.key],root=dmEl();root.style.setProperty('--dm',d.color);
+  const swap=sel(INDUSTRIES.map(([k,t])=>[k,t]));swap.value=DM.key;swap.setAttribute('aria-label','Switch industry');swap.addEventListener('change',()=>startDemo(swap.value,DM.who));
+  const top=f('div',{class:'dm-top'},f('span',{class:'wm'},f('b',{text:'O'}),'rchid'),f('span',{class:'dm-pill',text:'DEMO · sample data'}),swap,f('span',{class:'dm-sp'}),
+    f('button',{class:'dm-b p',type:'button',text:'Subscribe · '+PRICE+'/mo',onclick:()=>openSubscribe({first:DM.who.name,company:DM.who.company,email:DM.who.email,phone:DM.who.phone,industry:DM.key})}),
+    f('button',{class:'dm-b',type:'button',text:'Exit demo',onclick:dmExit}));
+  const side=f('nav',{class:'dm-side','aria-label':'Demo sections'},d.nav.map(([k,t])=>f('button',{type:'button','aria-current':String(DM.view===k),text:t,onclick:()=>{DM.view=k;dmRender()}})));
+  const main=f('div',{class:'dm-main'});
+  if(DM.banner&&DM.who.name)main.append(f('div',{class:'dm-banner'},f('div',{},f('b',{text:'Welcome, '+DM.who.name+(DM.who.company?' from '+DM.who.company:'')+'.'}),f('br'),'This is Orchid set up for '+d.name+'. Everything is sample data you can click through.'),f('button',{type:'button','aria-label':'Dismiss',text:'×',onclick:()=>{DM.banner=false;dmRender()}})));
+  main.append(dmView(d));
+  root.replaceChildren(top,f('div',{class:'dm-wrap'},side,main));
+}
+function dmView(d){
+  const v=DM.view;
+  if(v==='overview')return dmOverview(d);
+  if(v==='pipeline')return dmPipeline(d);
+  if(v.startsWith('table:'))return dmTable(d,v.slice(6));
+  const fn={miles:dmMiles,inbox:dmInbox,feedback:dmFeedback,time:dmTime,renew:dmRenew,comply:dmComply,life:dmLife,forecast:dmForecast,tasks:dmTasks}[v];
+  return fn?fn(d):dmOverview(d);
+}
+const head=(t,s)=>f('div',{},f('h2',{text:t}),f('p',{class:'dm-sub',text:s||''}));
+function dmOverview(d){
+  const open=DM.tasks.filter(t=>!t.done);
+  return f('div',{},head(d.name,d.blurb),
+    f('div',{class:'dm-tiles'},d.tiles.map(([l,x])=>f('div',{class:'dm-tile'},f('b',{text:x}),f('span',{text:l})))),
+    f('div',{class:'dm-grid2'},
+      f('div',{class:'dm-card'},f('b',{text:'Tools matched to your industry'}),f('div',{class:'dm-chips'},d.tools.map(t=>f('span',{class:'dm-chip',text:t}))),f('p',{class:'dm-sub',style:'margin:12px 0 0',text:'Use the menu on the left to open each one.'})),
+      f('div',{class:'dm-card'},f('b',{text:'Next up'}),open.length?open.slice(0,4).map(t=>f('div',{class:'dm-row'},f('span',{class:'gr',text:t.t}))):f('p',{class:'dm-sub',text:'All caught up.'}))),
+    f('div',{class:'dm-card'},f('b',{text:'Pipeline value'}),f('p',{class:'dm-sub',style:'margin:4px 0 0',text:usd(DM.deals.reduce((a,x)=>a+x.v,0))+' across '+DM.deals.length+' open records.'})),
+    f('div',{class:'dm-cta'},f('div',{style:'flex:1;min-width:200px'},f('b',{text:'Like what you see?'}),f('br'),f('span',{text:'Get your own Orchid CRM for '+PRICE+' a month. Pay by card, GCash or Maya.'})),
+      f('button',{class:'dm-b',type:'button',style:'color:var(--dm)',text:'Subscribe',onclick:()=>openSubscribe({first:DM.who.name,company:DM.who.company,email:DM.who.email,phone:DM.who.phone,industry:DM.key})})));
+}
+function dmPipeline(d){
+  const st=d.stages;
+  const cols=st.map((s,i)=>{
+    const col=DM.deals.filter(x=>x.s===i);
+    const cards=col.map(x=>{
+      const act=i<st.length-1
+        ?f('button',{class:'dm-b sm',type:'button',text:'Move →',onclick:()=>{x.s=i+1;dmToast(x.n+' moved to '+st[i+1]);dmRender()}})
+        :f('span',{class:'dm-st g',text:'Done'});
+      return f('div',{class:'dm-deal'},f('b',{text:x.n}),f('small',{text:x.t}),
+        f('div',{style:'display:flex;justify-content:space-between;align-items:center'},f('span',{class:'v',text:usd(x.v)}),act));
+    });
+    return f('div',{class:'dm-col'},f('h4',{},f('span',{text:s}),f('span',{text:usd(col.reduce((a,x)=>a+x.v,0))})),cards);
+  });
+  return f('div',{},head(d.nav.find(n=>n[0]==='pipeline')[1],'Move each record forward as it progresses. Totals update live.'),f('div',{class:'dm-kan'},cols));
+}
+function dmTable(d,k){
+  const t=d.tables[k];
+  const stCls=s=>/paid|won|active|done/i.test(s)?'g':/pending|quoted/i.test(s)?'a':'b';
+  return f('div',{},head(t.title,t.sub),f('div',{class:'dm-tw'},f('table',{class:'dm-t'},f('thead',{},f('tr',{},t.cols.map(c=>f('th',{text:c})))),
+    f('tbody',{},t.rows.map(r=>f('tr',{},r.map((c,i)=>f('td',{},t.status===i?f('span',{class:'dm-st '+stCls(c),text:c}):c))))))));
+}
+function dmMiles(d){
+  return f('div',{},head(d.miles.title,d.miles.sub),DM.miles.map(m=>{const done=m.flags.filter(Boolean).length,pct=Math.round(done/m.steps.length*100);
+    return f('div',{class:'dm-card'},f('div',{style:'display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap'},f('b',{text:m.n}),f('span',{class:'dm-st '+(pct===100?'g':'b'),text:pct+'% done'})),
+      f('div',{class:'dm-prog'},f('i',{style:'width:'+pct+'%'})),
+      f('div',{class:'dm-steps'},m.steps.map((s,i)=>{const c=f('input',{type:'checkbox'});c.checked=m.flags[i];c.addEventListener('change',()=>{m.flags[i]=c.checked;dmRender()});return f('label',{},c,s)})))}));
+}
+function dmInbox(d){
+  const cfg=d.inbox;
+  return f('div',{},head(cfg.title,cfg.sub),f('div',{class:'dm-card'},DM.inbox.map(m=>f('div',{class:'dm-row'},
+    f('span',{class:'dm-st b',text:m.ch}),f('div',{class:'gr'},f('b',{text:m.from}),f('small',{text:m.msg})),f('small',{text:m.t+' ago'}),
+    m.replied?f('span',{class:'dm-st g',text:'Replied'}):f('button',{class:'dm-b sm',type:'button',text:'Reply',onclick:()=>{m.replied=true;dmToast('Reply sent in the demo. Nothing was really sent.');dmRender()}})))));
+}
+function dmFeedback(d){
+  const items=d.feedback.items,avg=(items.reduce((a,x)=>a+x.r,0)/items.length).toFixed(1);
+  return f('div',{},head('Post-stay feedback','See what guests thought, and follow up on anything below 5 stars.'),
+    f('div',{class:'dm-tiles'},f('div',{class:'dm-tile'},f('b',{text:avg+' / 5'}),f('span',{text:'Average rating'})),f('div',{class:'dm-tile'},f('b',{text:String(items.length)}),f('span',{text:'Reviews this month'}))),
+    f('div',{class:'dm-card'},items.map(x=>f('div',{class:'dm-row'},f('div',{class:'gr'},f('b',{text:x.n}),f('div',{class:'dm-stars',text:'★'.repeat(x.r)+'☆'.repeat(5-x.r)}),f('small',{text:x.c})),x.r<5?f('button',{class:'dm-b sm',type:'button',text:'Follow up',onclick:()=>dmToast('Follow-up task created for '+x.n)}):null))),
+    f('button',{class:'dm-b p',type:'button',text:'Send a survey to recent guests',onclick:()=>dmToast('Survey sent in the demo.')}));
+}
+function dmTime(d){
+  const T=DM.time,hrs=T.rows.reduce((a,x)=>a+x.h,0),pr=f('input',{class:'dm-in',placeholder:'Project or client'}),hr=f('input',{class:'dm-in',type:'number',min:'0.25',step:'0.25',placeholder:'Hours',style:'width:100px'});
+  return f('div',{},head('Time and billing','Log billable hours and see what is ready to invoice at '+usd(T.rate)+' an hour.'),
+    f('div',{class:'dm-tiles'},f('div',{class:'dm-tile'},f('b',{text:hrs.toFixed(1)+' h'}),f('span',{text:'Logged this week'})),f('div',{class:'dm-tile'},f('b',{text:usd(Math.round(hrs*T.rate))}),f('span',{text:'Ready to invoice'})),f('div',{class:'dm-tile'},f('b',{text:Math.min(100,Math.round(hrs/40*100))+'%'}),f('span',{text:'Utilization (40 h week)'}))),
+    f('div',{class:'dm-card'},T.rows.map(x=>f('div',{class:'dm-row'},f('span',{class:'gr',text:x.p}),f('b',{text:x.h+' h'}),f('span',{class:'dm-st g',text:usd(Math.round(x.h*T.rate))}))),
+      f('div',{class:'dm-row'},pr,hr,f('button',{class:'dm-b p sm',type:'button',text:'Log hours',onclick:()=>{const n=Number(hr.value);if(!pr.value.trim()||!(n>0))return dmToast('Add a project and the hours.');T.rows.push({p:pr.value.trim().slice(0,80),h:n});dmRender()}}))));
+}
+function dmRenew(d){
+  return f('div',{},head('Renewals','Policies by renewal date. Send reminders before they lapse.'),f('div',{class:'dm-card'},DM.renew.map(r=>f('div',{class:'dm-row'},
+    f('div',{class:'gr'},f('b',{text:r.n}),f('small',{text:r.p+' · '+r.a+' · due in '+r.d+' days'})),f('span',{class:'dm-st '+(r.st==='Renewed'?'g':r.st==='Upcoming'?(r.d<=14?'r':'a'):'b'),text:r.st}),
+    r.st==='Upcoming'?f('button',{class:'dm-b sm',type:'button',text:'Send reminder',onclick:()=>{r.st='Reminder sent';dmToast('Reminder sent to '+r.n+' (demo).');dmRender()}}):r.st==='Reminder sent'?f('button',{class:'dm-b sm',type:'button',text:'Mark renewed',onclick:()=>{r.st='Renewed';dmRender()}}):null))));
+}
+function dmComply(d){
+  return f('div',{},head('Compliance checklist','Keep KYC, risk profiles and disclosures complete for every client.'),DM.comply.map(c=>{const n=c.flags.filter(Boolean).length,pct=Math.round(n/c.checks.length*100);
+    return f('div',{class:'dm-card'},f('div',{style:'display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap'},f('b',{text:c.n}),f('span',{class:'dm-st '+(pct===100?'g':'a'),text:pct+'% complete'})),f('div',{class:'dm-prog'},f('i',{style:'width:'+pct+'%'})),
+      f('div',{class:'dm-steps'},c.checks.map((s,i)=>{const x=f('input',{type:'checkbox'});x.checked=c.flags[i];x.addEventListener('change',()=>{c.flags[i]=x.checked;dmRender()});return f('label',{},x,s)})))}));
+}
+function dmLife(d){
+  return f('div',{},head('Equipment lifecycle','See how long each machine has been in the field, and when it needs service or replacement.'),d.life.items.map(x=>f('div',{class:'dm-card'},
+    f('div',{style:'display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap'},f('b',{text:x.n}),f('span',{class:'dm-st '+(x.pct>=85?'r':x.pct>=60?'a':'g'),text:x.next})),f('small',{class:'dm-sub',text:x.age}),f('div',{class:'dm-prog'},f('i',{style:'width:'+x.pct+'%'})))));
+}
+function dmForecast(d){
+  const F=d.forecast,max=Math.max(...F.vals);
+  return f('div',{},head('Demand forecast',F.note),f('div',{class:'dm-card'},f('div',{class:'dm-bars'},F.months.map((m,i)=>f('div',{},f('span',{text:F.vals[i]+'k'}),f('i',{style:'height:'+Math.round(F.vals[i]/max*100)+'%'}),f('span',{text:m}))))));
+}
+function dmTasks(d){
+  const inp=f('input',{class:'dm-in',placeholder:'Add a task',style:'flex:1;min-width:180px'});
+  const add=()=>{const t=inp.value.trim();if(!t)return;DM.tasks.unshift({t:t.slice(0,120),done:false});dmRender()};
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')add()});
+  return f('div',{},head(d.nav.find(n=>n[0]==='tasks')[1],'Tick tasks off as you go.'),f('div',{class:'dm-card'},
+    f('div',{class:'dm-row'},inp,f('button',{class:'dm-b p sm',type:'button',text:'Add',onclick:add})),
+    DM.tasks.map(t=>{const c=f('input',{type:'checkbox'});c.checked=t.done;c.addEventListener('change',()=>{t.done=c.checked;dmRender()});return f('label',{class:'dm-row',style:'cursor:pointer'},c,f('span',{class:'gr',style:t.done?'text-decoration:line-through;color:#94a3b8':'',text:t.t}))})));
+}
+
+window.openJoin=openJoin;window.openSubscribe=openSubscribe;window.openDemoForm=openDemoForm;
+document.querySelectorAll('.js-sub').forEach(b=>b.addEventListener('click',()=>{if(window.closeMenus)closeMenus();openSubscribe()}));
+document.querySelectorAll('.js-demo').forEach(b=>b.addEventListener('click',()=>{if(window.closeMenus)closeMenus();openDemoForm()}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dmEl()&&!dmEl().hidden&&!document.querySelector('.iq-scrim'))dmExit()});
+})();
+</script>
+
 <script>(()=>{const D=[["Maria Santos",1500,0],["Cafe Luna",800,0],["J. Reyes",2400,1]],c=[...document.querySelectorAll('#dCols .dcol')];if(!c.length)return;
 function draw(){c.forEach((col,s)=>{col.querySelectorAll('.dcard').forEach(x=>x.remove());D.forEach((d,i)=>{if(d[2]!==s)return;const b=document.createElement('button');b.type='button';b.className='dcard';b.innerHTML='<b></b><small></small>';b.firstChild.textContent=d[0];b.lastChild.textContent='$'+d[1].toLocaleString();if(s<2)b.onclick=()=>{d[2]++;draw()};else b.disabled=true;col.appendChild(b)})});
 document.getElementById('dWon').textContent='Won: $'+D.filter(d=>d[2]===2).reduce((t,d)=>t+d[1],0).toLocaleString()}draw()})()</script>
