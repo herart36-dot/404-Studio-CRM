@@ -1375,6 +1375,13 @@ label.f{font-size:.78rem;font-weight:600;color:#3e4f68}
 .ov-fl{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;font-size:.8rem}.ov-fl label{display:flex;gap:4px;align-items:center}
 </style>
 <style id="ai-assist-css">.ai-note{background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;border-radius:10px;padding:8px 12px;font-size:.8rem;margin:8px 0 4px}.ai-res{margin-top:8px;padding:10px 12px;cursor:pointer}.ai-res:hover{border-color:var(--brand)}</style>
+<style id="settings-css">
+.dense .stat{padding:10px 14px}.dense .bcard{padding:7px 10px}.dense .tbl td,.dense .tbl th{padding-top:6px;padding-bottom:6px}.dense .btn{min-height:32px}
+.rm *,.rm *::before,.rm *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+.ai-off #oai-fab,.ai-off #oai-panel{display:none!important}
+.st-row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}.st-row b{font-size:.88rem}.st-row .d{font-size:.78rem;color:var(--muted)}
+.st-body{max-height:56vh;overflow:auto;padding-right:4px}.st-body h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:16px 0 0}
+</style>
 <style id="deals-css">
 .dl-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
 .dl-bar select,.dl-bar input[type=date]{width:auto;min-height:30px;padding:4px 10px;font-size:.8rem;border-radius:8px}
@@ -2261,7 +2268,7 @@ function overview(){
   else body=h('div',{},ovCharts(),h('div',{class:'ov-g',style:'grid-template-columns:1fr'},ovBuilder(),ovErr?empty('Reports are not set up','Run overview_setup.sql in Supabase to save targets and schedules.'):ovSchedules()));
   return h('div',{},base,head,body);
 }
-if(!window.__ovLive){window.__ovLive=setInterval(async()=>{if(leaving||view!=='overview'||isExec()||document.querySelector('.scrim')||document.hidden)return;const a=document.activeElement;if(a&&/INPUT|TEXTAREA/.test(a.tagName))return;try{await Promise.all([loadAll(),loadDeals(),loadOv()]);render()}catch(e){console.error(e)}},60000)}
+if(!window.__ovLive){window.__ovLive=setInterval(async()=>{if(leaving||view!=='overview'||isExec()||!prefs.live||document.querySelector('.scrim')||document.hidden)return;const a=document.activeElement;if(a&&/INPUT|TEXTAREA/.test(a.tagName))return;try{await Promise.all([loadAll(),loadDeals(),loadOv()]);render()}catch(e){console.error(e)}},60000)}
 
 /* ===== AI assistance: calls the crm-ai-assist Edge Function (no key in the browser). Output is always an editable suggestion; nothing is sent automatically. ===== */
 async function aiCall(task,input){
@@ -3680,6 +3687,75 @@ function dealsView(){
   return h('div',{class:'sl'},head,body);
 }
 
+/* ===== Settings (header gear): per-device preferences, account, workspace shortcuts, data export, report an issue ===== */
+const PK='orchid_prefs',PD={size:'md',dense:false,calm:false,ai:true,live:true,start:'overview',deals:'board',range:'30'};
+const prefs=(()=>{try{return{...PD,...JSON.parse(localStorage.getItem(PK)||'{}')}}catch(e){return{...PD}}})();
+const START=[['overview','Overview'],['inquiries','Inquiries'],['messages','Messages'],['cases','Cases'],['clients','Clients'],['tasks','Tasks'],['calendar','Calendar'],['deals','Deals']];
+function applyPrefs(){const r=document.documentElement;r.style.fontSize={sm:'14.5px',lg:'17.5px'}[prefs.size]||'';r.classList.toggle('dense',!!prefs.dense);r.classList.toggle('rm',!!prefs.calm);r.classList.toggle('ai-off',!prefs.ai)}
+const setPref=(k,v)=>{prefs[k]=v;try{localStorage.setItem(PK,JSON.stringify(prefs))}catch(e){}applyPrefs()};
+applyPrefs();if(START.some(x=>x[0]===prefs.start))view=prefs.start;dlMode=prefs.deals==='list'?'list':'board';OVF.range=prefs.range;
+const stRow=(l,d,c)=>h('div',{class:'st-row'},h('div',{},h('b',{text:l}),d?h('div',{class:'d',text:d}):null),c);
+const stSel=(k,opts,after)=>h('select',{class:'sel-sm',style:'width:auto','aria-label':k,onchange:e=>{setPref(k,e.target.value);after&&after()}},opts.map(([v,t])=>h('option',{value:v,text:t,selected:String(prefs[k])===v})));
+const stTog=(k,after)=>h('input',{type:'checkbox','aria-label':k,checked:!!prefs[k],style:'width:20px;height:20px',onchange:e=>{setPref(k,e.target.checked);after&&after()}});
+const stBtn=(l,d,t,fn)=>stRow(l,d,h('button',{class:'btn ghost sm',text:t,onclick:fn}));
+let stTab='general';
+function openSettings(tab){
+  if(tab)stTab=tab;const exec=isExec(),body=h('div',{class:'st-body'});
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape')close()};
+  const go=v=>{close();view=v;q='';render();scrollTo(0,0)},dark=()=>document.documentElement.getAttribute('data-theme')==='dark';
+  const csv=(n,head,rows)=>rows.length?slCsv(n,head,rows):toast('Nothing to export yet.');
+  const tabs=[['general','General'],['account','Account'],...(exec?[]:[['workspace','Workspace'],['data','Data']]),['issue','Report an issue']];
+  if(!tabs.some(t=>t[0]===stTab))stTab='general';
+  const T={
+    general:()=>[h('h3',{text:'Appearance'}),
+      stRow('Theme','Light or dark. Saved on this device.',h('select',{class:'sel-sm',style:'width:auto','aria-label':'Theme',onchange:e=>{const d=e.target.value==='dark';if(d)document.documentElement.setAttribute('data-theme','dark');else document.documentElement.removeAttribute('data-theme');try{localStorage.setItem('orchid_theme',d?'dark':'light')}catch(x){}}},[['light','Light'],['dark','Dark']].map(([v,t])=>h('option',{value:v,text:t,selected:(dark()?'dark':'light')===v})))),
+      stRow('Text size','Makes everything smaller or larger.',stSel('size',[['sm','Small'],['md','Default'],['lg','Large']])),
+      stRow('Compact layout','Tighter cards, tables and buttons.',stTog('dense')),
+      stRow('Reduce motion','Turns off animations and transitions.',stTog('calm')),
+      h('h3',{text:'Behaviour'}),
+      stRow('Start page','The page the CRM opens on.',stSel('start',START)),
+      ...(exec?[]:[stRow('Deals view','Default view when you open Deals.',stSel('deals',[['board','Board'],['list','List']],()=>{dlMode=prefs.deals})),
+        stRow('Overview date range','Default range for the live analytics.',stSel('range',[['7','Last 7 days'],['30','Last 30 days'],['90','Last 90 days'],['ytd','Year to date'],['all','All time']],()=>{OVF.range=prefs.range})),
+        stRow('Live Overview refresh','Refresh the Overview numbers every minute.',stTog('live')),
+        stRow('AI assistant button','Show or hide the floating assistant.',stTog('ai'))]),
+      stBtn('Reset preferences','Back to the defaults on this device.','Reset',()=>{Object.assign(prefs,PD);try{localStorage.setItem(PK,JSON.stringify(prefs))}catch(e){}applyPrefs();dlMode='board';OVF.range='30';toast('Preferences reset.');draw()})],
+    account:()=>[h('h3',{text:'Your account'}),stRow(me.email,'Access level: '+ROLES[myRole].l+'. '+ROLES[myRole].d,null),
+      stBtn('Change password','Choose a new password for this login.','Change',()=>{close();openForm({title:'Change password',saveText:'Update password',fields:[{k:'a',label:'New password (8+ characters)',type:'password',req:true},{k:'b',label:'Confirm new password',type:'password',req:true}],onSave:async v=>{if(v.a.length<8||v.a!==v.b){toast(v.a!==v.b?'The passwords do not match.':'Use at least 8 characters.');throw new Error('invalid')}const r=await sb.auth.updateUser({password:v.a});if(r.error)return fail(r.error,r.error.message||'Could not change the password.');toast('Password updated.')}})}),
+      ...(exec?[]:[stBtn('Email signature','Used in emails you send from the CRM.','Edit',()=>{close();openSignature()})]),
+      stBtn('Back to Apps','Return to the app picker.','Open',()=>{close();home()}),
+      stBtn('Log out','Sign out on this device.','Log out',()=>{close();logout()})],
+    workspace:()=>[h('h3',{text:'Go to'}),
+      stBtn('Messages & email','Inbox, compose and replies.','Open',()=>go('messages')),stBtn('Google Calendar','Connect and manage your calendar.','Open',()=>go('calendar')),stBtn('Deals','Pipeline board and list.','Open',()=>go('deals')),
+      ...(isAdmin?[h('h3',{text:'Admin'}),
+        stBtn('Case & SLA settings','Response and resolution targets, escalation.','Open',()=>{close();openCaseSettings()}),
+        stBtn('Automation','Email, calendar and task rules.','Open',()=>go('automation')),
+        stBtn('Members & access','Add staff, roles and app access.','Open',()=>go('members')),
+        stBtn('Deal stages','Rename, reorder and add pipeline stages.','Open',()=>{close();go('deals');setTimeout(dlStagesModal,50)}),
+        stBtn('Revenue targets','Monthly team or per-person targets.','Set',()=>{close();ovTargetForm()})]:[])],
+    data:()=>[h('h3',{text:'Export to CSV'}),
+      stBtn('Clients','Name, email, phone and company.','Export',()=>csv('clients',['Name','Email','Phone','Company','Notes'],clients.map(c=>[c.name,c.email,c.phone,c.company,c.notes]))),
+      stBtn('Inquiries','Everything in the inquiry list.','Export',()=>csv('inquiries',['Name','Email','Phone','Source','Status','Message','Created'],inquiries.map(i=>[i.name,i.email,i.phone,i.source,i.status,i.message,i.created_at]))),
+      stBtn('Cases','Subject, status, priority and requester.','Export',()=>csv('cases',['Subject','Status','Priority','Requester','Email','Assigned to','Created'],cases.map(c=>[c.subject,c.status,c.priority,c.requester_name,c.requester_email,c.assigned_to,c.created_at]))),
+      stBtn('Deals','Stage, value, owner, contact and company.','Export',async()=>{try{if(!dlLoaded)await loadDeals()}catch(e){return fail(e)}csv('deals',['Deal','Stage','Value','Probability','Owner','Contact','Company','Expected close','Reason'],dlDeals.map(d=>[d.title,dlSt(d.stage_id).name,d.value,dlP(d),d.owner_email,clientName(d.client_id),dlAccName(d.account_id),d.expected_close,d.win_loss_reason]))})],
+    issue:()=>{
+      const cat=h('select',{'aria-label':'Category'},[['bug','Something is broken'],['feature','Feature request'],['question','Question'],['other','Other']].map(([v,t])=>h('option',{value:v,text:t}))),title=h('input',{type:'text',placeholder:'Short summary','aria-label':'Title'}),desc=h('textarea',{rows:'5',placeholder:'What happened? What did you expect? Steps to reproduce help a lot.','aria-label':'Details'}),inc=h('input',{type:'checkbox',checked:true,style:'width:auto'});
+      const btn=h('button',{class:'btn blue',text:'Send report',onclick:async()=>{const t=title.value.trim();if(!t)return toast('Add a short title.');const d=desc.value.trim()+(inc.checked?'\n\n— '+JSON.stringify({page:view,role:myRole,browser:navigator.userAgent,window:innerWidth+'x'+innerHeight}):'');btn.disabled=true;
+        const r=await sb.from('crm_issue_reports').insert({category:cat.value,title:t,description:d,page:view});btn.disabled=false;
+        if(r.error){console.error(r.error);location.href='mailto:'+ADMIN_EMAIL+'?subject='+encodeURIComponent('[Orchid CRM] '+t)+'&body='+encodeURIComponent(d);return toast('Could not save it in the CRM, so your email app was opened instead.',5000)}
+        title.value=desc.value='';toast('Thanks. Your report was sent to the admin.');if(box)stIssues(box)}});
+      const box=isAdmin?h('div'):null;if(box){box.append(h('div',{class:'muted',text:'Loading reports…'}));stIssues(box)}
+      return[h('h3',{text:'Tell us what is wrong'}),h('label',{class:'f'},'Type',cat),h('label',{class:'f'},'Title',title),h('label',{class:'f'},'Details',desc),h('label',{class:'f',style:'display:flex;gap:8px;align-items:center'},inc,'Include page and browser details'),h('div',{style:'margin-top:10px'},btn),
+        h('div',{style:'margin-top:8px'},stBtn('Open the manual','Guides for every page.','Open',()=>{close();openManual()})),
+        ...(isAdmin?[h('h3',{text:'Reported issues'}),box]:[])]}
+  };
+  const bar=h('div',{class:'tl-tabs',role:'tablist'});
+  const draw=()=>{bar.replaceChildren(...tabs.map(([k,t])=>h('button',{role:'tab','aria-selected':String(stTab===k),text:t,onclick:()=>{stTab=k;draw()}})));body.replaceChildren(...T[stTab]())};
+  const scrim=h('div',{class:'scrim',onclick:e=>{if(e.target===scrim)close()}},h('div',{class:'modal wide',role:'dialog','aria-modal':'true','aria-label':'Settings'},h('h2',{text:'Settings'}),bar,body,h('div',{class:'row'},h('button',{class:'btn ghost',text:'Close',onclick:close}))));
+  document.body.append(scrim);document.addEventListener('keydown',esc);draw();
+}
+async function stIssues(box){const r=await sb.from('crm_issue_reports').select('*').order('created_at',{ascending:false}).limit(20);
+  box.replaceChildren(...(r.error?[h('div',{class:'muted',text:'Could not load reports. Run issue_reports_setup.sql in Supabase.'})]:r.data.length?r.data.map(x=>h('div',{style:'padding:8px 0;border-bottom:1px solid var(--line)'},h('b',{text:'['+x.category+'] '+x.title}),h('div',{class:'muted',style:'font-size:.78rem',text:x.reporter_email+' · '+ago(x.created_at)+' · '+(x.page||'')+' · '+x.status}),x.description?h('div',{style:'white-space:pre-wrap;font-size:.84rem;overflow-wrap:anywhere',text:x.description}):null,h('button',{class:'btn ghost sm',style:'margin-top:4px',text:x.status==='open'?'Mark resolved':'Reopen',onclick:async()=>{await sb.from('crm_issue_reports').update({status:x.status==='open'?'resolved':'open'}).eq('id',x.id);stIssues(box)}}))):[h('div',{class:'muted',text:'No issues reported yet.'})]))}
+
 /* sub-tools shown under "Tools" in the sidebar */
 const TOOL_SUBS=[['sales','Sales','<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>'],['orders','Orders','<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'],['products','Products','<path d="M6 7h12l1 13H5z"/><path d="M9 7V6a3 3 0 0 1 6 0v1"/>'],['seo','SEO','<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>']];
 function toolsSubNav(){
@@ -4037,7 +4113,7 @@ function appView(){
       h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'CRM'})),
       globalSearch(),h('span',{class:'sp'}),
       hdIcon('Manual','<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6"/>',openManual),
-      hdIcon('Apps','<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',home),
+      hdIcon('Settings','<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',()=>openSettings()),
       avatarMenu())),
     navTop(navItems(tabs,ico)),
     h('div',{class:'wrap'},
