@@ -1358,6 +1358,22 @@ label.f{font-size:.78rem;font-weight:600;color:#3e4f68}
 .card.item a.btn{text-decoration:none}
 .modal details summary{outline-offset:3px}
 </style>
+<style id="ov-live-css">
+.ov-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:22px 0 12px}.ov-h h3{margin:0}
+.ov-h select,.ov-h input[type=date]{width:auto;min-height:30px;padding:4px 10px;font-size:.8rem;border-radius:8px}.ov-h select{padding-right:30px}
+.ov-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:14px}
+.ov-c{padding:16px 18px}.ov-c h4{margin:0 0 2px;font-size:.95rem}.ov-c .s{color:var(--muted);font-size:.78rem;margin-bottom:10px}
+.ov-big{font-size:1.9rem;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.ov-br{display:grid;grid-template-columns:96px 1fr auto;gap:8px;align-items:center;font-size:.8rem;margin:6px 0}.ov-bl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ov-bt{background:#eef1f6;border-radius:6px;height:10px;overflow:hidden}.ov-bt i{display:block;height:100%;border-radius:6px}
+.ov-cols{display:flex;gap:8px;align-items:flex-end;height:170px;overflow-x:auto}.ov-cc{flex:1;min-width:34px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;font-size:.7rem}
+.ov-cc i{width:70%;border-radius:5px 5px 0 0;display:block}.ov-cc span{color:var(--muted);white-space:nowrap}.ov-cc b{font-size:.68rem}
+.ov-pr{flex:1;width:100%;display:flex;gap:3px;align-items:flex-end;justify-content:center}.ov-pr i{width:36%}
+.ov-dn{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.ov-ring{width:120px;height:120px;border-radius:50%;-webkit-mask:radial-gradient(circle 36px,transparent 98%,#000 100%);mask:radial-gradient(circle 36px,transparent 98%,#000 100%)}
+.ov-lg{font-size:.8rem;display:flex;gap:6px;align-items:center;margin:3px 0}.ov-lg i{width:10px;height:10px;border-radius:3px}
+.ov-rb{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}.ov-rb label{font-size:.75rem;font-weight:600;color:#334155}.ov-rb select{margin-top:4px}
+.ov-fl{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;font-size:.8rem}.ov-fl label{display:flex;gap:4px;align-items:center}
+</style>
 <style id="deals-css">
 .dl-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
 .dl-bar select,.dl-bar input[type=date]{width:auto;min-height:30px;padding:4px 10px;font-size:.8rem;border-radius:8px}
@@ -2120,7 +2136,7 @@ function avgReply(){
   const d=inquiries.filter(i=>i.contacted_at).map(i=>new Date(i.contacted_at)-new Date(i.created_at));
   return d.length?dur(d.reduce((a,b)=>a+b,0)/d.length):'–';
 }
-function overview(){
+function overviewBase(){
   const nNew=inquiries.filter(i=>i.status==='new').length;
   const open=tasks.filter(t=>!t.done),over=open.filter(isOverdue).length;
   /* REDESIGN: KPI card = icon, big number, label, small trend (real last-7-days vs previous-7-days counts) */
@@ -2139,6 +2155,113 @@ function overview(){
       h('div',{},h('div',{class:'bar'},h('h3',{style:'margin:0',text:'Next tasks'}),h('span',{class:'sp'}),h('button',{class:'btn ghost sm',text:'Add task',onclick:()=>addTask()})),
         upcoming.length?h('div',{class:'list'},upcoming.map(taskRow)):empty('Nothing to do','Add a task to keep track of follow-ups.'))));
 }
+/* ===== Live Overview: analytics, report builder, scheduled reports (Supabase: crm_targets / crm_report_schedules) ===== */
+let ovTargets=[],ovSched=[],ovLoaded=false,ovLoading=false,ovErr=false;
+const OVF={range:'30',from:'',to:'',who:''},RB={obj:'deals',group:'stage',metric:'count',chart:'bar',fields:['title','stage','value','owner']};
+const OVC=['#2563eb','#06b6d4','#f97316','#8b5cf6','#10b981','#ef4444','#f59e0b'],ovH=ms=>ms==null?'—':ms<36e5?Math.max(1,Math.round(ms/6e4))+'m':ms<864e5?(ms/36e5).toFixed(1)+'h':(ms/864e5).toFixed(1)+'d';
+async function loadOv(){ovLoading=true;try{const [t,s]=await Promise.all([sb.from('crm_targets').select('*'),sb.from('crm_report_schedules').select('*').order('created_at')]);ovErr=!!(t.error||s.error);ovTargets=t.data||[];ovSched=s.data||[];ovLoaded=true}finally{ovLoading=false}}
+function ovRange(){const d=new Date(),e=new Date(d.getFullYear(),d.getMonth(),d.getDate(),23,59,59,999),r=OVF.range;let s=null,en=e;
+  if(r==='custom'){s=OVF.from?new Date(OVF.from+'T00:00:00'):null;en=OVF.to?new Date(OVF.to+'T23:59:59'):e}else if(r==='ytd')s=new Date(d.getFullYear(),0,1);else if(r!=='all')s=new Date(e.getTime()-(+r)*864e5+1);return[s,en]}
+const ovIn=(t,g)=>{if(!t)return false;const x=new Date(t);return(!g[0]||x>=g[0])&&x<=g[1]};
+const ovWho=e=>!OVF.who||lc(e)===lc(OVF.who);
+const chRows=(rows,f,fn)=>rows.length&&rows.some(r=>r[1]>0||r[2]>0)?fn(rows,f):h('div',{class:'muted',style:'padding:18px 0',text:'No data in this range.'});
+function chBars(rows,f){const mx=Math.max(1,...rows.map(r=>r[1]));return h('div',{},rows.map((r,i)=>h('div',{class:'ov-br'},h('span',{class:'ov-bl',title:r[0],text:r[0]}),h('span',{class:'ov-bt'},h('i',{style:'width:'+r[1]/mx*100+'%;background:'+OVC[i%7]})),h('b',{text:(f||String)(r[1])+(r[2]||'')}))))}
+function chCols(rows,f){const mx=Math.max(1,...rows.map(r=>r[1]));return h('div',{class:'ov-cols'},rows.map((r,i)=>h('div',{class:'ov-cc',title:r[0]+': '+(f||String)(r[1])},h('b',{text:(f||String)(r[1])}),h('i',{style:'height:'+Math.max(2,r[1]/mx*100)+'%;background:'+OVC[i%7]}),h('span',{text:r[0]}))))}
+function chDonut(rows,f){const t=rows.reduce((x,r)=>x+r[1],0)||1;let a=0;const g=rows.map((r,i)=>{const s=a;a+=r[1]/t*100;return OVC[i%7]+' '+s+'% '+a+'%'}).join(',');return h('div',{class:'ov-dn'},h('div',{class:'ov-ring',style:'background:conic-gradient('+g+')'}),h('div',{},rows.map((r,i)=>h('div',{class:'ov-lg'},h('i',{style:'background:'+OVC[i%7]}),r[0]+' · '+(f||String)(r[1])))))}
+function chPair(rows){const mx=Math.max(1,...rows.flatMap(r=>[r[1],r[2]]));return h('div',{class:'ov-cols'},rows.map(r=>h('div',{class:'ov-cc',title:r[0]+': revenue '+peso(r[1])+' · target '+peso(r[2])},h('div',{class:'ov-pr'},h('i',{style:'height:'+Math.max(2,r[1]/mx*100)+'%;background:#2563eb'}),h('i',{style:'height:'+Math.max(2,r[2]/mx*100)+'%;background:#cbd5e1'})),h('span',{text:r[0]}))))}
+const ovCard=(t,s,body)=>h('div',{class:'card ov-c'},h('h4',{text:t}),h('div',{class:'s',text:s||''}),body);
+const ovKind=d=>dlSt(d.stage_id).kind;
+const caseHrs=c=>c.first_response_at?new Date(c.first_response_at)-new Date(c.created_at):null;
+const caseBreach=c=>isLive(c)?sla(c).breach:!!((c.resolved_at&&c.resolve_due_at&&new Date(c.resolved_at)>new Date(c.resolve_due_at))||(c.first_response_at&&c.response_due_at&&new Date(c.first_response_at)>new Date(c.response_due_at)));
+function ovCharts(){
+  const g=ovRange(),deals=dlDeals.filter(d=>ovIn(d.created_at,g)&&ovWho(d.owner_email)),won=dlDeals.filter(d=>ovKind(d)==='won'&&ovIn(d.closed_at,g)&&ovWho(d.owner_email)),cs=cases.filter(c=>ovIn(c.created_at,g)&&ovWho(c.assigned_to));
+  const byStage=dlStages.map(s=>{const a=deals.filter(d=>d.stage_id===s.id);return[s.name,dlSum(a,dlVal),' · '+a.length]});
+  const steps=dlStages.filter(s=>s.kind!=='lost'),live=deals.filter(d=>ovKind(d)!=='lost'),pos=d=>ovKind(d)==='won'?1e9:dlSt(d.stage_id).position;
+  const fun=steps.map((s,i)=>{const n=live.filter(d=>pos(d)>=s.position).length;return[s.name,n,'']});fun.forEach((r,i)=>{if(i)r[2]=fun[i-1][1]?' · '+Math.round(r[1]/fun[i-1][1]*100)+'%':''});
+  const ms=[],mk=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),s0=g[0]||new Date(g[1].getFullYear(),g[1].getMonth()-5,1);
+  for(let d=new Date(s0.getFullYear(),s0.getMonth(),1);d<=g[1]&&ms.length<12;d.setMonth(d.getMonth()+1))ms.push(mk(d));
+  const rev=ms.map(m=>[new Date(m+'-01T00:00:00').toLocaleDateString(undefined,{month:'short'}),dlSum(dlDeals.filter(d=>ovKind(d)==='won'&&d.closed_at&&mk(new Date(d.closed_at))===m&&ovWho(d.owner_email)),dlVal),ovTargets.filter(t=>String(t.month).slice(0,7)===m&&(OVF.who?lc(t.owner_email)===lc(OVF.who):!t.owner_email)).reduce((x,t)=>x+Number(t.amount),0)]);
+  const stc={};cs.forEach(c=>{const k=cap(String(c.status||'open').replace(/_/g,' '));stc[k]=(stc[k]||0)+1});
+  const br=cs.filter(caseBreach).length,rate=cs.length?Math.round(br/cs.length*100):0,fr=cs.map(caseHrs).filter(x=>x!=null),avg=fr.length?fr.reduce((a,b)=>a+b,0)/fr.length:null;
+  const rep={};won.forEach(d=>{const k=slOwn(d.owner_email);(rep[k]=rep[k]||[0,0]);rep[k][0]+=dlVal(d);rep[k][1]++});
+  const lb=Object.entries(rep).sort((a,b)=>b[1][0]-a[1][0]).slice(0,8).map(([k,v],i)=>[(i+1)+'. '+k,v[0],' · '+v[1]+' won']);
+  const tg=rev.reduce((x,r)=>x+r[2],0),rv=rev.reduce((x,r)=>x+r[1],0);
+  return h('div',{class:'ov-g'},
+    ovCard('Deals by stage','Value of deals created in range · count',chRows(byStage,peso,chBars)),
+    ovCard('Sales funnel conversion','Deals that reached each stage (from current stage) · % of previous step',chRows(fun,null,chBars)),
+    ovCard('Revenue vs target','Won revenue by close month (blue) vs target (grey)'+(tg?' · '+Math.round(rv/tg*100)+'% of target':' · no target set'),chRows(rev,null,chPair)),
+    ovCard('Cases by status','Cases created in range',chRows(Object.entries(stc),null,chDonut)),
+    ovCard('SLA breach rate','Cases breaching a reply or resolution SLA',h('div',{},h('div',{class:'ov-big',style:rate?'color:var(--danger)':'',text:cs.length?rate+'%':'—'}),h('div',{class:'s',text:br+' of '+cs.length+' cases'}))),
+    ovCard('Average first response','Cases from created to first reply',h('div',{},h('div',{class:'ov-big',text:ovH(avg)}),h('div',{class:'s',text:fr.length+' replied · '+(cs.length-fr.length)+' awaiting'}))),
+    ovCard('Rep leaderboard','Won revenue in range',chRows(lb,peso,chBars)));
+}
+/* report builder */
+const RBO={
+  deals:{l:'Deals',rows:()=>dlDeals,at:d=>d.created_at,who:d=>d.owner_email,f:{title:['Deal',d=>d.title],stage:['Stage',d=>dlSt(d.stage_id).name],owner:['Owner',d=>slOwn(d.owner_email)],company:['Company',d=>dlAccName(d.account_id)||'—'],contact:['Contact',d=>clientName(d.client_id)||'—'],value:['Value',d=>peso(d.value)],close:['Expected close',d=>d.expected_close||'—'],month:['Created month',d=>String(d.created_at).slice(0,7)],reason:['Win/loss reason',d=>d.win_loss_reason||'—']},n:{value:['deal value',d=>dlVal(d),peso]}},
+  cases:{l:'Cases',rows:()=>cases,at:c=>c.created_at,who:c=>c.assigned_to,f:{subject:['Subject',c=>c.subject],status:['Status',c=>cap(String(c.status||'').replace(/_/g,' '))],priority:['Priority',c=>cap(c.priority||'—')],owner:['Owner',c=>slOwn(c.assigned_to)||'Unassigned'],requester:['Requester',c=>c.requester_name||'—'],sla:['SLA',c=>caseBreach(c)?'Breached':'OK'],month:['Created month',c=>String(c.created_at).slice(0,7)]},n:{frt:['first response time',caseHrs,ovH]}},
+  inquiries:{l:'Inquiries',rows:()=>inquiries,at:i=>i.created_at,who:null,f:{name:['Name',i=>i.name],status:['Status',i=>cap(i.status||'—')],source:['Source',i=>i.source||'—'],month:['Created month',i=>String(i.created_at).slice(0,7)]},n:{}}
+};
+function rbRun(){
+  const o=RBO[RB.obj],g=ovRange(),rows=o.rows().filter(r=>ovIn(o.at(r),g)&&(!o.who||ovWho(o.who(r))));
+  if(RB.chart==='table')return{rows,cols:RB.fields.filter(k=>o.f[k])};
+  const gf=(o.f[RB.group]||Object.values(o.f)[0])[1],[mt,mf]=RB.metric.split(':'),n=o.n[mf],map=new Map();
+  rows.forEach(r=>{const k=String(gf(r));(map.get(k)||map.set(k,[]).get(k)).push(r)});
+  const val=a=>{if(mt==='count')return a.length;const v=a.map(n[1]).filter(x=>x!=null);return mt==='sum'?v.reduce((x,y)=>x+y,0):v.length?v.reduce((x,y)=>x+y,0)/v.length:0};
+  let out=[...map].map(([k,a])=>[k,val(a)]);out=RB.group==='month'?out.sort((a,b)=>a[0].localeCompare(b[0])):out.sort((a,b)=>b[1]-a[1]);
+  return{rows:out.slice(0,15),fmt:mt==='count'?String:n[2]};
+}
+function rbBody(){
+  const r=rbRun(),o=RBO[RB.obj];if(!r.rows.length)return h('div',{class:'muted',style:'padding:14px 0',text:'No records match these settings and filters.'});
+  if(RB.chart==='table')return r.cols.length?h('div',{class:'tl-scroll'},h('table',{class:'tbl dt'},h('thead',{},h('tr',{},r.cols.map(k=>h('th',{text:o.f[k][0]})))),h('tbody',{},r.rows.slice(0,200).map(x=>h('tr',{},r.cols.map(k=>h('td',{text:String(o.f[k][1](x))})))))),r.rows.length>200?h('div',{class:'s muted',text:'Showing 200 of '+r.rows.length}):null):h('div',{class:'muted',text:'Tick at least one field.'});
+  return(RB.chart==='donut'?chDonut:RB.chart==='column'?chCols:chBars)(r.rows,r.fmt);
+}
+function ovBuilder(){
+  const o=RBO[RB.obj],sel=(l,k,opts,fn)=>h('label',{},l,h('select',{onchange:e=>{RB[k]=e.target.value;fn&&fn();render()}},opts.map(([v,t])=>h('option',{value:v,text:t,selected:RB[k]===v}))));
+  const mets=[['count','Count'],...Object.entries(o.n).flatMap(([k,v])=>[['sum:'+k,'Sum of '+v[0]],['avg:'+k,'Average '+v[0]]])];
+  const reset=()=>{const x=RBO[RB.obj];RB.group=Object.keys(x.f)[x.f.stage?1:2]||Object.keys(x.f)[0];RB.metric='count';RB.fields=Object.keys(x.f).slice(0,4)};
+  return h('div',{class:'card ov-c'},h('h4',{text:'Custom report builder'}),h('div',{class:'s',text:'Uses the date range and team filter above.'}),
+    h('div',{class:'ov-rb'},sel('Object','obj',Object.entries(RBO).map(([k,v])=>[k,v.l]),reset),sel('Group by','group',Object.entries(o.f).map(([k,v])=>[k,v[0]])),sel('Measure','metric',mets),sel('Chart','chart',[['bar','Bar'],['column','Column'],['donut','Donut'],['table','Table (fields)']])),
+    RB.chart==='table'?h('div',{class:'ov-fl'},Object.entries(o.f).map(([k,v])=>h('label',{},h('input',{type:'checkbox',checked:RB.fields.includes(k),onchange:e=>{RB.fields=e.target.checked?[...RB.fields,k]:RB.fields.filter(x=>x!==k);render()}}),v[0]))):null,
+    rbBody(),h('div',{class:'acts',style:'margin-top:12px'},h('button',{class:'btn ghost sm',text:'Export CSV',onclick:rbCsv}),h('button',{class:'btn blue sm',text:'Schedule by email',onclick:()=>ovSchedForm()})));
+}
+function rbCsv(){const r=rbRun(),o=RBO[RB.obj];if(RB.chart==='table')return slCsv('report',r.cols.map(k=>o.f[k][0]),r.rows.map(x=>r.cols.map(k=>o.f[k][1](x))));slCsv('report',[o.f[RB.group]?o.f[RB.group][0]:'Group','Measure'],r.rows.map(x=>[x[0],x[1]]))}
+/* scheduled reports: stored in crm_report_schedules. "Send now" mails the report through crm-send-email. */
+const ovSpec=()=>({range:OVF.range,from:OVF.from,to:OVF.to,who:OVF.who,builder:{...RB,fields:[...RB.fields]}});
+function ovWith(spec,fn){const a={...OVF},b={...RB};Object.assign(OVF,{range:spec.range,from:spec.from,to:spec.to,who:spec.who});Object.assign(RB,spec.builder);try{return fn()}finally{Object.assign(OVF,a);Object.assign(RB,b)}}
+const ovHtml=spec=>ovWith(spec,()=>{const r=rbRun(),o=RBO[RB.obj],e=eh,td='style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:left"';
+  const head=RB.chart==='table'?r.cols.map(k=>o.f[k][0]):[(o.f[RB.group]||['Group'])[0],'Measure'],rows=RB.chart==='table'?r.rows.slice(0,100).map(x=>r.cols.map(k=>o.f[k][1](x))):r.rows.map(x=>[x[0],r.fmt?r.fmt(x[1]):x[1]]);
+  return '<div style="font-family:Arial,sans-serif"><h2>Orchid CRM report · '+e(o.l)+'</h2><table style="border-collapse:collapse;font-size:14px"><tr>'+head.map(x=>'<th '+td+'>'+e(x)+'</th>').join('')+'</tr>'+rows.map(x=>'<tr>'+x.map(c=>'<td '+td+'>'+e(c)+'</td>').join('')+'</tr>').join('')+'</table></div>'});
+async function ovSendNow(s){try{await sendEmailNow({to:s.recipients.join(', '),subject:s.name+' · '+new Date().toLocaleDateString(),body:s.name+' report. Open Orchid CRM for the live view.',html:ovHtml(s.spec),request_id:crypto.randomUUID(),inquiry_id:null,client_id:null,reply_to_message_id:null});await sb.from('crm_report_schedules').update({last_sent_at:nowIso()}).eq('id',s.id);await loadOv();toast('Report sent.');render()}catch(e){fail(e,e.message)}}
+function ovSchedForm(){openForm({title:'Schedule this report',saveText:'Save schedule',values:{recipients:me.email},fields:[{k:'name',label:'Report name',req:true,def:RBO[RB.obj].l+' report'},{k:'recipients',label:'Send to (comma separated emails)',req:true},{k:'frequency',label:'How often',type:'select',options:[{v:'daily',t:'Daily'},{v:'weekly',t:'Weekly (Mondays)'},{v:'monthly',t:'Monthly (1st)'}],def:'weekly'}],
+  onSave:v=>{const rc=v.recipients.split(/[,;\s]+/).filter(Boolean);if(!rc.length||rc.some(x=>!EMAIL_RE.test(x))){toast('Enter valid email addresses.');throw new Error('invalid')}
+    return sb.from('crm_report_schedules').insert({name:v.name,recipients:rc,frequency:v.frequency,spec:ovSpec()}).then(async r=>{if(r.error)return fail(r.error,'Could not save. Run overview_setup.sql in Supabase.');await loadOv();toast('Schedule saved.');render()})}})}
+function ovSchedules(){
+  return h('div',{class:'card ov-c'},h('h4',{text:'Scheduled email reports'}),h('div',{class:'s',text:'Saved schedules. Automatic delivery needs the Supabase scheduled job; “Send now” works immediately.'}),
+    ovSched.length?h('div',{class:'list'},ovSched.map(s=>h('div',{class:'ov-br',style:'grid-template-columns:1fr auto;border-bottom:1px solid var(--line);padding:6px 0'},h('div',{},h('b',{text:s.name}),h('div',{class:'s',style:'margin:0',text:cap(s.frequency)+' · '+s.recipients.join(', ')+(s.last_sent_at?' · last sent '+ago(s.last_sent_at):'')+(s.active?'':' · paused')})),
+      h('div',{class:'acts',style:'margin:0'},h('button',{class:'btn ghost sm',text:'Send now',onclick:()=>ovSendNow(s)}),h('button',{class:'btn ghost sm',text:s.active?'Pause':'Resume',onclick:async()=>{await sb.from('crm_report_schedules').update({active:!s.active}).eq('id',s.id);await loadOv();render()}}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:async()=>{if(!confirm('Delete “'+s.name+'”?'))return;await sb.from('crm_report_schedules').delete().eq('id',s.id);await loadOv();render()}}))))):h('div',{class:'muted',text:'No schedules yet. Build a report above, then choose “Schedule by email”.'}));
+}
+function ovTargetForm(){const m=new Date();openForm({title:'Set revenue target',saveText:'Save target',values:{month:m.getFullYear()+'-'+String(m.getMonth()+1).padStart(2,'0')+'-01'},fields:[{k:'month',label:'Month (pick the 1st)',type:'date',req:true},{k:'owner_email',label:'Applies to',type:'select',options:[{v:'',t:'Whole team'},...members.map(x=>({v:x.email,t:x.name||x.email}))]},{k:'amount',label:'Target (₱)',type:'number',req:true}],
+  onSave:async v=>{const a=Number(v.amount);if(!(a>=0)){toast('Enter a target of 0 or more.');throw new Error('invalid')}const mo=v.month.slice(0,7)+'-01',ex=ovTargets.find(t=>String(t.month).slice(0,7)===mo.slice(0,7)&&lc(t.owner_email)===lc(v.owner_email));
+    const r=await(ex?sb.from('crm_targets').update({amount:a}).eq('id',ex.id):sb.from('crm_targets').insert({month:mo,owner_email:v.owner_email,amount:a}));if(r.error)return fail(r.error,'Could not save. Only the admin can set targets.');await loadOv();toast('Target saved.');render()}})}
+function overview(){
+  const base=overviewBase();
+  if(isExec())return base;
+  if(!dlLoaded&&!dlErr&&!dlLoading)loadDeals().then(render).catch(e=>{console.error(e);dlErr=true;render()});
+  if(!ovLoaded&&!ovErr&&!ovLoading)loadOv().then(render).catch(e=>{console.error(e);ovErr=true;render()});
+  const sel=(k,opts,l)=>h('select',{class:'sel-sm','aria-label':l,onchange:e=>{OVF[k]=e.target.value;render()}},opts.map(([v,t])=>h('option',{value:v,text:t,selected:OVF[k]===v})));
+  const head=h('div',{class:'ov-h'},h('h3',{text:'Live analytics'}),h('span',{class:'sp'}),
+    sel('range',[['7','Last 7 days'],['30','Last 30 days'],['90','Last 90 days'],['ytd','Year to date'],['all','All time'],['custom','Custom range']],'Date range'),
+    OVF.range==='custom'?[h('input',{type:'date',value:OVF.from,'aria-label':'From',onchange:e=>{OVF.from=e.target.value;render()}}),h('input',{type:'date',value:OVF.to,'aria-label':'To',onchange:e=>{OVF.to=e.target.value;render()}})]:null,
+    sel('who',[['','Whole team'],...members.map(m=>[m.email,m.name||m.email])],'Team member'),
+    isAdmin?h('button',{class:'btn ghost sm',text:'Set target',onclick:ovTargetForm}):null);
+  let body;
+  if(dlErr)body=empty('Analytics need the Deals tables','Ask the admin to run deals_setup.sql and overview_setup.sql in Supabase, then reload.');
+  else if(!dlLoaded)body=empty('Loading analytics…','One moment.');
+  else body=h('div',{},ovCharts(),h('div',{class:'ov-g',style:'grid-template-columns:1fr'},ovBuilder(),ovErr?empty('Reports are not set up','Run overview_setup.sql in Supabase to save targets and schedules.'):ovSchedules()));
+  return h('div',{},base,head,body);
+}
+if(!window.__ovLive){window.__ovLive=setInterval(async()=>{if(leaving||view!=='overview'||isExec()||document.querySelector('.scrim')||document.hidden)return;const a=document.activeElement;if(a&&/INPUT|TEXTAREA/.test(a.tagName))return;try{await Promise.all([loadAll(),loadDeals(),loadOv()]);render()}catch(e){console.error(e)}},60000)}
+
 /* ---- Messages: email (Titan) and Facebook messages that arrive in crm_messages ---- */
 let messages=[],msgErr=false,msgFilter='all';const msgOpen=new Set();
 async function loadMessages(){
