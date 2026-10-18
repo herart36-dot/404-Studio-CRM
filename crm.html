@@ -1991,7 +1991,8 @@ function overview(){
 let messages=[],msgErr=false,msgFilter='all';const msgOpen=new Set();
 async function loadMessages(){
   try{const r=await sb.from('crm_messages').select('*').order('received_at',{ascending:false}).limit(200);
-    if(r.error){msgErr=true;return}msgErr=false;messages=r.data||[]}catch(e){msgErr=true}
+    if(r.error){msgErr=true;return}msgErr=false;messages=r.data||[];
+    try{const a=await sb.from('crm_email_accounts').select('id,user_email,address,status,last_sync_at,last_error').eq('user_email',lc(me.email)).maybeSingle();emailAcct=a.error?null:a.data}catch(e){emailAcct=null}}catch(e){msgErr=true}
 }
 /* ---- Compose & reply: sends through the crm-send-email Edge Function (Titan SMTP). A message is only shown as Sent if the mail server accepted it. ---- */
 async function sendEmailNow(p){
@@ -2008,6 +2009,41 @@ function composeEmail(o={}){
       catch(e){toast('Not sent: '+e.message,6000);try{await loadMessages()}catch(x){}throw e}
       toast('Email accepted by the mail server.');await loadMessages();render();
     }});
+}
+/* ---- Connect Google: send as yourself and sync replies (Edge Functions crm-gmail-connect / crm-gmail-sync) ---- */
+let emailAcct=null,gConnecting=false;
+const fnError=async(r,fallback)=>{let m=fallback;try{const j=await r.error.context.json();if(j&&j.error)m=j.error}catch(e){}return m};
+async function connectGoogle(){
+  const w=window.open('about:blank','_blank');
+  const r=await sb.functions.invoke('crm-gmail-connect',{body:{action:'start'}});
+  if(r.error||!r.data||!r.data.url){if(w)w.close();return toast(await fnError(r,'Could not start the Google connection.'),6000)}
+  gConnecting=true;if(w)w.location.href=r.data.url;else toast('Allow pop-ups for this site, then press Connect Google again.',6000);
+}
+async function disconnectGoogle(){
+  if(!confirm('Disconnect Google? Emails will go out from the shared mailbox again and Gmail sync stops.'))return;
+  const r=await sb.functions.invoke('crm-gmail-connect',{body:{action:'disconnect'}});
+  if(r.error)return toast(await fnError(r,'Could not disconnect.'),6000);
+  await loadMessages();render();toast('Google disconnected.');
+}
+async function syncGmailNow(){
+  toast('Checking Gmail…');
+  const r=await sb.functions.invoke('crm-gmail-sync',{body:{}});
+  if(r.error)return toast(await fnError(r,'Could not sync Gmail.'),6000);
+  const x=(r.data&&r.data.results||[])[0]||{};
+  await loadMessages();render();
+  toast(x.error?('Sync problem: '+x.error):('Sync done: '+(x.saved||0)+' new, '+(x.skipped||0)+' skipped.'),5000);
+}
+window.addEventListener('focus',async()=>{if(!gConnecting)return;gConnecting=false;try{await loadMessages();render()}catch(e){}});
+function emailConnBar(){
+  const a=emailAcct,ok=a&&a.status==='connected';
+  const txt=ok?('Sending as '+a.address+(a.last_sync_at?' · synced '+ago(a.last_sync_at):' · not synced yet'))
+    :a?'Your Google connection expired. Reconnect to send as yourself and sync replies.'
+    :'Connect your Google (Gmail or Workspace) account to send as yourself and sync replies. Until then, email goes out from the shared mailbox.';
+  return h('div',{class:'card',style:'padding:12px 16px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap'},
+    h('span',{class:'s',style:'flex:1;min-width:220px;margin:0',text:txt}),
+    ok?h('button',{class:'btn ghost sm',text:'Sync now',onclick:syncGmailNow}):h('button',{class:'btn blue sm',text:a?'Reconnect Google':'Connect Google',onclick:connectGoogle}),
+    a?h('button',{class:'btn ghost sm danger',text:'Disconnect',onclick:disconnectGoogle}):null,
+    a&&a.last_error?h('div',{class:'err',style:'width:100%',text:a.last_error}):null);
 }
 const unreadMsgs=()=>messages.filter(m=>!m.is_read&&m.direction!=='out').length;
 async function markRead(ids){if(!ids.length)return;const r=await sb.from('crm_messages').update({is_read:true}).in('id',ids);if(r.error)return fail(r.error,'Could not mark as read.');await loadMessages();render()}
@@ -2033,6 +2069,7 @@ function messagesView(){
   const list=messages.filter(m=>(msgFilter==='all'||(msgFilter==='unread'?!m.is_read:msgFilter==='sent'?m.direction==='out':m.channel===msgFilter))&&match(m,['from_name','from_address','subject','body']));
   const un=messages.filter(m=>!m.is_read&&m.direction!=='out').map(m=>m.id);
   return h('div',{},
+    emailConnBar(),
     h('div',{class:'bar'},searchBar('Search messages'),chips([['all','All'],['unread','Unread'],['email','Email'],['facebook','Facebook'],['sent','Sent']],msgFilter,v=>msgFilter=v),h('span',{class:'sp'}),
       h('button',{class:'btn blue',text:'New email',onclick:()=>composeEmail()}),
       un.length?h('button',{class:'btn ghost',text:'Mark all read',onclick:()=>markRead(un)}):null),
