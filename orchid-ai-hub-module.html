@@ -1,34 +1,64 @@
 <style id="oa-css">
 #oai-fab,#oai-panel{display:none!important}
-#oa-fab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:41;display:none;align-items:center;gap:8px;padding:13px 18px;border:0;border-radius:999px;background:linear-gradient(135deg,#0176d3,#1b96ff);color:#fff;font:700 .88rem/1 Figtree,Inter,system-ui,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(1,118,211,.38)}
+#oa-fab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:41;display:none;align-items:center;gap:8px;padding:13px 18px;border:0;border-radius:999px;background:linear-gradient(135deg,#0176d3,#1b96ff);color:#fff;font:700 .88rem/1 Nunito,Figtree,Inter,system-ui,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(1,118,211,.38)}
 #oa-fab.on{display:inline-flex}#oa-fab b{min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:99px;background:#fff;color:#0176d3;font-size:.74rem;display:grid;place-items:center}#oa-fab b[hidden]{display:none}
 #oa-fab.ping{animation:oa-p 1s 3}@keyframes oa-p{50%{box-shadow:0 0 0 10px rgba(27,150,255,.28)}}html.oa-open #oa-fab,html.oa-open #oa-bub{display:none!important}
-#oa-bub{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:41;max-width:250px;border:0;text-align:left;background:#0f2a4a;color:#fff;padding:11px 14px;border-radius:14px;font:600 .82rem/1.4 Figtree,Inter,sans-serif;cursor:pointer;box-shadow:0 10px 28px rgba(15,42,74,.3)}#oa-bub[hidden]{display:none}
-#oa{position:fixed;top:0;right:0;bottom:0;width:400px;z-index:55;display:flex;flex-direction:column;background:#fff;color:#0f172a;border-left:1px solid #dbe4f0;box-shadow:-14px 0 40px rgba(15,23,42,.12);font-family:Figtree,Inter,system-ui,sans-serif}#oa[hidden]{display:none}
+#oa-bub{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:41;max-width:250px;border:0;text-align:left;background:#0f2a4a;color:#fff;padding:11px 14px;border-radius:14px;font:600 .82rem/1.4 Nunito,Figtree,Inter,sans-serif;cursor:pointer;box-shadow:0 10px 28px rgba(15,42,74,.3)}#oa-bub[hidden]{display:none}
+#oa{position:fixed;top:0;right:0;bottom:0;width:400px;z-index:55;display:flex;flex-direction:column;background:#fff;color:#0f172a;border-left:1px solid #dbe4f0;box-shadow:-14px 0 40px rgba(15,23,42,.12);font-family:Nunito,Figtree,Inter,system-ui,sans-serif}#oa[hidden]{display:none}
 html.oa-open body{margin-right:400px}
 .oa-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #e5eaf2}.oa-av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#0176d3,#1b96ff)}.oa-ti{flex:1;min-width:0}.oa-ti b{display:block;font-size:.98rem}.oa-ti small{color:#64748b;font-size:.74rem}
 .oa-x{border:0;background:#eef3fa;color:#334155;width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:1rem}
-.oa-tabs{display:flex;border-bottom:1px solid #e5eaf2}.oa-tabs button{flex:1;border:0;background:#fff;padding:12px 6px;font:700 .82rem Figtree,Inter,sans-serif;color:#64748b;border-bottom:3px solid transparent;cursor:pointer}.oa-tabs button[aria-selected=true]{color:#0176d3;border-color:#0176d3}
+.oa-tabs{display:flex;border-bottom:1px solid #e5eaf2}.oa-tabs button{flex:1;border:0;background:#fff;padding:12px 6px;font:700 .82rem Nunito,Figtree,Inter,sans-serif;color:#64748b;border-bottom:3px solid transparent;cursor:pointer}.oa-tabs button[aria-selected=true]{color:#0176d3;border-color:#0176d3}
 .oa-body{flex:1;min-height:0;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:#f6f8fc}
 .oa-step{font-size:.78rem;font-weight:700;color:#0176d3}.oa-lb{color:#64748b;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}
 .oa-card{background:#fff;border:1px solid #dbe4f0;border-radius:14px;padding:16px;box-shadow:0 4px 16px rgba(3,45,96,.08)}.oa-card h3{margin:4px 0 4px;font-size:1.08rem}.oa-card p{margin:0;color:#475569;font-size:.86rem;line-height:1.45}
 .oa-tag{font-weight:800;font-size:.66rem;letter-spacing:.08em;color:#0176d3;background:#e8f2fd;padding:3px 8px;border-radius:6px}
 .oa-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.oa-ex{display:flex;flex-direction:column;gap:10px;margin-top:12px}.oa-ex:empty{display:none}
-.oa-b{border:1px solid #c9d6e8;background:#fff;color:#0f2a4a;border-radius:10px;padding:10px 14px;font:700 .82rem Figtree,Inter,sans-serif;cursor:pointer}.oa-b.p{background:#0176d3;border-color:#0176d3;color:#fff}.oa-b.g{border-color:transparent;background:transparent;color:#64748b}.oa-b:disabled{opacity:.55;cursor:default}
+.oa-b{border:1px solid #c9d6e8;background:#fff;color:#0f2a4a;border-radius:10px;padding:10px 14px;font:700 .82rem Nunito,Figtree,Inter,sans-serif;cursor:pointer}.oa-b.p{background:#0176d3;border-color:#0176d3;color:#fff}.oa-b.g{border-color:transparent;background:transparent;color:#64748b}.oa-b:disabled{opacity:.55;cursor:default}
 .oa-row{display:flex;flex-direction:column;gap:2px;text-align:left;padding:11px 13px;background:#fff;border:1px solid #e1e8f2;border-radius:11px;cursor:pointer;font-family:inherit}.oa-row b{font-size:.86rem;color:#0f172a}.oa-row span{font-size:.76rem;color:#64748b}.oa-row:hover{border-color:#0176d3}
 .oa-rc{font-size:.8rem;color:#166534;background:#ecfdf3;border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px}
 .oa-okc{border-color:#bbf7d0;background:#f0fdf4}.oa-hi{background:#fff;border:1px solid #dbe4f0;border-radius:12px;padding:12px 14px;font-size:.86rem;line-height:1.5}
 .oa-chips{display:flex;flex-wrap:wrap;gap:8px}.oa-chips.col{flex-direction:column;align-items:stretch}.oa-chips.col .oa-b{text-align:left}
-.oa-in{display:flex;gap:8px;padding:12px;border-top:1px solid #e5eaf2;background:#fff}.oa-in input{flex:1;min-width:0;border:1px solid #c9d6e8;border-radius:10px;padding:11px 12px;font:500 .86rem Figtree,Inter,sans-serif;color:#0f172a;background:#fff}
+.oa-in{display:flex;gap:8px;padding:12px;border-top:1px solid #e5eaf2;background:#fff}.oa-in input{flex:1;min-width:0;border:1px solid #c9d6e8;border-radius:10px;padding:11px 12px;font:500 .86rem Nunito,Figtree,Inter,sans-serif;color:#0f172a;background:#fff}
 #oa .oh-m{max-width:92%;padding:10px 13px;border-radius:12px;font-size:.86rem;line-height:1.5;white-space:pre-wrap;word-break:break-word}#oa .oh-m.u{align-self:flex-end;background:#0176d3;color:#fff}#oa .oh-m.a{align-self:flex-start;background:#fff;border:1px solid #dbe4f0}#oa .oh-m.e{background:#fff1f2;color:#9f1239;border:1px solid #fecdd3}
 #oa .oh-dots{display:flex;gap:4px;padding:4px 2px}#oa .oh-dots i{width:7px;height:7px;border-radius:50%;background:#94a3b8;animation:oa-d 1s infinite}#oa .oh-dots i:nth-child(2){animation-delay:.15s}#oa .oh-dots i:nth-child(3){animation-delay:.3s}@keyframes oa-d{50%{transform:translateY(-4px);opacity:.4}}
 #oa .oh-ac{background:#fff;border:1px solid #bcd3f2;border-left:4px solid #0176d3;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:.84rem}#oa .oh-ac b{font-size:.9rem}#oa .oh-ac span{color:#475569}
 #oa .oh-ac input,#oa .oh-ac textarea{width:100%;box-sizing:border-box;border:1px solid #c9d6e8;border-radius:8px;padding:8px;font:inherit;background:#fff;color:inherit}#oa .oh-ac textarea{min-height:130px;resize:vertical}#oa .oh-a{display:flex;gap:8px}
-#oa .oh-b{border:0;border-radius:9px;padding:9px 14px;font:700 .8rem Figtree,Inter,sans-serif;background:#0176d3;color:#fff;cursor:pointer}#oa .oh-b.g{background:#eef3fa;color:#334155}#oa .oh-b:disabled{opacity:.55}
+#oa .oh-b{border:0;border-radius:9px;padding:9px 14px;font:700 .8rem Nunito,Figtree,Inter,sans-serif;background:#0176d3;color:#fff;cursor:pointer}#oa .oh-b.g{background:#eef3fa;color:#334155}#oa .oh-b:disabled{opacity:.55}
 #oa button:focus-visible,#oa-fab:focus-visible{outline:2px solid #0176d3;outline-offset:2px}
 @media(max-width:1100px){html.oa-open body{margin-right:0}}
 @media(max-width:760px){#oa{top:auto;left:0;width:auto;height:86vh;border-left:0;border-top:1px solid #dbe4f0;border-radius:18px 18px 0 0}#oa-fab{bottom:calc(76px + env(safe-area-inset-bottom,0px))}#oa-bub{bottom:calc(134px + env(safe-area-inset-bottom,0px))}}
 @media(prefers-reduced-motion:reduce){#oa-fab.ping,#oa .oh-dots i{animation:none}}
+
+#oa,#oa-fab,#oa-bub,#oa-intro{font-family:Nunito,Figtree,Inter,system-ui,sans-serif}
+#oa{background:linear-gradient(165deg,#fdf1fb 0,#f1eefe 50%,#e8f3ff 100%);border-left:1px solid #eadcf7}
+.oa-bgc{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.oa-h,.oa-tabs,.oa-body,.oa-in{position:relative;z-index:1}
+.oa-h{background:rgba(255,255,255,.7);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom-color:#efe3f8}
+.oa-av{width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,#fff,#f7dcf6);box-shadow:0 4px 14px rgba(162,59,214,.28);overflow:hidden}.oa-av canvas{width:100%;height:100%;display:block}
+.oa-ti b{font-size:1.12rem;font-weight:800;color:#3b1565}.oa-ti small{font-size:.8rem;font-weight:600}
+.oa-tabs{background:rgba(255,255,255,.55);border-bottom-color:#efe3f8}.oa-tabs button{background:transparent;font-size:.9rem;font-weight:800}.oa-tabs button[aria-selected=true]{color:#a23bd6;border-color:#a23bd6}
+.oa-body{background:transparent}.oa-in{background:rgba(255,255,255,.82);border-top-color:#efe3f8}
+.oa-card,.oa-row,.oa-hi{background:rgba(255,255,255,.92);border-color:#eadcf7;box-shadow:0 6px 20px rgba(120,40,170,.1)}
+.oa-card h3{font-size:1.18rem;font-weight:800;color:#2e1250}.oa-card p,.oa-row span{font-size:.92rem}.oa-row b{font-size:.94rem}
+.oa-tag{color:#9a2fc4;background:#f5e6fb}.oa-step{color:#a23bd6;font-size:.82rem;font-weight:800}.oa-lb{color:#8a6fa6}
+.oa-b{font-size:.9rem;font-weight:800;border-color:#e3d2f2}.oa-b.p,#oa .oh-b{background:linear-gradient(135deg,#a23bd6,#d44fb8);border-color:transparent;color:#fff}#oa .oh-b.g{background:#f3e9fb;color:#5b3a7e}
+#oa .oh-m{font-size:.94rem}#oa .oh-m.u{background:linear-gradient(135deg,#a23bd6,#d44fb8)}#oa .oh-ac{border-left-color:#a23bd6;font-size:.9rem}
+.oa-in input{font-size:.92rem;border-color:#e3d2f2}
+#oa-fab{background:linear-gradient(135deg,#9a2fd0,#e056b8);box-shadow:0 10px 26px rgba(162,59,214,.4);font-size:.95rem;font-weight:800;padding:11px 18px 11px 12px}#oa-fab b{color:#a23bd6}
+.oa-fi{width:26px;height:26px;border-radius:50%;position:relative;background:radial-gradient(circle at 35% 28%,#fff,#ffd6f6 45%,#ee82e6);box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+.oa-fi:before{content:'';position:absolute;left:7px;top:10px;width:4px;height:5px;border-radius:50%;background:#3b1565;box-shadow:8px 0 #3b1565}
+.oa-fi:after{content:'';position:absolute;left:8px;top:15px;width:10px;height:5px;border-bottom:2px solid #3b1565;border-radius:0 0 10px 10px}
+#oa-bub{background:#3b1565}
+#oa-intro{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:18px;background:rgba(26,10,52,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);animation:oa-fi .3s ease}@keyframes oa-fi{from{opacity:0}}
+.oi-c{width:min(450px,100%);max-height:96vh;overflow:auto;border-radius:28px;padding:20px 26px 20px;text-align:center;background:linear-gradient(165deg,#fff6fd,#efeaff 60%,#e6f3ff);box-shadow:0 30px 80px rgba(60,20,110,.45)}
+.oi-c canvas{width:230px;height:230px;display:block;margin:0 auto}
+.oi-k{display:inline-block;font-weight:800;font-size:.72rem;letter-spacing:.12em;color:#a23bd6;background:#f5e6fb;padding:5px 12px;border-radius:99px}
+.oi-c h3{margin:10px 0 8px;font-size:1.75rem;font-weight:800;color:#2e1250}.oi-c h3 b{color:#c43fc9}
+.oi-c p{margin:0 0 14px;color:#4b3d63;line-height:1.55;font-size:1rem;font-weight:600}
+.oi-l{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:8px;text-align:left}.oi-l li{background:rgba(255,255,255,.85);border:1px solid #eadcf7;border-radius:12px;padding:10px 13px;font-size:.92rem;color:#3f3355;font-weight:700}
+.oi-b{display:flex;gap:10px;justify-content:center}.oi-d{display:block;margin-top:12px;font-size:.8rem;color:#7a6a92;font-weight:600;cursor:pointer}
+@media(prefers-reduced-motion:reduce){#oa-intro{animation:none}}
 </style>
 <script id="oa-js">(()=>{
 if(window.__oassist)return;window.__oassist=1;
@@ -89,7 +119,7 @@ const VIEW={overview:'Home',inquiries:'Inquiries',clients:'Clients',tasks:'Tasks
 const VC={inquiries:['Who should I follow up first?','Write an email to my hottest lead'],tasks:['Plan my day','Which task should I do first?'],cases:['Summarize my open cases','Which case is most at risk?'],deals:['Which deals are at risk?','Suggest next steps for my deals'],clients:['Which clients need attention?'],messages:['Reply to my latest email'],chat:['What should I reply to my latest team chat?'],calendar:['Add an event for tomorrow']};
 const EG=['Add a lead: Anna Cruz, 0917 123 4567, wants a quote','Add a task for tomorrow: call Cafe Luna','Write a reply to my latest email','Set a meeting with Maria on Friday at 2pm','Tell me everything I should do today'];
 const done=new Set(),skip=new Set(),logs=[],tmr=()=>ymd(new Date(Date.now()+864e5));
-let P,fab,bub,inp,open=false,pin=null,lastN=0,shown=false;tab='next';
+let P,fab,bub,inp,open=false,pin=null,lastN=0,shown=false,S=[],introDone=false;tab='next';
 const pg=()=>VIEW[(D()||{}).view]||'this page',scr=()=>{const b=P.querySelector('.oa-body');b.scrollTop=b.scrollHeight};
 
 /* ---------- the queue: what needs the person, most urgent first ---------- */
@@ -123,31 +153,65 @@ function nextTab(b){const q=queue();
 /* ---------- chat: say it in plain words, it does it ---------- */
 async function say(t){t=t.trim();if(!t||busy)return;busy=true;if(tab!=='ask'){tab='ask';paint()}const log=$('.oa-log');log.querySelectorAll('.oa-fu,.oa-hi').forEach(n=>n.remove());
  log.append(E('div','oh-m u',t));const w=E('div','oh-m a'),dd=E('div','oh-dots');dd.append(E('i'),E('i'),E('i'));w.append(dd);log.append(w);scr();hist.push({role:'user',text:t});A=analyse();
- try{const d=await callAI(hist.slice(0,-1).concat({role:'user',text:t+'\n\n'+ctx(A)+'\n[Screen] The user is on the "'+((D()||{}).view||'overview')+'" page. Act like a patient guide: do the work for them, propose actions to confirm, keep it short and simple, and end with the single best next step.'}));
+ try{const d=await callAI(hist.slice(0,-1).concat({role:'user',text:t+'\n\n'+ctx(A)+'\n[Screen] The user is on the "'+((D()||{}).view||'overview')+'" page. You are Orchie, the friendly AI assistant of Orchid CRM. Act like a patient guide: do the work for them, propose actions to confirm, keep it short and simple, and end with the single best next step.'}));
   hist.push({role:'model',text:d.reply});w.textContent='';typeInto(w,d.reply,scr);(d.actions||[]).slice(0,4).forEach(a=>actionCard(a,log));
   const fu=E('div','oa-chips oa-fu');[['Do the next step for me','Do the next best step for me and propose the action.'],['Explain it simply','Explain that again in simple words, step by step.']].forEach(([l,q])=>{const b=E('button','oa-b g',l);b.onclick=()=>say(q);fu.append(b)});log.append(fu)}
  catch(e){hist.pop();w.className='oh-m e';w.textContent=e.message}busy=false;scr()}
 function askTab(b){const log=E('div','oa-log');log.style.cssText='display:flex;flex-direction:column;gap:10px';b.append(log);
- if(!hist.length){log.append(E('div','oa-hi','Tell me what you want and I will do it. I read your leads, clients, tasks, cases, deals, inbox and team chat, write and send emails, add records and update them. You confirm before anything changes.'));
+ if(!hist.length){log.append(E('div','oa-hi','Hi, I am Orchie! Tell me what you want and I will do it. I read your leads, clients, tasks, cases, deals, inbox and team chat, write and send emails, add records and update them. You confirm before anything changes.'));
   const g=E('div','oa-chips');(VC[(D()||{}).view]||[]).concat(['What should I do today?']).forEach(s=>{const x=E('button','oa-b',s);x.onclick=()=>say(s);g.append(x)});
   const e2=E('div','oa-chips col');EG.forEach(s=>{const x=E('button','oa-b g',s);x.onclick=()=>{inp.value=s;inp.focus()};e2.append(x)});log.append(E('small','oa-lb','Tap to start on '+pg()),g,E('small','oa-lb','Or say it your way (tap to edit first)'),e2)}
  hist.forEach(m=>log.append(E('div','oh-m '+(m.role==='user'?'u':'a'),m.text)))}
 
+/* ---------- Orchie: glossy cartoon orchid (Three.js) ---------- */
+function orchie(cv,big,wave){const T=window.THREE;if(!T||!cv)return null;let r;try{r=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true})}catch(e){return null}
+ const w=cv.clientWidth||96,h=cv.clientHeight||96;r.setPixelRatio(Math.min(devicePixelRatio||1,2));r.setSize(w,h,false);
+ const sc=new T.Scene(),cam=new T.PerspectiveCamera(35,w/h,.1,60);cam.position.set(0,big?-.4:0,big?12.5:9.6);
+ sc.add(new T.AmbientLight(0xffffff,.8));const dl=new T.DirectionalLight(0xffffff,.9);dl.position.set(3,5,7);sc.add(dl);const pl=new T.PointLight(0xff8fe0,.8,40);pl.position.set(-5,-3,6);sc.add(pl);
+ const ph=(c,s)=>new T.MeshPhongMaterial({color:c,shininess:s||140,specular:0xffffff}),g=new T.Group();sc.add(g);
+ const ell=(rx,ry,rz,c,x,y,z,s)=>{const o=new T.Mesh(new T.SphereGeometry(1,32,24),ph(c,s));o.scale.set(rx,ry,rz);o.position.set(x,y,z);g.add(o);return o},petals=[];
+ for(let k=0;k<5;k++){const a=Math.PI/2+k*Math.PI*2/5,p=ell(.98,1.4,.5,k%2?0xc24fd8:0xb23fcf,Math.cos(a)*1.5,Math.sin(a)*1.5,-.1);p.rotation.z=a-Math.PI/2;p.userData.r=p.rotation.z;petals.push(p)}
+ for(let k=0;k<5;k++){const a=Math.PI/2+Math.PI/5+k*Math.PI*2/5,p=ell(.76,1.1,.5,0xe98cf2,Math.cos(a)*1.2,Math.sin(a)*1.2,.05);p.rotation.z=a-Math.PI/2;p.userData.r=p.rotation.z;petals.push(p)}
+ ell(1.08,1.08,.85,0xffe8f7,0,0,.35,200);
+ const eyes=[-.4,.4].map(x=>{const e=ell(.15,.2,.1,0x2b0f4a,x,.18,1.17,220);const hl=new T.Mesh(new T.SphereGeometry(.05,12,12),new T.MeshBasicMaterial({color:0xffffff}));hl.position.set(.04,.07,.9);e.add(hl);return e});
+ [-.68,.68].forEach(x=>{const c=new T.Mesh(new T.SphereGeometry(1,16,12),new T.MeshBasicMaterial({color:0xff8fc0,transparent:true,opacity:.75}));c.scale.set(.2,.12,.05);c.position.set(x,-.16,1.07);g.add(c)});
+ const smile=new T.Mesh(new T.TorusGeometry(.28,.045,10,28,Math.PI),new T.MeshBasicMaterial({color:0xb8326e}));smile.rotation.z=Math.PI;smile.position.set(0,-.02,1.22);g.add(smile);
+ const gr=0x35b86b;ell(.14,1.3,.14,gr,0,-2.5,-.4,90);const aL=ell(.5,1,.28,gr,-2.1,-1.7,.1,120),aR=ell(.5,1,.28,gr,2.1,-1.7,.1,120);aL.rotation.z=.9;aR.rotation.z=-.9;
+ let t=0,raf,mx=0,my=0;const pm=e=>{const b=cv.getBoundingClientRect();mx=Math.max(-1,Math.min(1,(e.clientX-b.left-b.width/2)/500));my=Math.max(-1,Math.min(1,(e.clientY-b.top-b.height/2)/500))};addEventListener('pointermove',pm,{passive:true});
+ const f=()=>{if(!RM)raf=requestAnimationFrame(f);if(document.hidden)return;const k=busy?2.4:1;t+=.016*k;g.position.y=Math.sin(t*2)*.12;g.rotation.y+=(mx*.55-g.rotation.y)*.08;g.rotation.x+=(my*.35-g.rotation.x)*.08;
+  petals.forEach((p,i)=>{p.rotation.z=p.userData.r+Math.sin(t*2+i)*.05});aL.rotation.z=.9+Math.sin(t*(wave?9:2))*(wave?.6:.12);
+  const b=(t%3.2)>3.08?.1:1;eyes.forEach(e=>e.scale.y=.2*b);smile.scale.y=busy?.5+Math.abs(Math.sin(t*8)):1;r.render(sc,cam)};f();
+ return()=>{cancelAnimationFrame(raf);removeEventListener('pointermove',pm);r.dispose();try{r.forceContextLoss()}catch(e){}}}
+/* soft floating glossy bubbles behind the panel */
+function bg(cv){const T=window.THREE;if(!T||RM||!cv)return null;let r;try{r=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true})}catch(e){return null}
+ const sc=new T.Scene(),cam=new T.PerspectiveCamera(50,1,.1,100);cam.position.z=18;sc.add(new T.AmbientLight(0xffffff,.85));const dl=new T.DirectionalLight(0xffffff,.8);dl.position.set(4,6,8);sc.add(dl);
+ const cols=[0xf3a8e8,0xc9a6ff,0x9fd0ff,0xffc2e2,0xb7e4ff],ms=[];
+ for(let i=0;i<16;i++){const o=new T.Mesh(i%3?new T.SphereGeometry(.5+Math.random()*1.1,24,24):new T.TorusGeometry(.7,.28,16,32),new T.MeshPhongMaterial({color:cols[i%5],shininess:140,specular:0xffffff,transparent:true,opacity:.5}));o.position.set((Math.random()-.5)*16,(Math.random()-.5)*26,(Math.random()-.5)*8-2);o.userData={s:.3+Math.random()*.5,p:Math.random()*6};ms.push(o);sc.add(o)}
+ const size=()=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;r.setPixelRatio(Math.min(devicePixelRatio||1,2));r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()};size();addEventListener('resize',size);let raf,t=0;
+ const f=()=>{raf=requestAnimationFrame(f);if(document.hidden)return;t+=.01;ms.forEach(o=>{o.position.y+=Math.sin(t*o.userData.s+o.userData.p)*.008;o.rotation.x+=.004;o.rotation.y+=.006});r.render(sc,cam)};f();
+ return()=>{cancelAnimationFrame(raf);removeEventListener('resize',size);r.dispose();try{r.forceContextLoss()}catch(e){}}}
+/* welcome prompt after login */
+function intro(){if(document.getElementById('oa-intro'))return;const o=E('div');o.id='oa-intro';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Meet Orchie');
+ o.innerHTML='<div class="oi-c"><canvas width="460" height="460"></canvas><small class="oi-k">ORCHID CRM IS NOW AI ASSISTED</small><h3>Hi, I am <b>Orchie</b>!</h3><p>I am your AI assistant. I watch your leads, tasks and cases, tell you what needs you each day, and do the work for you. You stay in control and confirm everything.</p><ul class="oi-l"><li>I tell you what to do next, one step at a time</li><li>I write emails and follow-ups for you</li><li>I add leads, tasks and updates when you just say so</li></ul><div class="oi-b"><button class="oa-b g" data-n>Maybe later</button><button class="oa-b p" data-y>Show me my day</button></div><label class="oi-d"><input type="checkbox"> Do not show this again</label></div>';
+ document.body.append(o);const stop=orchie(o.querySelector('canvas'),true,true),ek=e=>{if(e.key==='Escape')end(false)},end=go=>{try{if(o.querySelector('input').checked)localStorage.setItem('oa_intro_off','1')}catch(e){}stop&&stop();o.remove();document.removeEventListener('keydown',ek);if(go){tab='next';setOpen(true)}};
+ document.addEventListener('keydown',ek);o.querySelector('[data-n]').onclick=()=>end(false);o.querySelector('[data-y]').onclick=()=>end(true);o.onclick=e=>{if(e.target===o)end(false)};o.querySelector('[data-y]').focus()}
+
 /* ---------- shell ---------- */
-function paint(){if(!P)return;const b=P.querySelector('.oa-body'),n=Qs();P.querySelector('.oa-pg').textContent='You are on: '+pg();
+function paint(){if(!P)return;const b=P.querySelector('.oa-body'),n=Qs();P.querySelector('.oa-pg').textContent='Your AI assistant · '+pg();
  P.querySelectorAll('[role=tab]').forEach(t=>{t.setAttribute('aria-selected',String(t.dataset.t===tab));if(t.dataset.t==='next')t.textContent='Next steps'+(n?' · '+n:'')});b.replaceChildren();(tab==='next'?nextTab:askTab)(b)}
 const Qs=()=>queue().length;
-function setOpen(v){open=v;document.documentElement.classList.toggle('oa-open',v);P.hidden=!v;fab.setAttribute('aria-expanded',String(v));if(v){bub.hidden=true;paint();setTimeout(()=>inp.focus(),80)}}
-function init(){fab=E('button','');fab.id='oa-fab';fab.type='button';fab.setAttribute('aria-label','Open Orchid Assist (Ctrl+K)');fab.innerHTML='<span>✦ Assist</span><b hidden></b>';bub=E('button','');bub.id='oa-bub';bub.hidden=true;
- P=E('aside');P.id='oa';P.hidden=true;P.setAttribute('aria-label','Orchid Assist');
- P.innerHTML='<div class="oa-h"><div class="oa-av">✦</div><div class="oa-ti"><b>Orchid Assist</b><small class="oa-pg"></small></div><button class="oa-x" aria-label="Close">✕</button></div><div class="oa-tabs" role="tablist"><button role="tab" data-t="next">Next steps</button><button role="tab" data-t="ask">Ask / do it for me</button></div><div class="oa-body"></div><div class="oa-in"><input aria-label="Tell Orchid Assist what to do" placeholder="Tell me what to do…"><button class="oh-b">Send</button></div>';
- document.body.append(fab,bub,P);inp=P.querySelector('.oa-in input');const sn=P.querySelector('.oa-in button'),go=()=>{const v=inp.value;inp.value='';say(v)};
+function setOpen(v){open=v;document.documentElement.classList.toggle('oa-open',v);P.hidden=!v;fab.setAttribute('aria-expanded',String(v));S.forEach(f=>f&&f());S=[];if(v){bub.hidden=true;paint();S=[orchie(P.querySelector('.oa-av canvas')),bg(P.querySelector('.oa-bgc'))];setTimeout(()=>inp.focus(),80)}}
+function init(){fab=E('button','');fab.id='oa-fab';fab.type='button';fab.setAttribute('aria-label','Open Orchie, your AI assistant (Ctrl+K)');fab.innerHTML='<i class="oa-fi"></i><span>Ask Orchie</span><b hidden></b>';bub=E('button','');bub.id='oa-bub';bub.hidden=true;
+ P=E('aside');P.id='oa';P.hidden=true;P.setAttribute('aria-label','Orchie, your AI assistant');
+ P.innerHTML='<canvas class="oa-bgc"></canvas><div class="oa-h"><div class="oa-av"><canvas></canvas></div><div class="oa-ti"><b>Orchie</b><small class="oa-pg"></small></div><button class="oa-x" aria-label="Close">✕</button></div><div class="oa-tabs" role="tablist"><button role="tab" data-t="next">Next steps</button><button role="tab" data-t="ask">Ask / do it for me</button></div><div class="oa-body"></div><div class="oa-in"><input aria-label="Tell Orchie what to do" placeholder="Tell me what to do…"><button class="oh-b">Send</button></div>';
+ document.body.append(fab,bub,P);if(!document.getElementById('oa-font')){const l=document.createElement('link');l.id='oa-font';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap';document.head.append(l)}
+ try{sbc().auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT'){try{sessionStorage.removeItem('oa_intro');sessionStorage.removeItem('oa_b')}catch(e){}introDone=false;shown=false}})}catch(e){}inp=P.querySelector('.oa-in input');const sn=P.querySelector('.oa-in button'),go=()=>{const v=inp.value;inp.value='';say(v)};
  sn.onclick=go;inp.onkeydown=e=>{if(e.key==='Enter')go()};fab.onclick=bub.onclick=()=>setOpen(true);P.querySelector('.oa-x').onclick=()=>setOpen(false);
  P.querySelectorAll('[role=tab]').forEach(t=>t.onclick=()=>{tab=t.dataset.t;paint()});
  addEventListener('keydown',e=>{if(e.key==='Escape'&&open)setOpen(false);if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'&&fab.classList.contains('on')){e.preventDefault();setOpen(!open)}});
- setInterval(()=>{const d=D(),ok=!!(d&&d.me);fab.classList.toggle('on',ok);if(!ok)return;const n=Qs(),bd=fab.querySelector('b');bd.hidden=!n;bd.textContent=n;
+ setInterval(()=>{const d=D(),ok=!!(d&&d.me);fab.classList.toggle('on',ok);if(!ok)return;if(!introDone){introDone=true;let s=null,off=null;try{s=sessionStorage.getItem('oa_intro');off=localStorage.getItem('oa_intro_off')}catch(e){}if(!s&&!off){try{sessionStorage.setItem('oa_intro','1')}catch(e){}shown=true;setTimeout(intro,900)}}const n=Qs(),bd=fab.querySelector('b');bd.hidden=!n;bd.textContent=n;
   if(n>lastN&&!open){fab.classList.remove('ping');void fab.offsetWidth;fab.classList.add('ping')}lastN=n;
-  if(open){const t=P.querySelector('[data-t=next]');t.textContent='Next steps'+(n?' · '+n:'');P.querySelector('.oa-pg').textContent='You are on: '+pg()}
-  if(!shown&&n&&!open){shown=true;let s=null;try{s=sessionStorage.getItem('oa_b')}catch(e){}if(!s){bub.textContent='✦ I found '+n+' thing'+(n>1?'s':'')+' for you today. Tap and I will walk you through them.';bub.hidden=false;try{sessionStorage.setItem('oa_b','1')}catch(e){}setTimeout(()=>{bub.hidden=true},14000)}}},4000)}
+  if(open){const t=P.querySelector('[data-t=next]');t.textContent='Next steps'+(n?' · '+n:'');P.querySelector('.oa-pg').textContent='Your AI assistant · '+pg()}
+  if(!shown&&n&&!open){shown=true;let s=null;try{s=sessionStorage.getItem('oa_b')}catch(e){}if(!s){bub.textContent='Hi, I am Orchie! I found '+n+' thing'+(n>1?'s':'')+' for you today. Tap and I will walk you through them.';bub.hidden=false;try{sessionStorage.setItem('oa_b','1')}catch(e){}setTimeout(()=>{bub.hidden=true},14000)}}},4000)}
 document.readyState==='loading'?addEventListener('DOMContentLoaded',init):init()
 })();</script>
