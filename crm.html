@@ -1260,13 +1260,37 @@ h1,h2,h3{color:#032d60;font-weight:600;letter-spacing:-.005em}
 .center{background:linear-gradient(160deg,#032d60,#0176d3)}
 .panel{border-radius:8px;box-shadow:0 12px 40px rgba(3,45,96,.3)}
 /* global header */
-.top{background:#032d60!important;border-bottom:0;box-shadow:0 1px 3px rgba(3,45,96,.35)}
+.top{background:#fff!important;border-bottom:1px solid #dde3ec;box-shadow:none}
 .top-in{padding:8px 20px}
-.top .wm{color:#fff;font-size:1.25rem}.top .wm .lg{color:#9db8d9;font-weight:500}
+.top .wm{color:#032d60;font-size:1.25rem}.top .wm .lg{color:#5b6b82;font-weight:500}
 .top .wm img{background:#fff;border-radius:4px;padding:3px 6px}
-.top .btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);color:#fff;box-shadow:none;border-radius:4px;min-height:32px}
-.top .btn:hover:not(:disabled){background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.4)}
-.top .muted,.top .s{color:#b6c8e0}
+.top .btn{background:#fff;border:1px solid #c9d3e0;color:#0176d3;box-shadow:none;border-radius:4px;min-height:32px}
+.top .btn:hover:not(:disabled){background:#f0f6fd;border-color:#9fc4ea}
+.top .muted,.top .s{color:#5b6b82}
+/* global search (top bar) */
+.top .gs{position:relative;flex:0 1 420px;min-width:160px;margin-left:18px}
+.top .gs input{width:100%;min-height:34px;padding:6px 34px 6px 34px;border:1px solid #c9d3e0;border-radius:18px;background:#f4f6f9;font-size:.84rem;color:#1b2a41}
+.top .gs input::placeholder{color:#7b8aa0}
+.top .gs input:focus{background:#fff}
+.gs-mag{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#6b7c93;pointer-events:none;display:flex}
+.gs-mag svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.gs-kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.7rem;font-weight:600;border:1px solid #c9d3e0;border-radius:4px;padding:0 6px;color:#6b7c93;background:#fff;pointer-events:none}
+.gs input:focus~.gs-kbd{display:none}
+.gs-menu{position:absolute;left:0;top:calc(100% + 6px);width:max(100%,440px);max-height:min(70vh,460px);overflow:auto;background:#fff;border:1px solid #dde3ec;border-radius:8px;box-shadow:0 12px 32px rgba(3,45,96,.18);padding:6px;z-index:200}
+.gs-menu[hidden]{display:none}
+.gs-h{padding:6px 8px 4px;font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b7c93}
+.gs-i{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:6px;cursor:pointer}
+.gs-i.on{background:#eaf3fd}
+.gs-ic{width:30px;height:30px;border-radius:7px;background:#eaf3fd;color:#0176d3;display:grid;place-items:center;flex:none;font-weight:700;font-size:.85rem}
+.gs-i.on .gs-ic{background:#fff}
+.gs-ic svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.gs-tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.gs-tx b{font-size:.84rem;color:#032d60;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gs-tx small{font-size:.74rem;color:#5b6b82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gs-k{font-size:.66rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#5b6b82;background:#f0f4fa;border-radius:10px;padding:2px 8px;flex:none}
+.gs-none{padding:14px;text-align:center;color:#5b6b82;font-size:.84rem}
+@media(max-width:900px){.top .gs{flex-basis:260px;margin-left:10px}}
+@media(max-width:600px){.top-in>.gs{grid-column:1/-1;margin:0;flex:none;width:100%;min-width:0}.gs-menu{width:100%}.gs-kbd{display:none}}
 /* navigation */
 @media(min-width:901px){
   .shell{min-height:calc(100vh - 49px)}
@@ -3265,6 +3289,113 @@ function toolsView(){
 }
 
 /* the whole app an Executive sees */
+/* ---- global search (top bar): pages, tools, quick actions and records, each with an icon and a short description ---- */
+const NAV_ICONS={calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',automation:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',messages:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',overview:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',inquiries:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',approvals:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',cases:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',clients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',productivity:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',team:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',sales:'<path d="M12 3v18"/><path d="M16.5 7.5C16 6 14.3 5 12 5S8 6.2 8 8c0 4.5 8.5 2.5 8.5 7 0 1.8-1.8 3-4.5 3s-4.2-1-4.7-2.5"/>',tools:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3.5 17.3a1.6 1.6 0 0 0 2.2 2.2l5.8-5.8a4 4 0 0 0 5.2-5.4l-2.4 2.4-2.1-.5-.5-2.1z"/>',members:'<path d="M12 3 4 6v6c0 4.5 3.4 7.8 8 9 4.6-1.2 8-4.5 8-9V6z"/>'};
+const GS_X={plus:'<path d="M12 5v14M5 12h14"/>',book:'<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5V4.5"/>'};
+const gsCut=(v,n)=>{v=String(v||'').replace(/\s+/g,' ').trim();return v.length>n?v.slice(0,n-1)+'…':v};
+function gsIco(inner,label){const s=h('span',{class:'gs-ic','aria-hidden':'true'});if(inner)s.innerHTML='<svg viewBox="0 0 24 24">'+inner+'</svg>';else s.textContent=String(label||'?').trim().slice(0,1).toUpperCase();return s}
+function gsPage(k){view=k;q='';render();window.scrollTo(0,0);
+  if(k==='chat')pollChat();if(k==='approvals')syncApprovals();if(k==='tools')syncKloze();if(k==='sales')loadSales().then(render).catch(console.error);if(k==='calendar')calRefresh()}
+function gsOpen(v,text,pre){view=v;q=text||'';if(pre)pre();render();window.scrollTo(0,0)}
+function gsIndex(){
+  const out=[],add=(kind,t,d,ic,go,kw)=>{if(t)out.push({kind,t:String(t),d:d||'',ic,go,kw:kw||''})};
+  const kzDesc={sales:'Kloze store revenue, orders and trends over time.',orders:'Kloze orders to process, with customer and payment details.',products:'Kloze product catalog, prices and stock levels.',seo:'Search engine settings for the Kloze store.'};
+  const kzGo=k=>()=>{if(!isExec())view='tools';kzTab=k;q='';render();window.scrollTo(0,0);if(!isExec())syncKloze()};
+  const inK=isExec()?['sales','orders','products']:['sales','orders','products','seo'];
+  if(isExec()||isAdmin)TOOL_SUBS.filter(x=>inK.includes(x[0])).forEach(([k,t,ic])=>add('Tool','Kloze '+t,kzDesc[k],ic,kzGo(k),'kloze store tools shop'));
+  if(isExec()){
+    kzOrders.slice(0,400).forEach(o=>add('Order',o.customer_name||('Order '+o.id),'Order '+o.id+(o.status?' · '+o.status:''),NAV_ICONS.cases,()=>{kzTab='orders';kzStatus='all';kzRange='all';q=String(o.id);render();window.scrollTo(0,0)},[o.id,o.email,o.phone].join(' ')));
+    kzProducts.slice(0,400).forEach(p=>add('Product',p.name,[p.category,p.active?'Live':'Hidden'].filter(Boolean).join(' · '),TOOL_SUBS[2][2],()=>{kzTab='products';kzPF='all';q=p.name||'';render();window.scrollTo(0,0)},p.description));
+    return out;
+  }
+  const P=[['overview','Overview','Your day at a glance: what to do next and the key numbers.'],
+    ['inquiries','Inquiries','People asking about your services, with a live waiting timer.'],
+    ['messages','Messages','Email and Facebook conversations with customers.'],
+    ['approvals',isAdmin?'Approvals':'My requests',isAdmin?'Approve or decline changes your staff ask to make.':'Track the changes you asked the admin to approve.'],
+    ['cases','Cases','Customer issues with an owner, priority and SLA tracking.'],
+    ['chat','Chat','Team chat with everyone who has CRM access.'],
+    ['clients','Clients','Your clients and their contact details.'],
+    ['sales','Sales','Pipeline, accounts and leads in one place.'],
+    ['tasks','Tasks','To-dos with due dates and owners.'],
+    ['calendar','Calendar','Your schedule and Google Calendar events.'],
+    ['productivity','Productivity','Daily activity scores and time spent in each status.'],
+    ['team','Team','Who is active, at lunch or away, with time totals.',1],
+    ['automation','Automation','Automatic email and calendar rules.',1],
+    ['tools','Tools','Kloze store tools: sales, orders, products and SEO.',1],
+    ['members','Members','People with access and their access levels.']];
+  P.forEach(([k,t,d,adm])=>{if(adm&&!isAdmin)return;add('Page',t,d,NAV_ICONS[k],()=>gsPage(k),k)});
+  const sd={pipeline:'Track deals by stage until they close.',accounts:'The companies you work with.',leads:'Prospects to qualify and convert.'};
+  SALES_SUBS.forEach(([k,t,ic])=>add('Tool','Sales · '+t,sd[k],ic,()=>{view='sales';slTab=k;slPage=1;q='';render();window.scrollTo(0,0);loadSales().then(render).catch(console.error)},'sales crm'));
+  add('Action','New inquiry','Add someone who asked about your services.',GS_X.plus,addInquiry,'add create');
+  add('Action','New client','Add a client with contact details.',GS_X.plus,addClient,'add create');
+  add('Action','New task','Add a to-do with a due date.',GS_X.plus,()=>addTask(),'add create');
+  add('Action','New case','Log a customer issue and route it to the right person.',GS_X.plus,()=>addCase(),'add create');
+  add('Action','New deal','Add a deal to the sales pipeline.',GS_X.plus,()=>oppForm(),'add create opportunity');
+  add('Action','Open the Manual','Read the guide to every part of the CRM.',GS_X.book,openManual,'help guide how');
+  add('Action','Back to Apps','Return to the app picker.',NAV_ICONS.overview,home,'apps home');
+  clients.slice(0,500).forEach(c=>add('Client',c.name,[c.company,c.email,c.phone].filter(Boolean).join(' · ')||'Client',NAV_ICONS.clients,()=>gsOpen('clients',c.name),[c.company,c.email,c.phone,c.notes].join(' ')));
+  inquiries.slice(0,500).forEach(i=>add('Inquiry',i.name,[cap(i.status||''),gsCut(i.message,70)].filter(Boolean).join(' · '),NAV_ICONS.inquiries,()=>gsOpen('inquiries',i.name,()=>{inqFilter='all'}),[i.email,i.phone,i.source,i.message].join(' ')));
+  tasks.slice(0,500).forEach(t=>add('Task',t.title,(t.done?'Done':'Open')+(t.due_date?' · due '+fmtDate(t.due_date):''),NAV_ICONS.tasks,()=>gsOpen('tasks',t.title,()=>{taskFilter='all'})));
+  cases.slice(0,500).forEach(c=>add('Case',c.subject,[cap(String(c.status||'').replace(/_/g,' ')),c.requester_name].filter(Boolean).join(' · '),NAV_ICONS.cases,()=>{view='cases';q='';render();window.scrollTo(0,0);openCase(c.id)},[c.requester_email,c.description].join(' ')));
+  members.forEach(m=>add('Member',m.name,[m.email,(ROLES[m.role]||{}).l].filter(Boolean).join(' · '),NAV_ICONS.members,()=>gsOpen('members',m.email),m.email));
+  slAcc.slice(0,300).forEach(a=>add('Account',a.name,[a.industry,a.website].filter(Boolean).join(' · ')||'Sales account',SALES_SUBS[1][2],()=>{view='sales';slTab='accounts';slPage=1;q=a.name||'';render();window.scrollTo(0,0)},[a.phone,a.notes].join(' ')));
+  slLead.slice(0,300).forEach(l=>add('Lead',l.name,[l.status,l.company].filter(Boolean).join(' · '),SALES_SUBS[2][2],()=>{view='sales';slTab='leads';slLeadF='all';slPage=1;q=l.name||'';render();window.scrollTo(0,0)},[l.email,l.phone,l.notes].join(' ')));
+  if(isAdmin){
+    kzProducts.slice(0,300).forEach(p=>add('Product',p.name,[p.category,p.active?'Live':'Hidden'].filter(Boolean).join(' · '),TOOL_SUBS[2][2],()=>{view='tools';kzTab='products';kzPF='all';q=p.name||'';render();window.scrollTo(0,0)},p.description));
+    kzOrders.slice(0,300).forEach(o=>add('Order',o.customer_name||('Order '+o.id),'Order '+o.id+(o.status?' · '+o.status:''),TOOL_SUBS[1][2],()=>{view='tools';kzTab='orders';kzStatus='all';kzRange='all';q=String(o.id);render();window.scrollTo(0,0)},[o.id,o.email,o.phone].join(' ')));
+  }
+  return out;
+}
+const GS_TOP=['Page','Tool','Action'];
+function gsSearch(text){
+  const idx=gsIndex(),t=text.trim().toLowerCase();
+  if(!t)return [...idx.filter(x=>x.kind==='Page'),...idx.filter(x=>x.kind==='Tool')].slice(0,8);
+  const w=t.split(/\s+/),res=[];
+  idx.forEach(x=>{const ti=x.t.toLowerCase(),de=x.d.toLowerCase(),kw=x.kw.toLowerCase(),kd=x.kind.toLowerCase();let s=0;
+    for(const k of w){let p=0;
+      if(ti.startsWith(k))p=6;else if(ti.split(/[\s·\-–]+/).some(z=>z.startsWith(k)))p=5;else if(ti.includes(k))p=4;else if(kd.startsWith(k))p=2;else if(de.includes(k))p=2;else if(kw.includes(k))p=1;
+      if(!p)return;s+=p}
+    res.push({x,s:s*10+(GS_TOP.includes(x.kind)?3:0)})});
+  res.sort((a,b)=>b.s-a.s);
+  const out=[];let recs=0;
+  for(const r of res){if(out.length>=8)break;if(!GS_TOP.includes(r.x.kind)){if(recs>=5)continue;recs++}out.push(r.x)}
+  return out;
+}
+function globalSearch(){
+  let items=[],act=0;
+  const inp=h('input',{type:'text',id:'gsInput',placeholder:isExec()?'Search tools, orders, products…':'Search tools, pages, clients, tasks…','aria-label':'Search everything',autocomplete:'off',role:'combobox','aria-expanded':'false','aria-controls':'gsList'});
+  const menu=h('div',{class:'gs-menu',id:'gsList',role:'listbox',hidden:true});
+  const close=()=>{menu.hidden=true;inp.setAttribute('aria-expanded','false')};
+  const mark=scroll=>{[...menu.querySelectorAll('.gs-i')].forEach((el,i)=>{el.classList.toggle('on',i===act);el.setAttribute('aria-selected',String(i===act));if(i===act&&scroll)el.scrollIntoView({block:'nearest'})})};
+  const pick=x=>{close();inp.value='';inp.blur();x.go()};
+  const draw=()=>{
+    menu.replaceChildren();
+    if(!items.length)menu.append(h('div',{class:'gs-none',text:'No results for “'+inp.value.trim()+'”'}));
+    else{
+      if(!inp.value.trim())menu.append(h('div',{class:'gs-h',text:'Jump to'}));
+      items.forEach((x,i)=>menu.append(h('div',{class:'gs-i'+(i===act?' on':''),role:'option','aria-selected':String(i===act),
+        onmousedown:e=>e.preventDefault(),onclick:()=>pick(x),onmousemove:()=>{if(act!==i){act=i;mark(false)}}},
+        gsIco(x.ic,x.t),h('span',{class:'gs-tx'},h('b',{text:x.t}),h('small',{text:x.d})),h('span',{class:'gs-k',text:x.kind}))));
+    }
+    menu.hidden=false;inp.setAttribute('aria-expanded','true');
+  };
+  const paint=()=>{items=gsSearch(inp.value);act=0;draw()};
+  inp.addEventListener('input',paint);
+  inp.addEventListener('focus',paint);
+  inp.addEventListener('blur',close);
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){if(!items.length)return;e.preventDefault();act=(act+(e.key==='ArrowDown'?1:items.length-1))%items.length;mark(true)}
+    else if(e.key==='Enter'){if(items[act]){e.preventDefault();pick(items[act])}}
+    else if(e.key==='Escape'){inp.value='';close();inp.blur()}
+  });
+  if(!window.gsKeys){window.gsKeys=1;document.addEventListener('keydown',e=>{
+    const a=document.activeElement,typing=a&&(/INPUT|TEXTAREA|SELECT/.test(a.tagName)||a.isContentEditable);
+    if(((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k')||(!typing&&e.key==='/'&&!e.ctrlKey&&!e.metaKey&&!e.altKey)){const i=document.getElementById('gsInput');if(i){e.preventDefault();i.focus();i.select()}}
+  })}
+  const mag=h('span',{class:'gs-mag','aria-hidden':'true'});mag.innerHTML='<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>';
+  return h('div',{class:'gs',role:'search'},mag,inp,h('kbd',{class:'gs-kbd','aria-hidden':'true',text:'/'}),menu);
+}
+
 function execView(){
   const tabs=[['sales','Sales'],['orders','Orders',kzOrders.filter(o=>o.status==='Processing'||o.status==='Paid').length],['products','Products']];
   const IC={sales:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',orders:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',products:'<path d="M6 7h12l1 13H5z"/><path d="M9 7V6a3 3 0 0 1 6 0v1"/>',seo:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>'};
@@ -3273,7 +3404,7 @@ function execView(){
   return h('div',{},
     h('header',{class:'top'},h('div',{class:'top-in'},
       h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('img',{src:KLOZE_LOGO,alt:'Kloze',style:'height:26px;width:auto;margin-left:12px;align-self:center'})),
-      h('span',{class:'sp'}),
+      globalSearch(),h('span',{class:'sp'}),
       h('span',{class:'muted',style:'font-size:.82rem',text:me.email}),h('span',{class:'pill role-executive',style:'margin-left:0',text:'Executive'}),
       h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
     h('div',{class:'shell'},
@@ -3285,12 +3416,12 @@ function appView(){
   if(isExec())return execView();
   const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['messages','Messages',unreadMsgs()],['approvals',isAdmin?'Approvals':'My requests',isAdmin?pendingCount():0],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['sales','Sales'],['tasks','Tasks',tasks.filter(t=>!t.done).length],['calendar','Calendar'],['productivity','Productivity'],...(isAdmin?[['team','Team'],['automation','Automation'],['tools','Tools']]:[]),['members','Members',members.length]];
   const body=view==='calendar'?calendarView():view==='automation'&&isAdmin?automationView():view==='messages'?messagesView():view==='chat'?chatView():view==='approvals'?approvalsView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():view==='team'&&isAdmin?teamView():view==='tools'&&isAdmin?toolsView():view==='sales'?salesView():view==='productivity'?productivityView():overview();
-  const ICONS={calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',automation:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',messages:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',overview:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',inquiries:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',approvals:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',cases:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',clients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',productivity:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',team:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',sales:'<path d="M12 3v18"/><path d="M16.5 7.5C16 6 14.3 5 12 5S8 6.2 8 8c0 4.5 8.5 2.5 8.5 7 0 1.8-1.8 3-4.5 3s-4.2-1-4.7-2.5"/>',tools:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3.5 17.3a1.6 1.6 0 0 0 2.2 2.2l5.8-5.8a4 4 0 0 0 5.2-5.4l-2.4 2.4-2.1-.5-.5-2.1z"/>',members:'<path d="M12 3 4 6v6c0 4.5 3.4 7.8 8 9 4.6-1.2 8-4.5 8-9V6z"/>'};
+  const ICONS=NAV_ICONS;
   const ico=k=>{const s=h('span',{class:'ico','aria-hidden':'true'});s.innerHTML='<svg viewBox="0 0 24 24">'+(ICONS[k]||'')+'</svg>';return s};
   return h('div',{},
     h('header',{class:'top'},h('div',{class:'top-in'},
       h('div',{class:'wm'},h('b',{text:'O'}),'rchid',h('span',{class:'lg',text:'CRM'})),
-      h('span',{class:'sp'}),
+      globalSearch(),h('span',{class:'sp'}),
       h('span',{class:'muted',style:'font-size:.82rem',text:me.email}),h('span',{class:'pill role-'+myRole,style:'margin-left:0',text:ROLES[myRole].l}),
       h('button',{class:'btn ghost sm',text:'Manual',onclick:openManual}),h('button',{class:'btn ghost sm',text:'Apps',onclick:home}),
       h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
