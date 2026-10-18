@@ -1,0 +1,151 @@
+<style id="oh-css">
+#oh-btn{position:fixed;right:24px;bottom:96px;z-index:41;display:none;align-items:center;gap:8px;padding:10px 16px 10px 12px;border:1px solid rgba(34,211,238,.5);border-radius:999px;background:linear-gradient(135deg,#032d60,#0a4f9e);color:#e6f6ff;font:700 .82rem/1 Figtree,Inter,system-ui,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(3,45,96,.45),0 0 18px rgba(34,211,238,.28)}
+#oh-btn.on{display:inline-flex}#oh-btn i{width:8px;height:8px;border-radius:50%;background:#22d3ee;box-shadow:0 0 10px #22d3ee;animation:oh-p 2s infinite}
+@keyframes oh-p{50%{opacity:.35;transform:scale(.7)}}
+#oh{position:fixed;inset:0;z-index:60;display:none;overflow:hidden;color:#e6f1ff;font-family:Figtree,Inter,system-ui,sans-serif;background:radial-gradient(1200px 700px at 30% 45%,#06316a 0,#031634 48%,#020817 100%)}
+#oh.on{display:block;animation:oh-in .35s ease}@keyframes oh-in{from{opacity:0;transform:scale(1.02)}}
+#oh:before{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(74,168,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(74,168,255,.07) 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:radial-gradient(circle at 32% 50%,#000,transparent 72%);mask-image:radial-gradient(circle at 32% 50%,#000,transparent 72%)}
+#oh canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.oh-top{position:absolute;left:0;right:0;top:0;z-index:3;display:flex;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top,0px)) 20px 10px}
+.oh-top h2{margin:0;font-size:1.15rem;letter-spacing:-.02em;font-weight:800}.oh-top h2 b{background:linear-gradient(90deg,#22d3ee,#4aa8ff,#a78bfa,#22d3ee);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:oh-g 6s linear infinite}
+@keyframes oh-g{to{background-position:200% 0}}
+.oh-st{font:600 .74rem/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;color:#7dd3fc;opacity:.9;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oh-x{border:1px solid rgba(125,211,252,.35);background:rgba(3,22,52,.6);color:#e6f1ff;border-radius:10px;width:36px;height:36px;font-size:1.1rem;cursor:pointer}.oh-x:hover{background:rgba(27,150,255,.3)}
+.oh-leg{position:absolute;left:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:2;display:flex;gap:6px 14px;flex-wrap:wrap;max-width:calc(100% - 500px);font-size:.72rem;color:#9cc4ea}
+.oh-leg span:before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--c);box-shadow:0 0 8px var(--c)}
+.oh-tip{position:fixed;z-index:70;pointer-events:none;display:none;padding:6px 10px;border-radius:8px;font-size:.76rem;background:rgba(2,8,23,.92);border:1px solid rgba(74,168,255,.5);color:#e6f1ff;max-width:240px}
+.oh-p{position:absolute;top:calc(64px + env(safe-area-inset-top,0px));right:20px;bottom:20px;width:min(440px,calc(100% - 40px));z-index:3;display:flex;flex-direction:column;border:1px solid rgba(74,168,255,.3);border-radius:18px;background:rgba(3,22,52,.74);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(27,150,255,.07);overflow:hidden}
+.oh-tabs{display:flex;gap:4px;padding:10px 10px 0}.oh-tabs button{flex:1;border:0;background:transparent;color:#9cc4ea;font:700 .82rem Figtree,Inter,sans-serif;padding:9px 6px;border-radius:10px 10px 0 0;border-bottom:2px solid transparent;cursor:pointer}
+.oh-tabs button[aria-selected=true]{color:#fff;border-color:#22d3ee;background:rgba(34,211,238,.08)}
+.oh-body{flex:1;min-height:0;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin}
+.oh-k{display:grid;grid-template-columns:1fr 1fr;gap:10px}.oh-k div{padding:12px;border-radius:12px;background:rgba(27,150,255,.1);border:1px solid rgba(74,168,255,.22)}
+.oh-k b{display:block;font-size:1.7rem;letter-spacing:-.03em;line-height:1.1}.oh-k span{font-size:.72rem;color:#9cc4ea;text-transform:uppercase;letter-spacing:.06em}
+.oh-k .w b{color:#fbbf24}.oh-k .d b{color:#fb7185}
+.oh-c{padding:12px 14px;border-radius:12px;background:rgba(2,8,23,.5);border:1px solid rgba(74,168,255,.2);font-size:.88rem;line-height:1.55;white-space:pre-wrap}
+.oh-c h4{margin:0 0 6px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#22d3ee}
+.oh-b{border:1px solid rgba(34,211,238,.5);background:linear-gradient(135deg,#0a4f9e,#1b96ff);color:#fff;border-radius:10px;padding:8px 14px;font:700 .8rem Figtree,Inter,sans-serif;cursor:pointer}.oh-b:disabled{opacity:.5;cursor:wait}
+.oh-b.g{background:transparent;border-color:rgba(125,211,252,.4);color:#cfe8ff}.oh-b.s{padding:5px 10px;font-size:.74rem}
+.oh-r{padding:11px 12px;border-radius:12px;background:rgba(2,8,23,.5);border:1px solid rgba(74,168,255,.2);display:grid;gap:7px}
+.oh-r.cold{border-color:rgba(251,113,133,.55)}.oh-rh{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.oh-rh b{font-size:.92rem}.oh-rh span{font-size:.72rem;color:#9cc4ea}
+.oh-bar{height:6px;border-radius:6px;background:rgba(125,211,252,.15);overflow:hidden}.oh-bar i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#22d3ee,#fbbf24);transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.oh-a{display:flex;gap:6px;flex-wrap:wrap}.oh-r textarea{width:100%;min-height:120px;background:rgba(2,8,23,.7);color:#e6f1ff;border:1px solid rgba(74,168,255,.3);border-radius:8px;padding:8px;font:inherit;font-size:.82rem}
+.oh-m{max-width:92%;padding:9px 12px;border-radius:12px;font-size:.86rem;line-height:1.5;white-space:pre-wrap}.oh-m.u{align-self:flex-end;background:#0a4f9e}.oh-m.a{align-self:flex-start;background:rgba(2,8,23,.6);border:1px solid rgba(74,168,255,.22)}.oh-m.e{color:#fda4af}
+.oh-ac{border:1px solid #22d3ee;border-radius:12px;padding:10px 12px;background:rgba(34,211,238,.08);font-size:.84rem;display:grid;gap:6px}
+.oh-sg{display:flex;gap:6px;flex-wrap:wrap}.oh-in{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(74,168,255,.22)}
+.oh-in input{flex:1;min-width:0;background:rgba(2,8,23,.7);color:#e6f1ff;border:1px solid rgba(74,168,255,.35);border-radius:10px;padding:9px 12px;font:inherit}
+.oh-in input:focus,#oh button:focus-visible{outline:2px solid #22d3ee;outline-offset:2px}
+.oh-dots i{display:inline-block;width:6px;height:6px;margin-right:4px;border-radius:50%;background:#22d3ee;animation:oh-p 1s infinite}.oh-dots i:nth-child(2){animation-delay:.15s}.oh-dots i:nth-child(3){animation-delay:.3s}
+@media(max-width:860px){.oh-p{top:auto;left:0;right:0;bottom:0;width:auto;height:62vh;border-radius:18px 18px 0 0}.oh-leg{display:none}#oh-btn{bottom:156px;right:16px}}
+@media(prefers-reduced-motion:reduce){#oh *,#oh-btn i{animation:none!important}.oh-bar i{transition:none}}
+</style>
+<script id="oh-js">(()=>{
+if(window.__ohub)return;window.__ohub=1;
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches,H=36e5,sbc=()=>window.__orchidSb,D=()=>window.__orc&&window.__orc.d;
+const E=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const ago=h=>h<1?'<1h':h<48?Math.round(h)+'h':Math.round(h/24)+'d';
+const live=s=>s!=='won'&&s!=='lost';
+let think=false,sample=false,A=null,R=null,tab='brief',hist=[],busy=false;
+
+/* ---------- sample data, only used while your CRM is still empty ---------- */
+function demo(){const n=Date.now(),mk=(i,name,st,h,pr,em,ph,msg)=>({id:'s'+i,name,status:st,priority:pr,email:em,phone:ph,message:msg,created_at:new Date(n-(h+6)*H).toISOString(),last_touch:new Date(n-h*H).toISOString()});
+ return{inquiries:[mk(1,'Maria Santos','quoted',5,'high','m@x.ph','0917','Need a full quote for 40 units, deadline next week'),mk(2,'Lito Reyes','new',52,'high','l@x.ph','','Asking about bulk pricing and delivery to Cebu'),mk(3,'Anna Cruz','contacted',130,'normal','a@x.ph','0918','Following up on last month proposal'),mk(4,'Jun Tan','new',2,'normal','j@x.ph','','Hello'),mk(5,'Bea Lim','quoted',90,'normal','b@x.ph','0920','Comparing us with two other suppliers, wants discount'),mk(6,'Carlo Diaz','contacted',30,'low','','0922','Maybe later this year'),mk(7,'Ivy Go','new',70,'high','i@x.ph','0923','Urgent: event on the 30th, need confirmation this week'),mk(8,'Paolo Uy','quoted',12,'normal','p@x.ph','','Waiting for board approval'),mk(9,'Rina Co','contacted',200,'normal','r@x.ph','','Sent brochure')],
+ clients:[{id:'c1',name:'Acme Foods'},{id:'c2',name:'Luna Events'},{id:'c3',name:'Sol Retail'}],tasks:[{title:'Send contract',due_date:ymd(new Date(n-864e5*2)),done:false},{title:'Call Maria',due_date:ymd(new Date(n+864e5)),done:false}],cases:[{id:'k1',status:'open',priority:'high',subject:'Late delivery'}]}}
+
+/* ---------- analysis: transparent heat score, runs in the browser ---------- */
+function analyse(){let d=D()||{};sample=!(d.inquiries||[]).length&&!(d.clients||[]).length;if(sample)d=demo();
+ const inq=d.inquiries||[],tk=d.tasks||[],cs=d.cases||[],t0=ymd(new Date());
+ const rows=inq.filter(i=>live(i.status)).map(i=>{const hrs=Math.max(0,(Date.now()-new Date(i.last_touch||i.created_at||Date.now()))/H);
+  let s=({new:42,contacted:32,quoted:48}[i.status]||35)+(i.email?8:0)+(i.phone?7:0)+(i.priority==='high'?12:i.priority==='low'?-6:0)+((i.message||'').length>40?5:0)-Math.min(38,hrs/5);
+  s=Math.max(3,Math.min(99,Math.round(s)));return{i,hrs,score:s,cold:hrs>(i.status==='new'?24:48),risk:s*Math.min(1,hrs/24)}}).sort((a,b)=>b.risk-a.risk);
+ const od=tk.filter(t=>!t.done&&t.due_date&&t.due_date<t0),oc=cs.filter(c=>!['resolved','closed','done'].includes(String(c.status).toLowerCase()));
+ return{d,rows,od,oc,openT:tk.filter(t=>!t.done),cold:rows.filter(r=>r.cold),hot:rows.filter(r=>r.score>=60)}}
+function ctx(a){return'[Live analysis'+(sample?' (SAMPLE data)':'')+'] open inquiries '+a.rows.length+', going cold '+a.cold.length+', overdue tasks '+a.od.length+', open cases '+a.oc.length+'. Most at risk: '+(a.rows.slice(0,6).map(r=>r.i.name+' ('+r.i.status+', heat '+r.score+', silent '+ago(r.hrs)+')').join('; ')||'none')+'. Overdue: '+(a.od.slice(0,4).map(t=>t.title).join('; ')||'none')+'.'}
+function localBrief(a){const L=[],t=a.rows[0];if(!a.rows.length&&!a.openT.length)return'Nothing active yet. Add an inquiry or a task and I will start watching it.';
+ if(a.cold.length)L.push('- '+a.cold.length+' inquir'+(a.cold.length>1?'ies are':'y is')+' going cold. Start with '+t.i.name+' (heat '+t.score+', silent '+ago(t.hrs)+').');
+ if(a.od.length)L.push('- '+a.od.length+' overdue task'+(a.od.length>1?'s':'')+': '+a.od.slice(0,2).map(x=>x.title).join(', ')+'.');
+ if(a.hot.length)L.push('- '+a.hot.length+' hot lead'+(a.hot.length>1?'s':'')+' worth a call today.');
+ if(a.oc.length)L.push('- '+a.oc.length+' case'+(a.oc.length>1?'s':'')+' still open.');return L.join('\n')||'- Everything is on track. Nice.'}
+
+/* ---------- AI call: your deployed crm-ai Edge Function (key never in the browser) ---------- */
+async function callAI(msgs){const c=sbc(),{data:{session}}=await c.auth.getSession();if(!session)throw new Error('Please log in again.');think=true;
+ try{const r=await fetch(c.supabaseUrl+'/functions/v1/crm-ai',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:c.supabaseKey},body:JSON.stringify({messages:msgs,today:ymd(new Date()),tz:Intl.DateTimeFormat().resolvedOptions().timeZone})});
+  let d={};try{d=await r.json()}catch(e){}if(!r.ok||!d.reply)throw new Error(r.status===404?'The crm-ai function is not deployed.':d.error||'The AI is busy. Try again in a minute.');return d}finally{think=false}}
+function typeInto(n,txt,cb){if(RM||txt.length>1200){n.textContent=txt;cb&&cb();return}let i=0;const f=()=>{i=Math.min(txt.length,i+3);n.textContent=txt.slice(0,i);if(i<txt.length)requestAnimationFrame(f);else cb&&cb()};f()}
+function countUp(n,v){if(RM||!v){n.textContent=v;return}const t0=performance.now(),f=t=>{const p=Math.min(1,(t-t0)/700);n.textContent=Math.round(v*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
+
+/* ---------- three.js neural pipeline of your live data ---------- */
+function build(cv,a){const T=window.THREE;if(!T)return null;let rend;try{rend=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true,powerPreference:'low-power'})}catch(e){return null}
+ rend.setPixelRatio(Math.min(devicePixelRatio||1,2));const sc=new T.Scene(),cam=new T.PerspectiveCamera(55,1,.1,300);cam.position.z=64;const g=new T.Group();sc.add(g);const AD=T.AdditiveBlending,col=c=>new T.Color(c);
+ const core=new T.Mesh(new T.SphereGeometry(3.2,32,32),new T.MeshBasicMaterial({color:0x22d3ee})),halo=new T.Mesh(new T.SphereGeometry(5.4,32,32),new T.MeshBasicMaterial({color:0x1b96ff,transparent:true,opacity:.2,blending:AD,depthWrite:false}));
+ const ico=new T.Mesh(new T.IcosahedronGeometry(7.6,1),new T.MeshBasicMaterial({color:0x4aa8ff,wireframe:true,transparent:true,opacity:.35}));g.add(core,halo,ico);
+ const rings=[0,1,2].map(k=>{const r=new T.Mesh(new T.TorusGeometry(10.5+k*2.4,.07,8,96),new T.MeshBasicMaterial({color:k?0x1b96ff:0x22d3ee,transparent:true,opacity:.6,blending:AD}));r.rotation.set(k*1.1,k*.7,0);g.add(r);return r});
+ const scan=new T.Mesh(new T.RingGeometry(.97,1,96),new T.MeshBasicMaterial({color:0x22d3ee,transparent:true,opacity:.5,side:T.DoubleSide,blending:AD}));scan.rotation.x=1.25;g.add(scan);
+ const fib=(i,n,r)=>{const y=1-(i+.5)/n*2,rr=Math.sqrt(1-y*y),th=i*2.399963+r;return new T.Vector3(Math.cos(th)*rr*r,y*r,Math.sin(th)*rr*r)};
+ const sp=[],pts=[];for(let i=0;i<320;i++)sp.push((Math.random()-.5)*190,(Math.random()-.5)*130,(Math.random()-.5)*130);
+ const st=new T.BufferGeometry();st.setAttribute('position',new T.Float32BufferAttribute(sp,3));g.add(new T.Points(st,new T.PointsMaterial({color:0x7dd3fc,size:.5,transparent:true,opacity:.55,depthWrite:false})));
+ const nodes=[],pos={},add=(kind,label,id,p,c,r,go)=>{const m=new T.Mesh(new T.SphereGeometry(r,16,16),new T.MeshBasicMaterial({color:c}));m.position.copy(p);m.userData={kind,label,go};g.add(m);nodes.push(m);pos[kind+id]=p;const gl=new T.Mesh(new T.SphereGeometry(r*2.3,12,12),new T.MeshBasicMaterial({color:c,transparent:true,opacity:.16,blending:AD,depthWrite:false}));gl.position.copy(p);g.add(gl);return m};
+ const d=a.d,cl=(d.clients||[]).slice(0,50),inq=a.rows.slice(0,110),tk=(d.tasks||[]).slice(0,50),cs=a.oc.slice(0,40),links=[],alerts=[];
+ cl.forEach((c,i)=>add('clients',c.name,c.id,fib(i,cl.length,17),0x34d399,1.25,'clients'));
+ inq.forEach((r,i)=>{const c=r.cold?0xfb7185:r.score>=60?0xfbbf24:0x4aa8ff,m=add('inquiries',r.i.name+' · '+r.i.status+' · heat '+r.score+(r.cold?' · going cold':''),r.i.id,fib(i,inq.length,27),c,.9+r.score/120,'inquiries');
+  if(r.i.client_id&&pos['clients'+r.i.client_id])links.push([m.position,pos['clients'+r.i.client_id]]);if(r.cold||r.score>=60)alerts.push([new T.Vector3(),m.position,r.cold])});
+ cs.forEach((c,i)=>add('cases',(c.subject||'Case')+' · '+(c.priority||''),c.id,fib(i,cs.length,34),0x2dd4bf,1,'cases'));
+ tk.forEach((t,i)=>{const od=!t.done&&t.due_date&&t.due_date<ymd(new Date());add('tasks',t.title+(od?' · overdue':''),i,fib(i,tk.length,22).applyAxisAngle(new T.Vector3(1,0,0),.6),od?0xfb7185:0xa78bfa,.7,'tasks')});
+ for(let i=0;i<26;i++){const p=fib(i,26,40+Math.random()*8);const m=new T.Mesh(new T.SphereGeometry(.35,8,8),new T.MeshBasicMaterial({color:0x4aa8ff,transparent:true,opacity:.35}));m.position.copy(p);g.add(m)}
+ const lp=[];links.forEach(l=>lp.push(l[0].x,l[0].y,l[0].z,l[1].x,l[1].y,l[1].z));alerts.forEach(l=>lp.push(0,0,0,l[1].x,l[1].y,l[1].z));
+ const lg=new T.BufferGeometry();lg.setAttribute('position',new T.Float32BufferAttribute(lp,3));g.add(new T.LineSegments(lg,new T.LineBasicMaterial({color:0x4aa8ff,transparent:true,opacity:.22,blending:AD})));
+ const NP=Math.min(60,alerts.length*3),pg=new T.BufferGeometry(),pa=new Float32Array(NP*3);pg.setAttribute('position',new T.BufferAttribute(pa,3));g.add(new T.Points(pg,new T.PointsMaterial({color:0xffffff,size:1.1,transparent:true,opacity:.95,blending:AD,depthWrite:false})));
+ const ray=new T.Raycaster(),mv=new T.Vector2(9,9),tip=$('.oh-tip');let mx=0,my=0,hov=null,t=0,raf=0,ptr={x:0,y:0};
+ const move=e=>{const b=cv.getBoundingClientRect();mx=((e.clientX-b.left)/b.width-.5)*2;my=((e.clientY-b.top)/b.height-.5)*2;mv.set(mx,-my);ptr={x:e.clientX,y:e.clientY}};
+ const click=()=>{if(hov&&hov.userData.go&&!sample){close();window.__orc.go(hov.userData.go)}};
+ const lv=()=>{mv.set(9,9);tip.style.display='none'};cv.addEventListener('pointermove',move);cv.addEventListener('click',click);cv.addEventListener('pointerleave',lv);
+ const size=()=>{const w=cv.clientWidth,h=cv.clientHeight;rend.setSize(w,h,false);cam.aspect=w/h;cam.position.x=0;g.position.x=innerWidth>860?-6:0;g.position.y=innerWidth>860?0:10;cam.updateProjectionMatrix()};size();addEventListener('resize',size);
+ const frame=()=>{raf=requestAnimationFrame(frame);const k=think?3.2:1;t+=.016*k;if(!RM){g.rotation.y+=.0018*k;g.rotation.x+=(my*.3-g.rotation.x)*.04}
+  const s=1+Math.sin(t*2)*.06*(think?2.5:1);core.scale.setScalar(s);halo.scale.setScalar(1+Math.sin(t*1.4)*.1*k);ico.rotation.y-=.004*k;rings.forEach((r,i)=>{r.rotation.z+=(.004+i*.002)*k;r.material.color.set(think?0xa78bfa:i?0x1b96ff:0x22d3ee)});
+  const q=(t*.6)%1;scan.scale.setScalar(2+q*46);scan.material.opacity=.55*(1-q);
+  for(let i=0;i<NP;i++){const al=alerts[i%alerts.length],p=((t*.35*(al[2]?1.4:.8))+i*.173)%1;pa[i*3]=al[1].x*p;pa[i*3+1]=al[1].y*p;pa[i*3+2]=al[1].z*p}pg.attributes.position.needsUpdate=true;
+  ray.setFromCamera(mv,cam);const h=ray.intersectObjects(nodes,false)[0];hov=h?h.object:null;if(hov){tip.textContent=hov.userData.label;tip.style.display='block';tip.style.left=ptr.x+14+'px';tip.style.top=ptr.y+14+'px';cv.style.cursor='pointer'}else{tip.style.display='none';cv.style.cursor='default'}
+  rend.render(sc,cam)};frame();
+ return()=>{cancelAnimationFrame(raf);removeEventListener('resize',size);cv.removeEventListener('pointermove',move);cv.removeEventListener('click',click);cv.removeEventListener('pointerleave',lv);rend.dispose();try{rend.forceContextLoss()}catch(e){}}}
+const $=s=>document.querySelector(s);
+
+/* ---------- panel tabs ---------- */
+function brief(b){const k=E('div','oh-k');[['Open inquiries',A.rows.length,''],['Going cold',A.cold.length,'w'],['Overdue tasks',A.od.length,'d'],['Open cases',A.oc.length,'']].forEach(x=>{const d=E('div',x[2]),n=E('b','','0');d.append(n,E('span','',x[0]));k.append(d);countUp(n,x[1])});
+ const c=E('div','oh-c'),h4=E('h4','','AI morning brief'+(sample?' · sample data':'')),p=E('div');c.append(h4,p);typeInto(p,localBrief(A));
+ const go=E('button','oh-b','✦ Ask AI to write it');go.onclick=async()=>{go.disabled=true;go.textContent='Thinking…';try{const d=await callAI([{role:'user',text:'Write my morning brief in at most 5 short "-" bullets, most urgent first. Use only this live analysis, invent nothing, propose no actions.\n'+ctx(A)}]);typeInto(p,d.reply)}catch(e){p.textContent=localBrief(A)+'\n\n('+e.message+')'}go.disabled=false;go.textContent='✦ Regenerate'};
+ const note=E('div','oh-c');note.append(E('h4','','How heat is scored'),document.createTextNode('Status, contact details, priority and message depth raise heat. Every quiet hour lowers it. Going cold = silent over 24h (new) or 48h (others).'));
+ b.append(k,c,go,note)}
+function radar(b){if(!A.rows.length){b.append(E('div','oh-c','No open inquiries to score yet.'));return}
+ A.rows.slice(0,12).forEach(r=>{const i=r.i,row=E('div','oh-r'+(r.cold?' cold':'')),hd=E('div','oh-rh');hd.append(E('b','',i.name),E('span','',i.status+' · silent '+ago(r.hrs)+(r.cold?' · going cold':'')));
+  const bar=E('div','oh-bar'),f=E('i');bar.append(f);setTimeout(()=>f.style.width=r.score+'%',60);const ac=E('div','oh-a'),dr=E('button','oh-b s','✦ Draft follow-up'),tc=E('button','oh-b g s','Log touch'),tk=E('button','oh-b g s','+ Task');
+  dr.onclick=async()=>{dr.disabled=true;dr.textContent='Writing…';try{const d=await callAI([{role:'user',text:'Draft a short, warm follow-up email to '+i.name+' ('+i.status+' inquiry, silent '+ago(r.hrs)+'). Their message: "'+String(i.message||'').slice(0,300)+'". Start with a Subject: line. Plain text, ready to send, sign off as the team.'}]);
+    const m=/^subject:\s*(.+)$/im.exec(d.reply),bd=d.reply.replace(/^subject:.*\n+/im,'').trim(),ta=E('textarea');ta.value=bd;const bar2=E('div','oh-a'),cp=E('button','oh-b g s','Copy'),op=E('button','oh-b s','Open in composer');
+    cp.onclick=async()=>{try{await navigator.clipboard.writeText((m?'Subject: '+m[1]+'\n\n':'')+ta.value);cp.textContent='Copied'}catch(e){}};op.onclick=()=>{if(i.email&&!sample){close();window.__orc.composeEmail({to:i.email,subject:m?m[1]:'Following up',body:ta.value,inquiry_id:i.id})}else cp.click()};bar2.append(cp,op);row.append(ta,bar2);dr.remove()}catch(e){dr.disabled=false;dr.textContent='✦ Draft follow-up';window.__orc.toast(e.message)}};
+  tc.onclick=()=>{if(sample)return;window.__orc.logTouch(i);tc.textContent='Logged'};
+  tk.onclick=async()=>{if(sample)return;const p=window.__orchidCrm&&window.__orchidCrm.plan({type:'create_task',title:'Follow up with '+i.name,due_date:ymd(new Date(Date.now()+864e5)),priority:r.cold?'high':'normal'});try{tk.textContent=await p.exec()&&'Added'}catch(e){window.__orc.toast(e.message||'Could not add')}};
+  ac.append(dr,tc,tk);row.append(hd,bar,ac);b.append(row)})}
+function actionCard(a,box){const p=window.__orchidCrm&&window.__orchidCrm.plan(a),c=E('div','oh-ac');if(!p||p.error){c.textContent=(p&&p.error)||'I could not prepare that action.';box.append(c);return}
+ c.append(E('b','',p.title));p.lines.forEach(l=>c.append(E('span','',l)));const bar=E('div','oh-a'),ok=E('button','oh-b s',p.confirm||'Confirm'),no=E('button','oh-b g s','Cancel');
+ ok.onclick=async()=>{ok.disabled=no.disabled=true;ok.textContent='Working…';try{const m=await p.exec();c.replaceChildren(E('b','','✓ '+m))}catch(e){c.replaceChildren(E('b','',e.message||'Something went wrong.'))}};no.onclick=()=>c.replaceChildren(E('span','','Cancelled.'));bar.append(ok,no);c.append(bar);box.append(c)}
+function ask(b){const log=E('div','oh-body');log.style.padding='0';const sg=E('div','oh-sg');
+ const say=async t=>{t=t.trim();if(!t||busy)return;busy=true;sg.remove();log.append(E('div','oh-m u',t));const w=E('div','oh-m a'),dd=E('div','oh-dots');dd.append(E('i'),E('i'),E('i'));w.append(dd);log.append(w);log.scrollTop=1e9;hist.push({role:'user',text:t});
+  try{const d=await callAI(hist.slice(0,-1).concat({role:'user',text:t+'\n\n'+ctx(A)}));hist.push({role:'model',text:d.reply});w.textContent='';typeInto(w,d.reply,()=>{log.scrollTop=1e9});(d.actions||[]).slice(0,3).forEach(a=>actionCard(a,log))}catch(e){hist.pop();w.className='oh-m e';w.textContent=e.message}busy=false;log.scrollTop=1e9};
+ ['Who is going cold?','What should I do first today?','Draft a follow-up for my hottest lead','Add a task: call back tomorrow'].forEach(s=>{const x=E('button','oh-b g s',s);x.onclick=()=>say(s);sg.append(x)});
+ const intro=E('div','oh-m a','I am your Orchid copilot. I can see your inquiries, clients, tasks and cases, draft emails, and propose actions. Nothing is saved until you press Confirm.');log.append(intro,sg);hist.forEach(m=>log.append(E('div','oh-m '+(m.role==='user'?'u':'a'),m.text)));if(hist.length)sg.remove();
+ const f=E('div','oh-in'),inp=E('input');inp.placeholder='Ask anything or give a command…';inp.setAttribute('aria-label','Ask the Orchid AI');const sn=E('button','oh-b','Send');sn.onclick=()=>{const v=inp.value;inp.value='';say(v)};inp.onkeydown=e=>{if(e.key==='Enter')sn.click()};f.append(inp,sn);b.append(log);b.parentNode.append(f);b.style.overflow='hidden';setTimeout(()=>inp.focus(),80)}
+function paint(){const p=$('.oh-p');p.querySelectorAll('.oh-in').forEach(n=>n.remove());const b=$('.oh-body');b.replaceChildren();b.style.overflow='';p.querySelectorAll('[role=tab]').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.t===tab)));({brief,radar,ask})[tab](b)}
+
+/* ---------- shell ---------- */
+let root,btn;
+function open(){if(!D()||!D().me)return;A=analyse();root.classList.add('on');$('.oh-st').textContent='● ORCHID CORE ONLINE · scanned '+((A.d.inquiries||[]).length+(A.d.clients||[]).length+(A.d.tasks||[]).length+(A.d.cases||[]).length)+' records'+(sample?' · sample data':'');
+ const go=()=>{R=build($('#oh canvas'),A);if(!R)$('.oh-st').textContent+=' · 3D unavailable on this device'};window.THREE?go():setTimeout(go,600);paint();document.addEventListener('keydown',esc)}
+function close(){root.classList.remove('on');if(R){R();R=null}document.removeEventListener('keydown',esc)}
+const esc=e=>{if(e.key==='Escape')close()};
+function init(){root=E('div');root.id='oh';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','Orchid AI Hub');
+ root.innerHTML='<canvas></canvas><div class="oh-top"><h2>Orchid <b>AI Hub</b></h2><div class="oh-st"></div><button class="oh-x" aria-label="Close">✕</button></div><div class="oh-tip"></div><div class="oh-leg"><span style="--c:#4aa8ff">Inquiry</span><span style="--c:#fbbf24">Hot lead</span><span style="--c:#fb7185">Going cold / overdue</span><span style="--c:#34d399">Client</span><span style="--c:#2dd4bf">Case</span><span style="--c:#a78bfa">Task</span></div><div class="oh-p"><div class="oh-tabs" role="tablist"><button role="tab" data-t="brief">Brief</button><button role="tab" data-t="radar">Radar</button><button role="tab" data-t="ask">Ask AI</button></div><div class="oh-body"></div></div>';
+ document.body.append(root);root.querySelector('.oh-x').onclick=close;root.querySelectorAll('[role=tab]').forEach(t=>t.onclick=()=>{tab=t.dataset.t;paint()});
+ btn=E('button','','');btn.id='oh-btn';btn.type='button';btn.innerHTML='<i></i>AI Hub';btn.setAttribute('aria-label','Open Orchid AI Hub (Ctrl+K)');btn.onclick=open;document.body.append(btn);
+ addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'&&btn.classList.contains('on')){e.preventDefault();root.classList.contains('on')?close():(tab='ask',open())}});
+ setInterval(()=>{const d=D();btn.classList.toggle('on',!!(d&&d.me)&&!root.classList.contains('on'))},1000)}
+document.readyState==='loading'?addEventListener('DOMContentLoaded',init):init()
+})();</script>
