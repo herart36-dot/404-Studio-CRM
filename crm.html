@@ -1358,6 +1358,13 @@ label.f{font-size:.78rem;font-weight:600;color:#3e4f68}
 .card.item a.btn{text-decoration:none}
 .modal details summary{outline-offset:3px}
 </style>
+<style id="deals-css">
+.dl-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.dl-bar select,.dl-bar input[type=date]{width:auto;min-height:30px;padding:4px 10px;font-size:.8rem;border-radius:8px}
+.dl-bar select{padding-right:30px}
+.dl-bar label{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted);font-weight:600}
+.dl-st{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+</style>
 <script>
 (function(){
 /* ---- CRM Supabase project (same one the login page uses) ---- */
@@ -3361,6 +3368,139 @@ function salesView(){
   return h('div',{class:'sl'},h('div',{class:'tl-head'},h('div',{class:'tl-ic','aria-hidden':'true',text:'$'}),h('div',{},h('div',{class:'s',text:'Sales › '+cur[1]}),h('h2',{text:cur[1]})),h('span',{class:'sp'}),h('button',{class:'btn ghost sm',text:'Refresh',onclick:async()=>{try{await loadSales();render();toast('Updated.')}catch(e){fail(e)}}}),h('button',{class:'btn blue sm',text:'+ New deal',onclick:()=>oppForm()})),tabs,body);
 }
 
+/* ===== Deals (Supabase: crm_deal_stages / crm_deals). Separate from Sales > Pipeline (crm_opportunities). ===== */
+let dlStages=[],dlDeals=[],dlAcc=[],dlErr=false,dlLoaded=false,dlLoading=false,dlMode='board';
+const dlF={owner:'',stage:'',from:'',to:''};
+const DL_WIN=['Price','Product fit','Relationship','Timing','Other'],DL_LOSS=['Price','Chose a competitor','No budget','No decision','Timing','Other'];
+async function loadDeals(){
+  dlLoading=true;
+  try{
+    const [s,d,a]=await Promise.all([sb.from('crm_deal_stages').select('*').order('position'),sb.from('crm_deals').select('*').order('created_at',{ascending:false}),sb.from('crm_accounts').select('id,name').order('name')]);
+    dlErr=!!(s.error||d.error);if(dlErr)console.error(s.error||d.error);
+    dlStages=s.data||[];dlDeals=d.data||[];dlAcc=a.data||[];dlLoaded=true;
+  }finally{dlLoading=false}
+}
+async function runD(p,ok){const r=await p;if(r.error)return fail(r.error,'Could not save. Check your access or try again.');try{await loadDeals()}catch(e){return fail(e,'Saved, but could not refresh. Please reload.')}if(ok)toast(ok);render()}
+const dlSt=id=>dlStages.find(s=>s.id===id)||{name:'Unknown',kind:'open',probability:0};
+const dlP=d=>{const k=dlSt(d.stage_id).kind;return k==='won'?100:k==='lost'?0:Number(d.probability||0)};
+const dlW=d=>Number(d.value||0)*dlP(d)/100;
+const dlVal=d=>Number(d.value||0);
+const dlSum=(a,f)=>a.reduce((x,d)=>x+f(d),0);
+const dlAccName=id=>(dlAcc.find(a=>a.id===id)||{}).name||'';
+const dlOpts=a=>a.map(x=>({v:x,t:x}));
+function dlFiltered(){const s=q.toLowerCase();return dlDeals.filter(d=>(!dlF.owner||(dlF.owner==='-'?!d.owner_email:lc(d.owner_email)===dlF.owner))&&(!dlF.stage||d.stage_id===dlF.stage)&&(!dlF.from||(d.expected_close&&d.expected_close>=dlF.from))&&(!dlF.to||(d.expected_close&&d.expected_close<=dlF.to))&&(!s||[d.title,clientName(d.client_id),dlAccName(d.account_id)].some(x=>String(x||'').toLowerCase().includes(s))))}
+const dlFiltering=()=>!!(q||dlF.owner||dlF.stage||dlF.from||dlF.to);
+function dlMove(d,sid){
+  const s=dlSt(sid);if(!sid||d.stage_id===sid)return;
+  if(s.kind==='open')return runD(sb.from('crm_deals').update({stage_id:sid,probability:s.probability,closed_at:null,win_loss_reason:null,win_loss_note:null}).eq('id',d.id),'Moved to '+s.name+'.');
+  const won=s.kind==='won';
+  openForm({title:(won?'Mark as won: ':'Mark as lost: ')+d.title,saveText:won?'Mark won':'Mark lost',values:{},
+    fields:[{k:'win_loss_reason',label:won?'Why did we win?':'Why did we lose?',type:'select',req:true,options:[{v:'',t:'Choose a reason…'},...dlOpts(won?DL_WIN:DL_LOSS)]},{k:'win_loss_note',label:'Notes (optional)',type:'textarea'}],
+    onSave:v=>runD(sb.from('crm_deals').update({stage_id:sid,probability:won?100:0,closed_at:nowIso(),...v}).eq('id',d.id),'Moved to '+s.name+'.')});
+}
+function dlForm(d={}){
+  const first=dlStages.find(s=>s.kind==='open')||dlStages[0];
+  openForm({title:d.id?'Edit deal':'New deal',saveText:d.id?'Save deal':'Add deal',values:d,fields:[
+    {k:'title',label:'Deal name',req:true},
+    {k:'client_id',label:'Contact',type:'select',options:clientOptions()},
+    {k:'account_id',label:'Company',type:'select',options:[{v:'',t:'No company'},...dlAcc.map(a=>({v:a.id,t:a.name}))]},
+    {k:'value',label:'Deal value (₱)',type:'number',placeholder:'0'},
+    {k:'stage_id',label:'Stage',type:'select',options:dlStages.map(s=>({v:s.id,t:s.name})),def:first.id},
+    {k:'probability',label:'Probability (%)',type:'number',placeholder:'Defaults to the stage'},
+    {k:'expected_close',label:'Expected close date',type:'date'},
+    {k:'owner_email',label:'Owner',type:'select',options:memberOptions(),def:me.email},
+    {k:'win_loss_reason',label:'Win / loss reason (needed for Won or Lost stages)',type:'select',options:[{v:'',t:'—'},...dlOpts([...new Set([...DL_WIN,...DL_LOSS])])]},
+    {k:'win_loss_note',label:'Reason notes',type:'textarea'},
+    {k:'notes',label:'Notes',type:'textarea'}],
+  onSave:v=>{
+    const st=dlSt(v.stage_id),val=Number(v.value||0),pr=v.probability==null?st.probability:Number(v.probability),open=st.kind==='open';
+    if(!(val>=0)||!(pr>=0&&pr<=100)){toast('Value must be 0 or more and probability between 0 and 100.');throw new Error('invalid')}
+    if(!open&&!v.win_loss_reason){toast('Pick a reason for this '+(st.kind==='won'?'win':'loss')+'.');throw new Error('invalid')}
+    const cl=clients.find(c=>c.id===v.client_id);
+    const p={title:v.title,stage_id:v.stage_id,value:val,probability:st.kind==='won'?100:st.kind==='lost'?0:pr,owner_email:v.owner_email,expected_close:v.expected_close,client_id:v.client_id,account_id:v.account_id||(cl&&cl.account_id)||null,notes:v.notes,
+      win_loss_reason:open?null:v.win_loss_reason,win_loss_note:open?null:v.win_loss_note,closed_at:open?null:(d.closed_at&&dlSt(d.stage_id).kind===st.kind?d.closed_at:nowIso())};
+    return runD(d.id?sb.from('crm_deals').update(p).eq('id',d.id):sb.from('crm_deals').insert(p),d.id?'Deal saved.':'Deal added.');
+  }});
+}
+async function dlDel(d){
+  if(!confirm('Delete the deal “'+d.title+'”? This cannot be undone.'))return;
+  const r=await sb.from('crm_deals').delete().eq('id',d.id).select();
+  if(r.error)return fail(r.error,'Could not delete the deal.');
+  if(!(r.data||[]).length)return toast('Only the admin or the deal owner can delete this deal.',4500);
+  try{await loadDeals()}catch(e){console.error(e)}toast('Deal deleted.');render();
+}
+const dlCard=d=>{const s=dlSt(d.stage_id),od=s.kind==='open'&&d.expected_close&&d.expected_close<today();
+  return h('div',{class:'bcard',draggable:'true',ondragstart:e=>e.dataTransfer.setData('text/plain',d.id),onclick:()=>dlForm(d)},
+    h('b',{text:d.title}),
+    h('div',{class:'s',text:[dlAccName(d.account_id),clientName(d.client_id)].filter(Boolean).join(' · ')||'No contact or company'}),
+    h('div',{class:'s',text:peso(d.value)+' · '+dlP(d)+'%'}),
+    h('div',{class:'s',style:od?'color:var(--danger)':null,text:(d.expected_close?(od?'Overdue · ':'Close ')+fmtDate(d.expected_close)+' · ':'')+slOwn(d.owner_email)}),
+    s.kind!=='open'&&d.win_loss_reason?h('div',{class:'s',text:(s.kind==='won'?'Won: ':'Lost: ')+d.win_loss_reason}):null,
+    h('div',{class:'acts',style:'margin-top:6px',onclick:e=>e.stopPropagation()},h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>dlDel(d)})))};
+const dlBoard=list=>h('div',{class:'board',style:'grid-auto-columns:minmax(230px,1fr)'},dlStages.map(s=>{
+  const col=list.filter(d=>d.stage_id===s.id).sort((a,b)=>(a.expected_close||'9999').localeCompare(b.expected_close||'9999'));
+  return h('div',{class:'bcol',ondragover:e=>{e.preventDefault();e.currentTarget.classList.add('over')},ondragleave:e=>e.currentTarget.classList.remove('over'),ondrop:e=>{e.preventDefault();e.currentTarget.classList.remove('over');const d=dlDeals.find(x=>x.id===e.dataTransfer.getData('text/plain'));if(d)dlMove(d,s.id)}},
+    h('div',{class:'bh'},h('b',{text:s.name}),h('span',{class:'muted',text:col.length+' · '+peso(dlSum(col,dlVal))}),s.kind==='open'?h('span',{class:'muted',text:'Weighted '+peso(dlSum(col,dlW))}):null),
+    col.length?col.map(dlCard):h('div',{class:'s muted',style:'padding:14px 4px;text-align:center',text:'Drop a deal here'}))}));
+const dlList=list=>{
+  const rows=[...list].sort((a,b)=>(a.expected_close||'9999').localeCompare(b.expected_close||'9999')).map(d=>h('tr',{class:'clk',onclick:()=>dlForm(d)},
+    h('td',{},h('b',{text:d.title})),h('td',{text:clientName(d.client_id)||'—'}),h('td',{text:dlAccName(d.account_id)||'—'}),
+    h('td',{onclick:e=>e.stopPropagation()},h('select',{class:'sel-sm','aria-label':'Stage',onchange:e=>{const v=e.target.value;e.target.value=d.stage_id;dlMove(d,v)}},dlStages.map(s=>h('option',{value:s.id,text:s.name,selected:s.id===d.stage_id})))),
+    h('td',{text:peso(d.value)}),h('td',{text:dlP(d)+'%'}),h('td',{text:peso(dlW(d))}),h('td',{text:d.expected_close?fmtDate(d.expected_close):'—'}),h('td',{text:slOwn(d.owner_email)}),
+    h('td',{onclick:e=>e.stopPropagation()},h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>dlDel(d)}))));
+  return h('div',{class:'tl-card flush'},h('div',{class:'tl-scroll'},h('table',{class:'tbl dt'},
+    h('thead',{},h('tr',{},['Deal','Contact','Company','Stage','Value','Prob.','Weighted','Expected close','Owner',''].map(t=>h('th',{text:t})))),h('tbody',{},rows),
+    h('tfoot',{},h('tr',{},h('td',{colspan:'4'},h('b',{text:'Total · '+list.length+' deals'})),h('td',{},h('b',{text:peso(dlSum(list,dlVal))})),h('td'),h('td',{},h('b',{text:peso(dlSum(list,dlW))})),h('td',{colspan:'3'}))))))};
+function dlStagesModal(){
+  const body=h('div',{}),inp=h('input',{type:'text',placeholder:'New stage name','aria-label':'New stage name',style:'flex:1;min-width:140px'});
+  const close=()=>{scrim.remove();document.removeEventListener('keydown',esc);render()},esc=e=>{if(e.key==='Escape')close()};
+  const only=k=>dlStages.filter(x=>x.kind===k).length<2;
+  const upd=async(s,patch)=>{const r=await sb.from('crm_deal_stages').update(patch).eq('id',s.id);if(r.error){fail(r.error,'Could not save the stage. Only the admin can change stages.');return draw()}Object.assign(s,patch);draw()};
+  const mv=async(i,dir)=>{const a=dlStages[i],b=dlStages[i+dir];if(!b)return;const [x,y]=await Promise.all([sb.from('crm_deal_stages').update({position:b.position}).eq('id',a.id),sb.from('crm_deal_stages').update({position:a.position}).eq('id',b.id)]);if(x.error||y.error)return fail(x.error||y.error,'Could not reorder.');await loadDeals();draw()};
+  const del=async s=>{
+    if(dlDeals.some(d=>d.stage_id===s.id))return toast('Move this stage’s deals to another stage before deleting it.',4500);
+    if(s.kind!=='open'&&only(s.kind))return toast('Keep at least one '+s.kind+' stage.');
+    if(!confirm('Delete the stage “'+s.name+'”?'))return;
+    const r=await sb.from('crm_deal_stages').delete().eq('id',s.id);if(r.error)return fail(r.error,'Could not delete the stage.');await loadDeals();draw()};
+  const draw=()=>body.replaceChildren(...dlStages.map((s,i)=>h('div',{class:'dl-st'},
+    h('input',{type:'text',value:s.name,'aria-label':'Stage name',style:'flex:1;min-width:120px',onchange:e=>{const n=e.target.value.trim();if(!n){e.target.value=s.name;return}upd(s,{name:n})}}),
+    h('input',{type:'number',min:'0',max:'100',value:String(s.probability),'aria-label':'Default probability %',title:'Default probability %',style:'width:76px',onchange:e=>upd(s,{probability:Math.min(100,Math.max(0,Math.round(Number(e.target.value)||0)))})}),
+    h('select',{class:'sel-sm','aria-label':'Stage type',style:'width:auto',onchange:e=>{const k=e.target.value;if(s.kind!=='open'&&only(s.kind)){e.target.value=s.kind;return toast('Keep at least one '+s.kind+' stage.')}upd(s,{kind:k})}},['open','won','lost'].map(k=>h('option',{value:k,text:cap(k),selected:s.kind===k}))),
+    h('button',{class:'btn ghost sm',text:'↑','aria-label':'Move up',disabled:i===0,onclick:()=>mv(i,-1)}),h('button',{class:'btn ghost sm',text:'↓','aria-label':'Move down',disabled:i===dlStages.length-1,onclick:()=>mv(i,1)}),
+    h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>del(s)}))));
+  const add=h('button',{class:'btn blue sm',text:'Add stage',onclick:async()=>{const n=inp.value.trim();if(!n)return toast('Enter a stage name.');add.disabled=true;const r=await sb.from('crm_deal_stages').insert({name:n,position:Math.max(0,...dlStages.map(s=>s.position))+1,probability:50,kind:'open'});add.disabled=false;if(r.error)return fail(r.error,'Could not add the stage. Only the admin can change stages.');inp.value='';await loadDeals();draw()}});
+  const scrim=h('div',{class:'scrim',onclick:e=>{if(e.target===scrim)close()}},h('div',{class:'modal',role:'dialog','aria-modal':'true','aria-label':'Customize stages'},
+    h('h2',{text:'Customize stages'}),h('p',{class:'muted',style:'margin:0 0 12px;font-size:.85rem',text:'Probability is the default for deals in that stage. Won and Lost stages close a deal and ask for a reason.'}),
+    body,h('div',{class:'dl-st',style:'margin-top:10px'},inp,add),h('div',{class:'row'},h('button',{class:'btn blue',text:'Done',onclick:close}))));
+  document.body.append(scrim);document.addEventListener('keydown',esc);draw();
+}
+function dealsView(){
+  if(!dlLoaded&&!dlErr){if(!dlLoading)loadDeals().then(render).catch(e=>{console.error(e);dlErr=true;dlLoading=false;render()});return empty('Loading deals…','One moment.')}
+  const list=dlFiltered(),open=list.filter(d=>dlSt(d.stage_id).kind==='open'),won=list.filter(d=>dlSt(d.stage_id).kind==='won'),lost=list.filter(d=>dlSt(d.stage_id).kind==='lost');
+  const wr=won.length+lost.length?Math.round(won.length/(won.length+lost.length)*100)+'%':'—';
+  const clear=()=>{q='';dlF.owner=dlF.stage=dlF.from=dlF.to='';render()};
+  const sel=(k,opts,label)=>h('select',{class:'sel-sm','aria-label':label,onchange:e=>{dlF[k]=e.target.value;render()}},opts.map(o=>h('option',{value:o.v,text:o.t,selected:dlF[k]===o.v})));
+  const head=h('div',{class:'tl-head'},h('div',{class:'tl-ic','aria-hidden':'true',text:'$'}),h('div',{},h('div',{class:'s',text:'Work › Deals'}),h('h2',{text:'Deals'})),h('span',{class:'sp'}),
+    h('button',{class:'btn ghost sm',text:'Refresh',onclick:async()=>{try{await loadDeals();render();toast('Updated.')}catch(e){fail(e)}}}),
+    isAdmin&&!dlErr?h('button',{class:'btn ghost sm',text:'Customize stages',onclick:dlStagesModal}):null,
+    !dlErr&&dlStages.length?h('button',{class:'btn blue sm',text:'+ New deal',onclick:()=>dlForm()}):null);
+  let body;
+  if(dlErr)body=empty('Deals are not set up yet','The deals tables could not be loaded. Ask the admin to run deals_setup.sql in Supabase, then reload.');
+  else if(!dlStages.length)body=empty('No stages yet','Add the stages of your sales process to start tracking deals.',isAdmin?h('button',{class:'btn blue',text:'Customize stages',onclick:dlStagesModal}):null);
+  else{
+    const bar=h('div',{class:'dl-bar'},searchBar('Search deals, contacts, companies'),
+      sel('owner',[{v:'',t:'All owners'},...members.map(m=>({v:lc(m.email),t:m.name||m.email})),{v:'-',t:'Unassigned'}],'Owner'),
+      sel('stage',[{v:'',t:'All stages'},...dlStages.map(s=>({v:s.id,t:s.name}))],'Stage'),
+      h('label',{},'Close from',h('input',{type:'date',value:dlF.from,'aria-label':'Expected close from',onchange:e=>{dlF.from=e.target.value;render()}})),
+      h('label',{},'to',h('input',{type:'date',value:dlF.to,'aria-label':'Expected close to',onchange:e=>{dlF.to=e.target.value;render()}})),
+      dlFiltering()?h('button',{class:'btn ghost sm',text:'Clear filters',onclick:clear}):null,h('span',{class:'sp'}),
+      h('div',{class:'chips'},[['board','Board'],['list','List']].map(([k,t])=>h('button',{class:'chip','aria-pressed':String(dlMode===k),text:t,onclick:()=>{dlMode=k;render()}}))));
+    const kpis=h('div',{class:'kpis'},kzKpi('Open deals',String(open.length)),kzKpi('Pipeline value',peso(dlSum(open,dlVal))),kzKpi('Weighted forecast',peso(dlSum(open,dlW)),h('div',{class:'dl',text:'Value × probability'})),kzKpi('Won',String(won.length),h('div',{class:'dl',text:peso(dlSum(won,dlVal))})),kzKpi('Win rate',wr,h('div',{class:'dl',text:won.length+' won · '+lost.length+' lost'})));
+    body=h('div',{},kpis,bar,!dlDeals.length?empty('No deals yet','Add your first deal and link it to a contact and company.',h('button',{class:'btn blue',text:'+ New deal',onclick:()=>dlForm()})):!list.length?empty('No deals match these filters','Try a different owner, stage or date range.',h('button',{class:'btn ghost',text:'Clear filters',onclick:clear})):dlMode==='list'?dlList(list):dlBoard(list));
+  }
+  return h('div',{class:'sl'},head,body);
+}
+
 /* sub-tools shown under "Tools" in the sidebar */
 const TOOL_SUBS=[['sales','Sales','<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>'],['orders','Orders','<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'],['products','Products','<path d="M6 7h12l1 13H5z"/><path d="M9 7V6a3 3 0 0 1 6 0v1"/>'],['seo','SEO','<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>']];
 function toolsSubNav(){
@@ -3382,12 +3522,12 @@ function toolsView(){
 
 /* the whole app an Executive sees */
 /* ---- global search (top bar): pages, tools, quick actions and records, each with an icon and a short description ---- */
-const NAV_ICONS={calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',automation:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',messages:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',overview:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',inquiries:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',approvals:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',cases:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',clients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',productivity:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',team:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',sales:'<path d="M12 3v18"/><path d="M16.5 7.5C16 6 14.3 5 12 5S8 6.2 8 8c0 4.5 8.5 2.5 8.5 7 0 1.8-1.8 3-4.5 3s-4.2-1-4.7-2.5"/>',tools:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3.5 17.3a1.6 1.6 0 0 0 2.2 2.2l5.8-5.8a4 4 0 0 0 5.2-5.4l-2.4 2.4-2.1-.5-.5-2.1z"/>',members:'<path d="M12 3 4 6v6c0 4.5 3.4 7.8 8 9 4.6-1.2 8-4.5 8-9V6z"/>'};
+const NAV_ICONS={deals:'<rect x="3" y="3" width="5" height="18" rx="1.5"/><rect x="10" y="3" width="5" height="12" rx="1.5"/><rect x="17" y="3" width="4" height="8" rx="1.5"/>',calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',automation:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',messages:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',overview:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',inquiries:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',approvals:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',cases:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',clients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',productivity:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',team:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',sales:'<path d="M12 3v18"/><path d="M16.5 7.5C16 6 14.3 5 12 5S8 6.2 8 8c0 4.5 8.5 2.5 8.5 7 0 1.8-1.8 3-4.5 3s-4.2-1-4.7-2.5"/>',tools:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3.5 17.3a1.6 1.6 0 0 0 2.2 2.2l5.8-5.8a4 4 0 0 0 5.2-5.4l-2.4 2.4-2.1-.5-.5-2.1z"/>',members:'<path d="M12 3 4 6v6c0 4.5 3.4 7.8 8 9 4.6-1.2 8-4.5 8-9V6z"/>'};
 const GS_X={plus:'<path d="M12 5v14M5 12h14"/>',book:'<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5V4.5"/>'};
 const gsCut=(v,n)=>{v=String(v||'').replace(/\s+/g,' ').trim();return v.length>n?v.slice(0,n-1)+'…':v};
 function gsIco(inner,label){const s=h('span',{class:'gs-ic','aria-hidden':'true'});if(inner)s.innerHTML='<svg viewBox="0 0 24 24">'+inner+'</svg>';else s.textContent=String(label||'?').trim().slice(0,1).toUpperCase();return s}
 function gsPage(k){view=k;q='';render();window.scrollTo(0,0);
-  if(k==='chat')pollChat();if(k==='approvals')syncApprovals();if(k==='tools')syncKloze();if(k==='sales')loadSales().then(render).catch(console.error);if(k==='calendar')calRefresh()}
+  if(k==='chat')pollChat();if(k==='approvals')syncApprovals();if(k==='tools')syncKloze();if(k==='sales')loadSales().then(render).catch(console.error);if(k==='calendar')calRefresh();if(k==='deals')loadDeals().then(render).catch(console.error)}
 function gsOpen(v,text,pre){view=v;q=text||'';if(pre)pre();render();window.scrollTo(0,0)}
 function gsPages(){return [['overview','Overview','Your day at a glance: what to do next and the key numbers.'],
     ['inquiries','Inquiries','People asking about your services, with a live waiting timer.'],
@@ -3399,6 +3539,7 @@ function gsPages(){return [['overview','Overview','Your day at a glance: what to
     ['sales','Sales','Pipeline, accounts and leads in one place.'],
     ['tasks','Tasks','To-dos with due dates and owners.'],
     ['calendar','Calendar','Your schedule and Google Calendar events.'],
+    ['deals','Deals','Kanban pipeline with stage totals and a weighted forecast.'],
     ['productivity','Productivity','Daily activity scores and time spent in each status.'],
     ['team','Team','Who is active, at lunch or away, with time totals.',1],
     ['automation','Automation','Automatic email and calendar rules.',1],
@@ -3526,7 +3667,7 @@ function navItems(tabs,ico){
   const desc={};gsPages().forEach(x=>{desc[x[0]]=x[2]});
   const label={tools:'Kloze store'};
   const mk=k=>{const e=by[k];return{k,t:label[k]||e[1],n:e[2],d:desc[k],ico:ico(k),sel:view===k,go:()=>gsPage(k)}};
-  const G=[['overview'],['Inbox','messages',['inquiries','messages','chat','approvals']],['Customers','clients',['clients','cases','sales']],['Work','tasks',['tasks','calendar']],['Tools','tools',['productivity','team','automation','members']]];
+  const G=[['overview'],['Inbox','messages',['inquiries','messages','chat','approvals']],['Customers','clients',['clients','cases','sales']],['Work','tasks',['tasks','calendar','deals']],['Tools','tools',['productivity','team','automation','members']]];
   const out=[];
   G.forEach(g=>{
     if(g.length===1){if(by[g[0]])out.push(mk(g[0]));return}
@@ -3707,8 +3848,8 @@ function execView(){
 
 function appView(){
   if(isExec())return execView();
-  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['messages','Messages',unreadMsgs()],['approvals',isAdmin?'Approvals':'My requests',isAdmin?pendingCount():0],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['sales','Sales'],['tasks','Tasks',tasks.filter(t=>!t.done).length],['calendar','Calendar'],['productivity','Productivity'],...(isAdmin?[['team','Team'],['automation','Automation']]:[]),['members','Members',members.length]];
-  const body=view==='calendar'?calendarView():view==='automation'&&isAdmin?automationView():view==='messages'?messagesView():view==='chat'?chatView():view==='approvals'?approvalsView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():view==='team'&&isAdmin?teamView():view==='tools'&&isAdmin?toolsView():view==='sales'?salesView():view==='productivity'?productivityView():overview();
+  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['messages','Messages',unreadMsgs()],['approvals',isAdmin?'Approvals':'My requests',isAdmin?pendingCount():0],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['sales','Sales'],['tasks','Tasks',tasks.filter(t=>!t.done).length],['calendar','Calendar'],['deals','Deals'],['productivity','Productivity'],...(isAdmin?[['team','Team'],['automation','Automation']]:[]),['members','Members',members.length]];
+  const body=view==='calendar'?calendarView():view==='automation'&&isAdmin?automationView():view==='messages'?messagesView():view==='chat'?chatView():view==='approvals'?approvalsView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():view==='team'&&isAdmin?teamView():view==='tools'&&isAdmin?toolsView():view==='deals'?dealsView():view==='sales'?salesView():view==='productivity'?productivityView():overview();
   const ICONS=NAV_ICONS;
   const ico=k=>{const s=h('span',{class:'ico','aria-hidden':'true'});s.innerHTML='<svg viewBox="0 0 24 24">'+(ICONS[k]||'')+'</svg>';return s};
   return h('div',{},
