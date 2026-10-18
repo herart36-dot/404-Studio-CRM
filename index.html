@@ -5120,6 +5120,64 @@ function aiPlan(a){
       await loadAll();render();toast('Lead added.');return 'Lead added: '+name+'.';
     }};
   }
+  if(a.type==='create_event'||a.type==='set_calendar'||a.type==='create_calendar_event'){
+    const title=String(a.title||'').trim().slice(0,200);
+    if(!title)return{error:'I need a title for the calendar event.'};
+    const date=String(a.date||'').trim();
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||isNaN(new Date(date+'T00:00:00')))return{error:'I need a valid date for the event.'};
+    if(date<ymd(new Date()))return{error:'That date is in the past. Tell me the right date.'};
+    const allDay=a.all_day===true,time=aiTime(a.time);
+    if(!allDay&&!time)return{error:'I need a start time for the event (for example 14:30).'};
+    const mins=Math.max(5,Math.min(600,Math.round(+(a.minutes??a.mins??30))||30));
+    const guest=String(a.guest_email||a.email||'').trim().slice(0,320);
+    if(guest&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(guest))return{error:'That guest email does not look valid. Please check it.'};
+    const meet=a.meet===true,notes=String(a.notes||a.description||'').trim().slice(0,1000);
+    const lines=['Event: '+title,'When: '+fmtDate(date)+(allDay?' (all day)':' at '+time+' for '+mins+' min')];
+    if(guest)lines.push('Invite: '+guest+' (Google sends the invite)');
+    if(meet)lines.push('A Google Meet link will be added.');
+    if(notes)lines.push('Notes: '+(notes.length>140?notes.slice(0,140)+'…':notes));
+    if(!gConnected())lines.push('Google Calendar is not connected yet. Confirming will ask you to connect.');
+    return{title:'Add to Google Calendar',lines,confirm:'Add event',exec:async()=>{
+      if(!(await ensureCal()))throw new Error('Google Calendar is not connected.');
+      await gcalInsert({title,date,time:time||'09:00',mins,allDay,email:guest,meet,desc:notes});
+      try{await loadEvents()}catch(e){}
+      render();toast('Event added to Google Calendar.');return 'Event added: '+title+' on '+fmtDate(date)+'.';
+    }};
+  }
+  if(a.type==='create_automation'||a.type==='add_automation'||a.type==='create_rule'){
+    if(!isAdmin)return{error:'Only an admin can create automations.'};
+    const name=String(a.name||'').trim().slice(0,80);
+    if(!name)return{error:'I need a name for the automation.'};
+    const trigger=String(a.trigger||'').trim();
+    if(!TRIG.some(t=>t[0]===trigger))return{error:'When should it run? Choose one: a new inquiry comes in, an inquiry changes status, an inquiry goes quiet, a task is almost due, or a new case is opened.'};
+    let param=null;
+    if(trigger==='inquiry_status'){param=lc(a.param);if(!STATUSES.includes(param))return{error:'Which status should it react to? '+STATUSES.join(', ')+'.'}}
+    else if(trigger==='inquiry_stale'||trigger==='task_due'){const n=Math.round(Number(a.param));param=Number.isFinite(n)&&n>=0&&n<=365?n:(trigger==='task_due'?1:5)}
+    const obj=x=>x&&typeof x==='object'&&x.on!==false?x:null;
+    const dn=(v,d)=>{const n=Math.round(Number(v));return Number.isFinite(n)&&n>=0&&n<=365?n:d};
+    const em=obj(a.email),ca=obj(a.calendar||a.cal),tk=obj(a.task);
+    const email={on:false,subject:'',body:''},cal={on:false,title:'',days:1,time:'10:00',mins:30,attendee:false,meet:false},task={on:false,title:'',days:1,priority:'normal'};
+    if(em){email.subject=String(em.subject||'').trim().slice(0,200);email.body=String(em.body||'').trim().slice(0,4000);if(!email.subject||!email.body)return{error:'The email needs a subject and a message.'};email.on=true}
+    if(ca){cal.title=String(ca.title||'').trim().slice(0,200);if(!cal.title)return{error:'The calendar event needs a title.'};cal.days=dn(ca.days_from_now??ca.days,1);cal.time=aiTime(ca.time)||'10:00';
+      const m=Number(ca.minutes??ca.mins)||30;cal.mins=[15,30,45,60,90].reduce((b,x)=>Math.abs(x-m)<Math.abs(b-m)?x:b,30);cal.attendee=(ca.invite_person??ca.attendee)===true;cal.meet=ca.meet===true;cal.on=true}
+    if(tk){task.title=String(tk.title||'').trim().slice(0,200);if(!task.title)return{error:'The task needs a title.'};task.days=dn(tk.days_from_now??tk.days,1);task.priority=PRIORITIES.includes(tk.priority)?tk.priority:'normal';task.on=true}
+    if(!email.on&&!cal.on&&!task.on)return{error:'What should the automation do? It can send an email, add a calendar event, or create a task.'};
+    const lines=['Name: '+name,'When: '+trigText({trigger,param}),'Then: '+actText({email,cal,task})];
+    if(email.on)lines.push('Email: "'+email.subject+'"');
+    if(cal.on)lines.push('Calendar: "'+cal.title+'", '+(cal.days?cal.days+' day(s) after it happens':'same day')+' at '+cal.time+' for '+cal.mins+' min');
+    if(task.on)lines.push('Task: "'+task.title+'", due '+(task.days?'in '+task.days+' day(s)':'the same day')+', '+cap(task.priority)+' priority');
+    lines.push('It only acts on new activity from now on, not on records that already exist.');
+    if(AUTO.rules.some(r=>lc(r.name)===lc(name)))lines.push('Heads up: a rule with this name already exists. Confirming adds a second one.');
+    if(email.on&&!gmailReady())lines.push('Gmail is not connected yet. Emails will wait until you connect it on the Messages tab.');
+    if(cal.on&&!gConnected())lines.push('Google Calendar is not connected on this device yet. Events will wait until you connect it.');
+    if(!AUTO.on)lines.push('Automation is switched OFF. The rule will be saved but will not run until you turn automation on in the Automation tab.');
+    return{title:'Create automation',lines,confirm:'Create automation',exec:async()=>{
+      const out={id:crypto.randomUUID(),name,on:true,trigger,param,created:nowIso(),email,cal,task};
+      AUTO.rules.push(out);baseline(out);saveAuto();
+      render();toast('Automation saved.');if(AUTO.on)setTimeout(autoScan,300);
+      return 'Automation created: '+name+(AUTO.on?'.':'. It is saved, but automation is switched off, so it will not run until you turn it on in the Automation tab.');
+    }};
+  }
   return{error:'I cannot do that kind of action.'};
 }
 /* ======================================================================
@@ -5588,7 +5646,7 @@ init().catch(e=>{console.error(e);home()});
   </div>
   <div class="oai-body" id="oai-body" aria-live="polite"></div>
   <div class="oai-ft">
-    <textarea id="oai-in" rows="1" placeholder="Ask a question, or say add lead / add task…" aria-label="Message"></textarea>
+    <textarea id="oai-in" rows="1" placeholder="Ask a question, or say add lead / add task / set calendar / create automation…" aria-label="Message"></textarea>
     <button class="oai-send" id="oai-send" type="button" aria-label="Send"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg></button>
   </div>
   <div class="oai-note">AI can make mistakes. Check important details.</div>
@@ -5602,7 +5660,7 @@ init().catch(e=>{console.error(e);home()});
   const sb=window.__orchidSb||(window.__orchidSb=window.supabase.createClient(SB_URL,SB_KEY)); // shared with the CRM so only one auth client exists
   const $=id=>document.getElementById(id);
   const fab=$('oai-fab'),panel=$('oai-panel'),body=$('oai-body'),inp=$('oai-in'),send=$('oai-send');
-  const SUGGEST=['Add a new lead','Who needs a follow-up?','What tasks are due soon?','Add a task for tomorrow'];
+  const SUGGEST=['Add a new lead','Who needs a follow-up?','What tasks are due soon?','Add a task for tomorrow','Set a calendar event','Create an automation'];
   let msgs=[],busy=false;
 
   // show the button only while someone is logged in
@@ -5614,7 +5672,7 @@ init().catch(e=>{console.error(e);home()});
   function welcome(){
     body.replaceChildren();
     const hi=el('oai-hi');const b=document.createElement('b');b.textContent='Hi, how can I help?';
-    hi.append(b,document.createTextNode('I can look through your CRM, add leads, draft emails, add tasks and set schedules. I always ask you to confirm first.'));
+    hi.append(b,document.createTextNode('I can look through your CRM, add leads, draft emails, add tasks, set schedules, put events on your calendar and create automations. I always ask you to confirm first.'));
     const sg=el('oai-sg');
     SUGGEST.forEach(t=>{const x=document.createElement('button');x.type='button';x.textContent=t;x.onclick=()=>ask(t);sg.append(x)});
     hi.append(sg);body.append(hi);
