@@ -1330,6 +1330,11 @@ label.f{font-size:.78rem;font-weight:600;color:#3e4f68}
 </style>
 <body>
 <div id="app"></div>
+<style id="orchid-auto-css">
+.ag-h{font-weight:700;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:20px 0 8px}
+.card.item a.btn{text-decoration:none}
+.modal details summary{outline-offset:3px}
+</style>
 <script>
 (function(){
 /* ---- CRM Supabase project (same one the login page uses) ---- */
@@ -1418,6 +1423,7 @@ async function loadAll(){
     appAccess={};if(isAdmin){const al=await sb.rpc('orchid_access_list');(al.data||[]).forEach(r=>{appAccess[String(r.email||'').toLowerCase()]=r.apps||[]})}
   }catch(e){console.error(e);staffErr=true;staff=[];isAdmin=false}
   members=[{name:'Admin',email:ADMIN_EMAIL,role:'admin'},...staff.filter(x=>x.active).map(x=>({name:x.name||x.email,email:x.email,role:x.role}))];
+  if(AUTO.on)setTimeout(autoScan,0);
 }
 async function run(p,okMsg){const r=await p;if(r.error)return fail(r.error);try{await loadAll()}catch(e){return fail(e,'Saved, but could not refresh. Please reload.')}if(okMsg)toast(okMsg);render()}
 
@@ -1643,7 +1649,7 @@ function taskRow(t){
     h('div',{class:'body'},
       h('div',{class:'t'},t.title,t.priority!=='normal'?h('span',{class:'pill '+t.priority,text:cap(t.priority)}):null,pendingFor(t.id).some(a=>a.action==='task_delete')?h('span',{class:'pill contacted',text:'Delete pending'}):null),
       h('div',{class:'s'},dueEl(t),t.assigned_to?h('span',{text:(t.due_date?' · ':'')+'Assigned to '+memberName(t.assigned_to)}):h('span',{text:(t.due_date?' · ':'')+'Unassigned'}),t.client_id?h('span',{text:' · '+clientName(t.client_id)}):null),
-      h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editTask(t)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delTask(t)}))));
+      h('div',{class:'acts'},t.due_date&&!t.done?h('button',{class:'btn ghost sm',text:'Add to calendar',onclick:()=>openEvent(evFromTask(t))}):null,h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editTask(t)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delTask(t)}))));
 }
 const INQ_C={new:'blue',contacted:'amber',quoted:'violet',won:'emerald',lost:'rose'};
 const CASE_C={open:'blue',in_progress:'amber',waiting:'violet',resolved:'emerald',closed:'slate'};
@@ -1685,6 +1691,7 @@ function inquiryRow(i){
       i.client_id?null:h('button',{class:'btn blue sm',text:'Make client',onclick:()=>convert(i)}),
       caseBtn(i),
       i.email?h('button',{class:'btn ghost sm',text:'Email',onclick:()=>composeEmail({to:i.email,inquiry_id:i.id,client_id:i.client_id||null})}):null,
+      h('button',{class:'btn ghost sm',text:'Schedule',onclick:()=>openEvent(evFromInquiry(i))}),
       h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editInquiry(i)}),
       h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delInquiry(i)}))));
 }
@@ -3276,9 +3283,9 @@ function execView(){
 
 function appView(){
   if(isExec())return execView();
-  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['messages','Messages',unreadMsgs()],['approvals',isAdmin?'Approvals':'My requests',isAdmin?pendingCount():0],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['sales','Sales'],['tasks','Tasks',tasks.filter(t=>!t.done).length],['productivity','Productivity'],...(isAdmin?[['team','Team'],['tools','Tools']]:[]),['members','Members',members.length]];
-  const body=view==='messages'?messagesView():view==='chat'?chatView():view==='approvals'?approvalsView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():view==='team'&&isAdmin?teamView():view==='tools'&&isAdmin?toolsView():view==='sales'?salesView():view==='productivity'?productivityView():overview();
-  const ICONS={messages:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',overview:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',inquiries:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',approvals:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',cases:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',clients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',productivity:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',team:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',sales:'<path d="M12 3v18"/><path d="M16.5 7.5C16 6 14.3 5 12 5S8 6.2 8 8c0 4.5 8.5 2.5 8.5 7 0 1.8-1.8 3-4.5 3s-4.2-1-4.7-2.5"/>',tools:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3.5 17.3a1.6 1.6 0 0 0 2.2 2.2l5.8-5.8a4 4 0 0 0 5.2-5.4l-2.4 2.4-2.1-.5-.5-2.1z"/>',members:'<path d="M12 3 4 6v6c0 4.5 3.4 7.8 8 9 4.6-1.2 8-4.5 8-9V6z"/>'};
+  const tabs=[['overview','Overview'],['inquiries','Inquiries',inquiries.filter(i=>i.status==='new').length],['messages','Messages',unreadMsgs()],['approvals',isAdmin?'Approvals':'My requests',isAdmin?pendingCount():0],['cases','Cases',cases.filter(isLive).length],['chat','Chat',chatUnread()],['clients','Clients'],['sales','Sales'],['tasks','Tasks',tasks.filter(t=>!t.done).length],['calendar','Calendar'],['productivity','Productivity'],...(isAdmin?[['team','Team'],['automation','Automation'],['tools','Tools']]:[]),['members','Members',members.length]];
+  const body=view==='calendar'?calendarView():view==='automation'&&isAdmin?automationView():view==='messages'?messagesView():view==='chat'?chatView():view==='approvals'?approvalsView():view==='cases'?casesView():view==='inquiries'?inquiriesView():view==='clients'?clientsView():view==='tasks'?tasksView():view==='members'?membersView():view==='team'&&isAdmin?teamView():view==='tools'&&isAdmin?toolsView():view==='sales'?salesView():view==='productivity'?productivityView():overview();
+  const ICONS={calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',automation:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',messages:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',overview:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',inquiries:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',approvals:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',cases:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',clients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',tasks:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',productivity:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',team:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',sales:'<path d="M12 3v18"/><path d="M16.5 7.5C16 6 14.3 5 12 5S8 6.2 8 8c0 4.5 8.5 2.5 8.5 7 0 1.8-1.8 3-4.5 3s-4.2-1-4.7-2.5"/>',tools:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3.5 17.3a1.6 1.6 0 0 0 2.2 2.2l5.8-5.8a4 4 0 0 0 5.2-5.4l-2.4 2.4-2.1-.5-.5-2.1z"/>',members:'<path d="M12 3 4 6v6c0 4.5 3.4 7.8 8 9 4.6-1.2 8-4.5 8-9V6z"/>'};
   const ico=k=>{const s=h('span',{class:'ico','aria-hidden':'true'});s.innerHTML='<svg viewBox="0 0 24 24">'+(ICONS[k]||'')+'</svg>';return s};
   return h('div',{},
     h('header',{class:'top'},h('div',{class:'top-in'},
@@ -3288,7 +3295,7 @@ function appView(){
       h('button',{class:'btn ghost sm',text:'Manual',onclick:openManual}),h('button',{class:'btn ghost sm',text:'Apps',onclick:home}),
       h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
     h('div',{class:'shell'},
-      h('aside',{class:'side'},h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>[h('button',{class:'tab',id:'tab_'+k,role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0);if(k==='chat')pollChat();if(k==='approvals')syncApprovals();if(k==='tools')syncKloze();if(k==='sales')loadSales().then(render).catch(console.error)}},ico(k),t,n?h('span',{class:'n',text:String(n)}):null),k==='tools'&&view==='tools'?toolsSubNav():k==='sales'&&view==='sales'?salesSubNav():null]).flat())),
+      h('aside',{class:'side'},h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>[h('button',{class:'tab',id:'tab_'+k,role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0);if(k==='chat')pollChat();if(k==='approvals')syncApprovals();if(k==='tools')syncKloze();if(k==='sales')loadSales().then(render).catch(console.error);if(k==='calendar')calRefresh()}},ico(k),t,n?h('span',{class:'n',text:String(n)}):null),k==='tools'&&view==='tools'?toolsSubNav():k==='sales'&&view==='sales'?salesSubNav():null]).flat())),
       h('main',{},view==='chat'?null:statusBar(),body)));
 }
 function noAccess(){
@@ -3340,7 +3347,7 @@ async function init(){
   await loadMessages();
   render();
   sweep();
-  subChat();subApprovals();
+  subChat();subApprovals();startAutomation();
   timers.push(setInterval(()=>{if(!leaving)pollChat()},20000),setInterval(()=>{if(!leaving)syncApprovals()},20000));
   timers.push(setInterval(async()=>{if(leaving)return;try{await loadPresence();await loadMessages();if(view==='productivity')await loadProd();const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()}catch(e){console.error(e)}},30000));
   timers.push(setInterval(()=>{if(leaving)return;sweep();const a=document.activeElement;if(view!=='chat'&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$('#app').contains(a)))render()},60000));
@@ -3437,6 +3444,365 @@ function aiPlan(a){
   }
   return{error:'I cannot do that kind of action.'};
 }
+/* ======================================================================
+   Automation + Google Calendar (added)
+   - Calendar: Google Identity Services token (calendar.events scope), agenda, create/delete events
+   - Gmail: automations send through the CRM's existing "Connect Google" Gmail connection (sendEmailNow)
+   - Automation: trigger -> actions rules. They run while an admin has the CRM open.
+   ====================================================================== */
+const GCAL_SCOPE='https://www.googleapis.com/auth/calendar.events';
+const G={cid:'',tok:null,exp:0,events:[],err:'',loading:false,loaded:false};
+try{G.cid=localStorage.getItem('orchid_g_cid')||'';const s=JSON.parse(sessionStorage.getItem('orchid_g_tok')||'null');if(s&&s.exp>Date.now()+60000){G.tok=s.t;G.exp=s.exp}}catch(e){}
+const gConnected=()=>!!G.tok&&G.exp>Date.now()+30000;
+const pad2=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const tzName=()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'}catch(e){return 'UTC'}};
+const safeUrl=u=>/^https:\/\//.test(String(u||''))?u:null;
+
+function loadGis(){return new Promise((res,rej)=>{
+  if(window.google&&google.accounts&&google.accounts.oauth2)return res();
+  const ex=document.getElementById('gis-js');if(ex){ex.addEventListener('load',()=>res());ex.addEventListener('error',()=>rej(new Error('Could not load Google sign-in.')));return}
+  const s=document.createElement('script');s.id='gis-js';s.src='https://accounts.google.com/gsi/client';s.async=true;
+  s.onload=()=>res();s.onerror=()=>rej(new Error('Could not load Google sign-in. Check your connection or ad blocker.'));document.head.append(s);
+})}
+function gAuth(prompt){
+  return loadGis().then(()=>new Promise((res,rej)=>{
+    if(!G.cid)return rej(new Error('Add your Google OAuth Client ID first.'));
+    const tc=google.accounts.oauth2.initTokenClient({client_id:G.cid,scope:GCAL_SCOPE,
+      callback:r=>{
+        if(r.error)return rej(new Error(r.error_description||r.error));
+        G.tok=r.access_token;G.exp=Date.now()+(Number(r.expires_in)||3600)*1000;
+        try{sessionStorage.setItem('orchid_g_tok',JSON.stringify({t:G.tok,exp:G.exp}));localStorage.setItem('orchid_g_on','1')}catch(e){}
+        res(G.tok)},
+      error_callback:e=>rej(new Error(e&&e.type==='popup_closed'?'The Google window was closed before finishing.':e&&e.type==='popup_failed_to_open'?'Allow pop-ups for this site, then try again.':'Could not connect Google Calendar.'))});
+    tc.requestAccessToken({prompt});
+  }));
+}
+async function gToken(){
+  if(gConnected())return G.tok;
+  let on=false;try{on=localStorage.getItem('orchid_g_on')==='1'}catch(e){}
+  if(!G.cid||!on)return null;
+  try{return await gAuth('none')}catch(e){return null}
+}
+async function gcal(path,opt={}){
+  const t=await gToken();if(!t)throw new Error('Google Calendar is not connected.');
+  const r=await fetch('https://www.googleapis.com/calendar/v3'+path,{method:opt.method||'GET',headers:Object.assign({Authorization:'Bearer '+t},opt.body?{'Content-Type':'application/json'}:{}),body:opt.body?JSON.stringify(opt.body):undefined});
+  if(r.status===401){G.tok=null;G.exp=0;try{sessionStorage.removeItem('orchid_g_tok')}catch(e){}throw new Error('Your Google Calendar session expired. Press Connect again.')}
+  if(r.status===204)return {};
+  let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok)throw new Error((j.error&&j.error.message)||('Google Calendar error '+r.status));
+  return j;
+}
+function evTimes(date,time,mins){const s=new Date(date+'T'+(time||'09:00')+':00');const e=new Date(s.getTime()+(Number(mins)||30)*6e4);return{start:{dateTime:s.toISOString(),timeZone:tzName()},end:{dateTime:e.toISOString(),timeZone:tzName()}}}
+async function gcalInsert(o){
+  const body=Object.assign({summary:o.title,description:o.desc||'',reminders:{useDefault:true},extendedProperties:{private:Object.assign({orchid:'1'},o.props||{})}},
+    o.allDay?{start:{date:o.date},end:{date:ymd(addDays(new Date(o.date+'T00:00:00'),1))}}:evTimes(o.date,o.time,o.mins));
+  if(o.email)body.attendees=[{email:o.email}];
+  if(o.meet)body.conferenceData={createRequest:{requestId:crypto.randomUUID(),conferenceSolutionKey:{type:'hangoutsMeet'}}};
+  return gcal('/calendars/primary/events?conferenceDataVersion=1&sendUpdates='+(o.email?'all':'none'),{method:'POST',body});
+}
+async function loadEvents(){
+  G.loading=true;
+  try{
+    const a=new Date();a.setHours(0,0,0,0);const b=addDays(a,14);
+    const j=await gcal('/calendars/primary/events?singleEvents=true&orderBy=startTime&maxResults=100&timeMin='+encodeURIComponent(a.toISOString())+'&timeMax='+encodeURIComponent(b.toISOString()));
+    G.events=j.items||[];G.err='';G.loaded=true;
+  }catch(e){G.err=e.message;G.events=[];G.loaded=true}
+  G.loading=false;
+}
+async function calRefresh(){
+  if(!(await gToken())){render();return}
+  G.loading=true;render();await loadEvents();render();
+}
+async function ensureCal(){
+  if(gConnected())return true;
+  if(await gToken())return true;
+  if(!G.cid){toast('Add your Google OAuth Client ID on the Calendar tab first.',5000);view='calendar';q='';render();return false}
+  try{await gAuth('');return true}catch(e){toast(e.message,6000);return false}
+}
+
+/* ---- Calendar tab ---- */
+const evStart=e=>e.start&&(e.start.dateTime?new Date(e.start.dateTime):new Date(e.start.date+'T00:00:00'));
+const fmtT=d=>d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+function eventRow(e){
+  const s=evStart(e),allDay=!(e.start&&e.start.dateTime);
+  const en=e.end&&e.end.dateTime?new Date(e.end.dateTime):null;
+  const when=allDay?'All day':fmtT(s)+(en?' – '+fmtT(en):'');
+  const meet=safeUrl(e.hangoutLink),link=safeUrl(e.htmlLink);
+  const mine=!!(e.extendedProperties&&e.extendedProperties.private&&e.extendedProperties.private.orchid==='1');
+  const guests=(e.attendees||[]).filter(a=>!a.self).map(a=>a.email);
+  return h('div',{class:'card item acc c-'+(mine?'violet':'blue')},h('div',{class:'body'},
+    h('div',{class:'t'},e.summary||'(No title)',mine?h('span',{class:'pill gs',text:'From CRM'}):null),
+    h('div',{class:'s',text:[when,guests.length?'With '+guests.slice(0,3).join(', ')+(guests.length>3?' +'+(guests.length-3):''):''].filter(Boolean).join(' · ')}),
+    h('div',{class:'acts'},
+      meet?h('a',{class:'btn blue sm',href:meet,target:'_blank',rel:'noopener',text:'Join Meet'}):null,
+      link?h('a',{class:'btn ghost sm',href:link,target:'_blank',rel:'noopener',text:'Open in Google'}):null,
+      h('button',{class:'btn ghost sm danger',text:'Delete',onclick:async()=>{
+        if(!confirm('Delete "'+(e.summary||'this event')+'" from Google Calendar?'))return;
+        try{await gcal('/calendars/primary/events/'+encodeURIComponent(e.id)+'?sendUpdates=all',{method:'DELETE'});await loadEvents();render();toast('Event deleted.')}catch(x){toast(x.message,6000)}}}))));
+}
+function agenda(){
+  if(G.err)return h('div',{class:'card empty'},h('b',{text:'Could not load your calendar'}),G.err,h('div',{style:'margin-top:14px'},h('button',{class:'btn ghost sm',text:'Try again',onclick:calRefresh})));
+  if(!G.loaded)return empty('Loading your calendar…','One moment.');
+  if(!G.events.length)return empty('Nothing scheduled','No events in the next 14 days.',h('button',{class:'btn blue sm',text:'New event',onclick:()=>openEvent({})}));
+  const days=new Map();
+  G.events.forEach(e=>{const k=ymd(evStart(e));if(!days.has(k))days.set(k,[]);days.get(k).push(e)});
+  return h('div',{},[...days].map(([k,list])=>h('div',{},
+    h('div',{class:'ag-h',text:(k===today()?'Today · ':'')+new Date(k+'T00:00:00').toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})}),
+    h('div',{class:'list'},list.map(eventRow)))));
+}
+function calConn(conn){
+  if(!G.cid){
+    const inp=h('input',{type:'text',placeholder:'123456789-abc.apps.googleusercontent.com','aria-label':'Google OAuth Client ID'});
+    return h('div',{class:'card',style:'padding:16px 18px;margin-bottom:14px'},
+      h('b',{text:'Connect Google Calendar'}),
+      h('p',{class:'muted',style:'margin:6px 0 12px;font-size:.88rem',text:'Paste a Google OAuth Client ID once. After that, anyone using the CRM can connect their own calendar with one click.'}),
+      h('div',{style:'display:flex;gap:8px;flex-wrap:wrap'},h('div',{style:'flex:1;min-width:220px'},inp),
+        h('button',{class:'btn blue',text:'Save Client ID',onclick:()=>{const v=inp.value.trim();if(!/^[\w-]+\.apps\.googleusercontent\.com$/.test(v))return toast('That does not look like a Google Client ID. It ends in .apps.googleusercontent.com',5000);G.cid=v;try{localStorage.setItem('orchid_g_cid',v)}catch(e){}loadGis().catch(()=>{});render()}})),
+      h('details',{style:'margin-top:12px'},h('summary',{style:'cursor:pointer;font-weight:600;font-size:.85rem',text:'How to get a Client ID (5 minutes)'}),
+        h('ol',{class:'muted',style:'font-size:.85rem;line-height:1.7;padding-left:20px;margin:8px 0 0'},
+          h('li',{text:'Open Google Cloud Console and create or pick a project.'}),
+          h('li',{text:'APIs & Services → Library → enable "Google Calendar API".'}),
+          h('li',{text:'APIs & Services → OAuth consent screen → set it up. While in Testing mode, add each team member as a test user.'}),
+          h('li',{text:'Credentials → Create credentials → OAuth client ID → Web application.'}),
+          h('li',{text:'Under Authorized JavaScript origins add: '+location.origin}),
+          h('li',{text:'Copy the Client ID and paste it above.'}))));
+  }
+  return h('div',{class:'card',style:'padding:12px 16px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap'},
+    h('span',{class:'s',style:'flex:1;min-width:220px;margin:0',text:conn?'Google Calendar is connected. Events you add here go to your primary calendar.':'Google Calendar is not connected on this device yet.'}),
+    conn?null:h('button',{class:'btn blue sm',text:'Connect Google Calendar',onclick:async()=>{try{await gAuth('');await loadEvents();render();toast('Google Calendar connected.')}catch(e){toast(e.message,6000)}}}),
+    conn?h('button',{class:'btn ghost sm danger',text:'Disconnect',onclick:()=>{try{google.accounts.oauth2.revoke(G.tok,()=>{})}catch(e){}G.tok=null;G.exp=0;G.events=[];G.loaded=false;try{sessionStorage.removeItem('orchid_g_tok');localStorage.removeItem('orchid_g_on')}catch(e){}render();toast('Google Calendar disconnected.')}}):null,
+    h('button',{class:'btn ghost sm',text:'Change Client ID',onclick:()=>{if(!confirm('Remove the saved Client ID and disconnect?'))return;G.cid='';G.tok=null;G.exp=0;try{localStorage.removeItem('orchid_g_cid');localStorage.removeItem('orchid_g_on');sessionStorage.removeItem('orchid_g_tok')}catch(e){}render()}}));
+}
+function calendarView(){
+  const conn=gConnected();
+  return h('div',{},
+    h('div',{class:'bar'},h('h3',{style:'margin:0',text:'Calendar'}),h('span',{class:'sp'}),
+      conn?h('button',{class:'btn ghost sm',text:G.loading?'Refreshing…':'Refresh',onclick:calRefresh}):null,
+      h('button',{class:'btn blue sm',text:'New event',onclick:()=>openEvent({})})),
+    calConn(conn),conn?agenda():null);
+}
+function openEvent(o){
+  const title=h('input',{id:'ev_t'}),date=h('input',{id:'ev_d',type:'date'}),time=h('input',{id:'ev_h',type:'time'});
+  const mins=h('select',{id:'ev_m'},...[15,30,45,60,90,120].map(m=>h('option',{value:String(m),text:m+' min'})));
+  const guest=h('input',{id:'ev_g',type:'email',placeholder:'guest@example.com (optional)'});
+  const meet=h('input',{type:'checkbox'}),notes=h('textarea',{id:'ev_n',style:'min-height:80px'}),err=h('div',{class:'err',role:'alert'});
+  title.value=o.title||'';date.value=o.date||ymd(addDays(new Date(),1));time.value=o.time||'10:00';mins.value=String(o.mins||30);guest.value=o.email||'';notes.value=o.desc||'';
+  modalShell(o.heading||'New calendar event',false,h('div',{},
+    gConnected()?null:h('p',{class:'muted',style:'margin:0;font-size:.85rem',text:'Google Calendar is not connected yet. Pressing Add will ask you to connect.'}),
+    h('label',{class:'fl',for:'ev_t'},'Title',title),
+    h('div',{style:'display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px'},h('label',{class:'fl',for:'ev_d'},'Date',date),h('label',{class:'fl',for:'ev_h'},'Start',time),h('label',{class:'fl',for:'ev_m'},'Length',mins)),
+    h('label',{class:'fl',for:'ev_g'},'Invite by email (Google sends the invite)',guest),
+    h('label',{class:'fl',style:'display:flex;gap:8px;align-items:center'},meet,'Add a Google Meet link'),
+    h('label',{class:'fl',for:'ev_n'},'Notes',notes),err),
+    close=>[h('button',{class:'btn ghost',text:'Cancel',onclick:close}),
+      h('button',{class:'btn blue',text:'Add to Google Calendar',onclick:async e=>{
+        err.textContent='';
+        if(!title.value.trim())return err.textContent='Add a title.';
+        if(!date.value||!time.value)return err.textContent='Pick a date and start time.';
+        const g=guest.value.trim();if(g&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(g))return err.textContent='Enter a valid guest email.';
+        e.target.disabled=true;
+        try{
+          if(!(await ensureCal())){e.target.disabled=false;return}
+          await gcalInsert({title:title.value.trim(),date:date.value,time:time.value,mins:mins.value,email:g,meet:meet.checked,desc:notes.value.trim(),props:o.props});
+          close();toast('Event added to Google Calendar.');await loadEvents();render();
+        }catch(x){err.textContent=x.message;e.target.disabled=false}
+      }})]);
+}
+const evFromInquiry=i=>({heading:'Schedule with '+i.name,title:'Call with '+i.name,email:i.email||'',desc:i.message?String(i.message).slice(0,300):'',props:{inquiry_id:String(i.id)}});
+const evFromTask=t=>({heading:'Add task to calendar',title:t.title,date:t.due_date||undefined,time:'09:00',props:{task_id:String(t.id)}});
+
+/* ---- Automation engine ---- */
+const AK='orchid_auto_v1';
+let AUTO=(()=>{try{const a=JSON.parse(localStorage.getItem(AK)||'null');if(a&&Array.isArray(a.rules))return Object.assign({on:false,fired:{},tries:{},log:[]},a)}catch(e){}return{on:false,rules:[],fired:{},tries:{},log:[]}})();
+const saveAuto=()=>{try{
+  const ks=Object.keys(AUTO.fired);if(ks.length>4000)ks.slice(0,ks.length-4000).forEach(k=>delete AUTO.fired[k]);
+  AUTO.log=AUTO.log.slice(0,60);localStorage.setItem(AK,JSON.stringify(AUTO))}catch(e){console.error(e)}};
+const TRIG=[['inquiry_new','A new inquiry comes in'],['inquiry_status','An inquiry changes to a status'],['inquiry_stale','An inquiry has gone quiet'],['task_due','A task is almost due'],['case_new','A new case is opened']];
+const ACTS=['email','cal','task'];
+const ctxInq=i=>({kind:'inquiry',id:i.id,name:i.name||'',email:i.email||'',title:i.name||'',client_id:i.client_id||null,inquiry_id:i.id,due:''});
+const ctxTask=t=>{const c=clients.find(x=>x.id===t.client_id);return{kind:'task',id:t.id,name:(c&&c.name)||'',email:(c&&c.email)||'',title:t.title||'',client_id:t.client_id||null,inquiry_id:null,due:t.due_date||'',assignee:t.assigned_to||''}};
+const ctxCase=c=>({kind:'case',id:c.id,name:c.requester_name||'',email:c.requester_email||'',title:c.subject||'',client_id:c.client_id||null,inquiry_id:null,due:''});
+function matches(r){
+  const out=[];
+  if(r.trigger==='inquiry_new')inquiries.forEach(i=>out.push(['n:'+i.id,ctxInq(i)]));
+  else if(r.trigger==='inquiry_status')inquiries.forEach(i=>{if(i.status===r.param)out.push(['s:'+i.id+':'+i.status,ctxInq(i)])});
+  else if(r.trigger==='inquiry_stale')inquiries.forEach(i=>{if(isActive(i)&&idleDays(i)>=(Number(r.param)||5))out.push(['z:'+i.id+':'+(i.last_touch||i.created_at),ctxInq(i)])});
+  else if(r.trigger==='task_due'){const lim=ymd(addDays(new Date(),Number(r.param)||0));tasks.forEach(t=>{if(!t.done&&t.due_date&&t.due_date>=today()&&t.due_date<=lim)out.push(['t:'+t.id+':'+t.due_date,ctxTask(t)])})}
+  else if(r.trigger==='case_new')cases.forEach(c=>out.push(['c:'+c.id,ctxCase(c)]));
+  return out;
+}
+/* mark everything that matches right now as already handled, so a new or resumed rule only acts on what happens next */
+function baseline(r){matches(r).forEach(([k])=>ACTS.forEach(a=>{AUTO.fired[r.id+'|'+k+'#'+a]=1}))}
+const fillT=(s,ctx,sig)=>String(s||'').replace(/\{\{(\w+)\}\}/g,(m,k)=>{
+  const first=(ctx.name||'').trim().split(/\s+/)[0]||'there';
+  const v={first,name:ctx.name||'there',email:ctx.email||'',title:ctx.title||'',due:ctx.due?fmtDate(ctx.due):'',company:(sig&&sig.company)||'our team'}[k];return v==null?'':v});
+const gmailReady=()=>!!(emailAcct&&emailAcct.status==='connected');
+const logA=(r,ctx,act,st,msg)=>{AUTO.log.unshift({t:nowIso(),rule:r.name,rec:ctx.title||ctx.name||'',act,st,msg:msg||''})};
+async function doAction(r,ctx,act){
+  if(act==='email'){
+    const to=ctx.kind==='task'?(ctx.assignee||me.email):ctx.email;
+    if(!to)return{st:'fail',msg:'No email address on this record.'};
+    if(!gmailReady())return{st:'retry',msg:'Gmail is not connected. Connect it on the Messages tab.'};
+    const p=await loadSig(),text=fillT(r.email.body,ctx,p).trim();
+    await sendEmailNow({to,subject:fillT(r.email.subject,ctx,p).trim()||'(no subject)',body:text+(sigText(p)?'\n\n-- \n'+sigText(p):''),html:buildHtml(text,sigHtml(p)),request_id:crypto.randomUUID(),inquiry_id:ctx.inquiry_id||null,client_id:ctx.client_id||null,reply_to_message_id:null});
+    return{st:'ok',msg:'Sent to '+to};
+  }
+  if(act==='cal'){
+    if(!(await gToken()))return{st:'retry',msg:'Google Calendar is not connected on this device.'};
+    const date=ctx.kind==='task'&&ctx.due?ctx.due:ymd(addDays(new Date(),Number(r.cal.days)||0));
+    await gcalInsert({title:fillT(r.cal.title,ctx)||'Follow up',date,time:r.cal.time||'10:00',mins:r.cal.mins||30,email:(r.cal.attendee&&ctx.kind!=='task')?ctx.email:'',meet:!!r.cal.meet,desc:'Created by Orchid automation: '+r.name,props:{rule:String(r.id),record:String(ctx.id)}});
+    return{st:'ok',msg:'Event on '+fmtDate(date)};
+  }
+  if(act==='task'){
+    const due=ymd(addDays(new Date(),Number(r.task.days)||0));
+    const row={title:fillT(r.task.title,ctx).slice(0,200)||'Follow up',due_date:due,priority:PRIORITIES.includes(r.task.priority)?r.task.priority:'normal',client_id:ctx.client_id||null};
+    const x=await sb.from('crm_tasks').insert(row);if(x.error)throw x.error;
+    return{st:'ok',msg:'Task due '+fmtDate(due),reload:true};
+  }
+  return{st:'fail',msg:'Unknown action'};
+}
+let autoBusy=false;
+async function autoScan(){
+  if(autoBusy||!AUTO.on||!isAdmin||leaving||!me)return;
+  autoBusy=true;let changed=false,reload=false;
+  if(!AUTO.warned)AUTO.warned={};
+  try{
+    for(const r of AUTO.rules){
+      if(!r.on)continue;
+      let n=0;
+      for(const [k,ctx] of matches(r)){
+        const base=r.id+'|'+k;
+        const todo=ACTS.filter(a=>r[a]&&r[a].on&&!AUTO.fired[base+'#'+a]);
+        if(!todo.length)continue;
+        if(++n>5)break; /* at most 5 records per rule per pass */
+        for(const a of todo){
+          const ak=base+'#'+a;
+          let res;
+          try{res=await doAction(r,ctx,a)}catch(e){console.error(e);AUTO.tries[ak]=(AUTO.tries[ak]||0)+1;res={st:AUTO.tries[ak]>=3?'fail':'retry',msg:(e&&e.message)||'Failed'}}
+          if(res.st==='ok'){AUTO.fired[ak]=1;logA(r,ctx,a,'ok',res.msg);changed=true;if(res.reload)reload=true}
+          else if(res.st==='fail'){AUTO.fired[ak]=1;logA(r,ctx,a,'fail',res.msg);changed=true}
+          if(res.st==='retry'&&!AUTO.warned[ak]){AUTO.warned[ak]=1;logA(r,ctx,a,'skip',res.msg+' Will retry.');changed=true}
+        }
+      }
+    }
+  }finally{autoBusy=false}
+  if(changed)saveAuto();
+  if(reload){try{await loadAll()}catch(e){console.error(e)}}
+  if((changed||reload)&&(view==='automation'||view==='tasks'||view==='overview')&&!document.querySelector('.scrim'))render();
+}
+function startAutomation(){
+  loadGis().catch(()=>{});
+  gToken().then(()=>{if(gConnected())return loadEvents().then(()=>{if(view==='calendar')render()})}).catch(()=>{});
+  timers.push(setInterval(async()=>{if(leaving||!AUTO.on||!isAdmin)return;try{await loadAll();await loadMessages()}catch(e){console.error(e)}},60000));
+  if(AUTO.on)setTimeout(autoScan,1500);
+}
+
+/* ---- Automation tab ---- */
+const trigText=r=>({inquiry_new:'a new inquiry comes in',inquiry_status:'an inquiry becomes "'+r.param+'"',inquiry_stale:'an inquiry has been quiet for '+r.param+' days',task_due:'a task is due within '+r.param+' day(s)',case_new:'a new case is opened'}[r.trigger]||r.trigger);
+const actText=r=>[r.email&&r.email.on&&'email via Gmail',r.cal&&r.cal.on&&'add a Google Calendar event',r.task&&r.task.on&&'create a task'].filter(Boolean).join(' + ')||'nothing';
+const RECIPES=[
+  {name:'Welcome every new inquiry',trigger:'inquiry_new',email:{on:true,subject:'Thanks for reaching out, {{first}}',body:'Hi {{first}},\n\nThanks for getting in touch with {{company}}. We received your inquiry and will be back to you shortly. When are you free for a quick call this week?\n\nBest regards,'}},
+  {name:'Quote sent: follow up in 2 days',trigger:'inquiry_status',param:'quoted',cal:{on:true,title:'Follow up: quote for {{name}}',days:2,time:'10:00',mins:15,attendee:false,meet:false},task:{on:true,title:'Follow up on quote with {{name}}',days:2,priority:'high'}},
+  {name:'Nudge leads that go quiet',trigger:'inquiry_stale',param:5,email:{on:true,subject:'Following up',body:'Hi {{first}},\n\nI wanted to follow up on my last message. Do you have any questions I can answer?\n\nBest regards,'},task:{on:true,title:'Call {{name}}: no reply for a while',days:1,priority:'normal'}},
+  {name:'Thank clients when a deal is won',trigger:'inquiry_status',param:'won',email:{on:true,subject:'Thank you, {{first}}',body:'Hi {{first}},\n\nThank you for choosing {{company}}. We are glad to work with you.\n\nBest regards,'}},
+  {name:'Remind the owner before a task is due',trigger:'task_due',param:1,email:{on:true,subject:'Task due soon: {{title}}',body:'Hi,\n\nThis task is due {{due}}: {{title}}.\n\nBest regards,'},cal:{on:true,title:'Due: {{title}}',days:0,time:'09:00',mins:30,attendee:false,meet:false}},
+  {name:'Review every new case',trigger:'case_new',task:{on:true,title:'Review new case: {{title}}',days:0,priority:'high'}}
+];
+function automationView(){
+  const gm=gmailReady(),cal=gConnected();
+  const sw=h('button',{class:'btn '+(AUTO.on?'blue':'ghost'),text:AUTO.on?'Automation is ON':'Automation is OFF',onclick:()=>{
+    if(!AUTO.on){if(!confirm('Turn automation on?\n\nRules will only act on activity from now on, not on records that already exist. Emails go out through your connected Gmail.'))return;AUTO.rules.forEach(r=>{if(r.on)baseline(r)});AUTO.on=true;saveAuto();setTimeout(autoScan,500)}
+    else{AUTO.on=false;saveAuto()}
+    render()}});
+  const status=h('div',{class:'card',style:'padding:14px 16px;margin-bottom:14px'},
+    h('div',{style:'display:flex;gap:10px;align-items:center;flex-wrap:wrap'},sw,h('span',{class:'s',style:'flex:1;min-width:220px;margin:0',text:'Rules run while the CRM is open in this browser, checking every minute. Leave it open on one computer so emails are not sent twice.'})),
+    h('div',{style:'display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center'},
+      h('span',{class:'pill '+(gm?'won':'contacted'),style:'margin:0',text:gm?'Gmail: sending as '+emailAcct.address:'Gmail not connected'}),
+      gm?null:h('button',{class:'btn ghost sm',text:'Connect Gmail',onclick:connectGoogle}),
+      h('span',{class:'pill '+(cal?'won':'contacted'),text:cal?'Google Calendar connected':'Google Calendar not connected'}),
+      cal?null:h('button',{class:'btn ghost sm',text:'Set up Calendar',onclick:()=>{view='calendar';render()}})));
+  const rec=h('select',{class:'sel-sm','aria-label':'Add a ready-made rule',onchange:e=>{const i=e.target.value;e.target.value='';if(i!=='')openRule(RECIPES[Number(i)],true)}},h('option',{value:'',text:'Add from a ready-made rule…'}),...RECIPES.map((x,i)=>h('option',{value:String(i),text:x.name})));
+  const list=AUTO.rules.length?h('div',{class:'list'},AUTO.rules.map(r=>h('div',{class:'card item acc c-'+(r.on?'violet':'slate')},h('div',{class:'body'},
+    h('div',{class:'t'},r.name,h('span',{class:'pill '+(r.on?'won':'contacted'),text:r.on?'Active':'Paused'})),
+    h('div',{class:'s',text:'When '+trigText(r)+' → '+actText(r)}),
+    h('div',{class:'acts'},
+      h('button',{class:'btn ghost sm',text:r.on?'Pause':'Resume',onclick:()=>{r.on=!r.on;if(r.on)baseline(r);saveAuto();render()}}),
+      h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>openRule(r,false)}),
+      h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>{if(confirm('Delete the rule "'+r.name+'"?')){AUTO.rules=AUTO.rules.filter(x=>x.id!==r.id);saveAuto();render()}}}))))))
+    :empty('No rules yet','Pick a ready-made rule above, or make your own.',h('button',{class:'btn blue sm',text:'New rule',onclick:()=>openRule({name:'',trigger:'inquiry_new'},true)}));
+  const logC=AUTO.log.length?h('div',{class:'list'},AUTO.log.slice(0,30).map(l=>h('div',{class:'card item',style:'padding:10px 14px'},h('div',{class:'body'},
+    h('div',{class:'t',style:'font-size:.9rem'},l.rule,h('span',{class:'pill '+(l.st==='ok'?'won':l.st==='fail'?'lost':'contacted'),text:l.st==='ok'?'Done':l.st==='fail'?'Failed':'Waiting'}),h('span',{class:'pill',text:({email:'Gmail',cal:'Calendar',task:'Task'})[l.act]||l.act})),
+    h('div',{class:'s',text:[l.rec,l.msg,ago(l.t)].filter(Boolean).join(' · ')}))))):h('p',{class:'muted',style:'margin:0;font-size:.88rem',text:'Nothing has run yet.'});
+  return h('div',{},
+    h('div',{class:'bar'},h('h3',{style:'margin:0',text:'Automation'}),h('span',{class:'sp'}),rec,h('button',{class:'btn blue sm',text:'New rule',onclick:()=>openRule({name:'',trigger:'inquiry_new'},true)})),
+    status,list,
+    h('div',{class:'bar',style:'margin-top:24px'},h('h3',{style:'margin:0',text:'Activity'}),h('span',{class:'sp'}),AUTO.log.length?h('button',{class:'btn ghost sm',text:'Clear',onclick:()=>{AUTO.log=[];AUTO.warned={};saveAuto();render()}}):null),logC);
+}
+function openRule(src,isNew){
+  const r=JSON.parse(JSON.stringify(src));
+  r.email=Object.assign({on:false,subject:'',body:''},r.email);
+  r.cal=Object.assign({on:false,title:'',days:1,time:'10:00',mins:30,attendee:false,meet:false},r.cal);
+  r.task=Object.assign({on:false,title:'',days:1,priority:'normal'},r.task);
+  const oldKey=JSON.stringify([r.trigger,String(r.param)]);
+  const err=h('div',{class:'err',role:'alert'});
+  const ip=(v,o={})=>{const e=h(o.tag||'input',o.type?{type:o.type}:{});if(o.ph)e.placeholder=o.ph;if(o.min!=null)e.min=o.min;e.value=v==null?'':v;return e};
+  const lab=(t,el,hint)=>h('label',{class:'fl'},t,el,hint?h('span',{class:'muted',style:'display:block;font-weight:400;margin-top:4px',text:hint}):null);
+  const ck=(v,t)=>{const c=h('input',{type:'checkbox'});c.checked=!!v;return{c,row:h('label',{class:'fl',style:'display:flex;gap:8px;align-items:center'},c,t)}};
+  const name=ip(r.name,{ph:'e.g. Welcome new inquiries'});
+  const trig=h('select',{},...TRIG.map(([v,t])=>h('option',{value:v,text:t})));trig.value=r.trigger||'inquiry_new';
+  const stSel=h('select',{},...STATUSES.map(s=>h('option',{value:s,text:cap(s)})));stSel.value=STATUSES.includes(r.param)?r.param:'quoted';
+  const days=ip(/^\d+$/.test(String(r.param))?r.param:(r.trigger==='task_due'?1:5),{type:'number',min:0});
+  const stRow=lab('Status it changes to',stSel),dRow=lab('Days',days);
+  const syncT=()=>{const t=trig.value;stRow.hidden=t!=='inquiry_status';dRow.hidden=!(t==='inquiry_stale'||t==='task_due');dRow.firstChild.textContent=t==='task_due'?'How many days before the due date':'Days with no contact'};
+  trig.addEventListener('change',syncT);syncT();
+  /* email */
+  const em=ck(r.email.on,'Send an email through Gmail'),emS=ip(r.email.subject),emB=ip(r.email.body,{tag:'textarea'});emB.style.minHeight='120px';
+  const test=h('button',{class:'btn ghost sm',type:'button',text:'Send a test to me',onclick:async e=>{
+    if(!gmailReady())return toast('Connect Gmail first (Messages tab).',5000);
+    e.target.disabled=true;
+    try{const p=await loadSig(),ctx={kind:'inquiry',name:'Alex Sample',email:me.email,title:'Alex Sample',due:today()},text=fillT(emB.value,ctx,p).trim();
+      await sendEmailNow({to:me.email,subject:'[Test] '+(fillT(emS.value,ctx,p).trim()||'(no subject)'),body:text+(sigText(p)?'\n\n-- \n'+sigText(p):''),html:buildHtml(text,sigHtml(p)),request_id:crypto.randomUUID(),inquiry_id:null,client_id:null,reply_to_message_id:null});toast('Test sent to '+me.email)}
+    catch(x){toast('Not sent: '+x.message,6000)}e.target.disabled=false}});
+  const emBox=h('div',{},lab('Subject',emS),lab('Message',emB,'You can use {{first}}, {{name}}, {{title}}, {{due}} and {{company}}. Your signature is added automatically. For task rules the email goes to the assignee; otherwise to the person on the record.'),h('div',{style:'margin-top:8px'},test));
+  /* calendar */
+  const ca=ck(r.cal.on,'Add a Google Calendar event'),caT=ip(r.cal.title),caD=ip(r.cal.days,{type:'number',min:0}),caH=ip(r.cal.time,{type:'time'});
+  const caM=h('select',{},...[15,30,45,60,90].map(m=>h('option',{value:String(m),text:m+' min'})));caM.value=String(r.cal.mins||30);
+  const caA=ck(r.cal.attendee,'Invite the person by email'),caG=ck(r.cal.meet,'Add a Google Meet link');
+  const caBox=h('div',{},lab('Event title',caT),h('div',{style:'display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px'},lab('Days from now',caD),lab('Start',caH),lab('Length',caM)),caA.row,caG.row,
+    h('p',{class:'muted',style:'margin:6px 0 0;font-size:.8rem',text:'Task rules put the event on the task\'s due date instead.'}));
+  /* task */
+  const tk=ck(r.task.on,'Create a task'),tkT=ip(r.task.title),tkD=ip(r.task.days,{type:'number',min:0});
+  const tkP=h('select',{},...PRIORITIES.map(p=>h('option',{value:p,text:cap(p)})));tkP.value=r.task.priority||'normal';
+  const tkBox=h('div',{},lab('Task title',tkT),h('div',{style:'display:grid;grid-template-columns:1fr 1fr;gap:10px'},lab('Due in (days)',tkD),lab('Priority',tkP)));
+  const sync=()=>{emBox.hidden=!em.c.checked;caBox.hidden=!ca.c.checked;tkBox.hidden=!tk.c.checked};
+  [em,ca,tk].forEach(x=>x.c.addEventListener('change',sync));sync();
+  const ex=ck(false,'Also run on records that already match (otherwise only on new activity)');
+  const sec=t=>h('div',{style:'margin-top:20px;font-weight:700;font-size:.9rem',text:t});
+  modalShell(isNew&&!src.id?'New automation rule':'Edit rule',true,h('div',{},
+    lab('Rule name',name),sec('When'),lab('This happens',trig),stRow,dRow,
+    sec('Then do'),em.row,emBox,ca.row,caBox,tk.row,tkBox,
+    isNew?ex.row:null,err),
+    close=>[h('button',{class:'btn ghost',text:'Cancel',onclick:close}),h('button',{class:'btn blue',text:'Save rule',onclick:()=>{
+      err.textContent='';
+      if(!name.value.trim())return err.textContent='Give the rule a name.';
+      if(!em.c.checked&&!ca.c.checked&&!tk.c.checked)return err.textContent='Pick at least one action.';
+      if(em.c.checked&&(!emS.value.trim()||!emB.value.trim()))return err.textContent='The email needs a subject and a message.';
+      if(ca.c.checked&&!caT.value.trim())return err.textContent='The calendar event needs a title.';
+      if(tk.c.checked&&!tkT.value.trim())return err.textContent='The task needs a title.';
+      const t=trig.value,param=t==='inquiry_status'?stSel.value:(t==='inquiry_stale'||t==='task_due')?Math.max(0,Math.round(Number(days.value)||0)):null;
+      const out={id:r.id||crypto.randomUUID(),name:name.value.trim().slice(0,80),on:r.on!==false,trigger:t,param,created:r.created||nowIso(),
+        email:{on:em.c.checked,subject:emS.value.trim(),body:emB.value.trim()},
+        cal:{on:ca.c.checked,title:caT.value.trim(),days:Math.max(0,Math.round(Number(caD.value)||0)),time:caH.value||'10:00',mins:Number(caM.value)||30,attendee:caA.c.checked,meet:caG.c.checked},
+        task:{on:tk.c.checked,title:tkT.value.trim(),days:Math.max(0,Math.round(Number(tkD.value)||0)),priority:tkP.value}};
+      const i=AUTO.rules.findIndex(x=>x.id===out.id);
+      if(i>=0)AUTO.rules[i]=out;else AUTO.rules.push(out);
+      if((isNew||oldKey!==JSON.stringify([out.trigger,String(out.param)]))&&!ex.c.checked)baseline(out);
+      saveAuto();close();toast('Rule saved.');render();if(AUTO.on)setTimeout(autoScan,300);
+    }})]);
+}
+
 window.__orchidCrm={plan:aiPlan};
 
 init().catch(e=>{console.error(e);home()});
