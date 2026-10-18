@@ -813,11 +813,14 @@ function renderForm(){
 async function applyAccess(email){
   const k=routeFor(email),cards=[...document.querySelectorAll('.card[data-p]')];
   cards.forEach(b=>{b.hidden=true});
-  if(k==='legal'){const c=document.querySelector('.card[data-p=crm]');if(c)c.hidden=false;return}
+  if(k==='legal'){const c=document.querySelector('.card[data-p=crm]');if(c){c.hidden=false;if(document.body.dataset.v==='pick')c.click()}return}
   let apps=[];
   try{const r=await clients[k].from('orchid_app_access').select('app');if(!r.error&&r.data)apps=r.data.map(x=>x.app)}catch(e){}
   if(String(email).trim().toLowerCase()!==who.toLowerCase())return;   // user changed meanwhile
   cards.forEach(b=>{b.hidden=!apps.includes(b.dataset.p)});
+  // only one app available: skip the picker and open it straight away
+  const vis=cards.filter(b=>!b.hidden);
+  if(vis.length===1&&document.body.dataset.v==='pick'){if(vis[0].dataset.p==='crm'&&window.__orchidOpenCrm)window.__orchidOpenCrm(false);else vis[0].click();return}
   if(!apps.length)say('Ask your admin if you need access to Orchid CRM.',true,'pmsg');
 }
 function showPick(email){
