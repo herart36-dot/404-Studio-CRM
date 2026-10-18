@@ -2026,35 +2026,20 @@ function inquiriesView(){
     h('div',{class:'bar'},searchBar('Search inquiries'),chips([['all','All'],...STATUSES.map(s=>[s,cap(s)])],inqFilter,v=>inqFilter=v),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'Add inquiry',onclick:addInquiry})),
     list.length?h('div',{class:'list'},list.map(inquiryRow)):empty(inquiries.length?'No matches':'No inquiries yet',inquiries.length?'Try a different search or status.':'Add your first inquiry to start tracking leads.',inquiries.length?null:h('button',{class:'btn blue',text:'Add inquiry',onclick:addInquiry})));
 }
-/* ===== Contact list (Nimble-style) ===== */
-let nmSeg='all',nmSel=new Set(),nmSort={k:'name',d:1};
-const nmHue=s=>{let x=0;for(const ch of String(s||''))x=(x*31+ch.charCodeAt(0))%360;return x};
-const nmAv=c=>{const u=nmHue(c.name);return h('div',{class:'nm-av',style:'background:hsl('+u+' 55% 90%);color:hsl('+u+' 60% 27%)',text:initials(c.name)})};
-const nmCnt=c=>({i:inquiries.filter(i=>i.client_id===c.id).length,t:tasks.filter(t=>t.client_id===c.id&&!t.done).length});
-const nmSegs=[['all','All contacts',()=>true],['recent','Recently added',c=>c.created_at&&Date.now()-new Date(c.created_at).getTime()<30*864e5],['tasks','With open tasks',c=>nmCnt(c).t>0],['inq','With inquiries',c=>nmCnt(c).i>0],['nocontact','Missing contact info',c=>!c.email&&!c.phone]];
-function nmCsv(rows){const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';const t=['Name','Company','Email','Phone','Notes'].join(',')+'\n'+rows.map(c=>[c.name,c.company,c.email,c.phone,c.notes].map(q).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='contacts.csv';a.click();toast('Exported '+rows.length+' contacts.')}
 function clientsView(){
-  const seg=nmSegs.find(s=>s[0]===nmSeg)||nmSegs[0],base=clients.filter(c=>match(c,['name','email','phone','company','notes']));
-  const val=(c,k)=>k==='added'?String(c.created_at||''):String(c[k]||'').toLowerCase();
-  const list=base.filter(seg[2]).sort((a,b)=>{const x=val(a,nmSort.k),y=val(b,nmSort.k);return(x>y?1:x<y?-1:0)*nmSort.d});
-  const allSel=list.length&&list.every(c=>nmSel.has(c.id)),picked=clients.filter(c=>nmSel.has(c.id));
-  const side=h('aside',{class:'nm-side'},h('div',{class:'nm-st',text:'Contact list'}),nmSegs.map(([k,t,f])=>h('button',{class:'nm-seg','aria-pressed':String(nmSeg===k),onclick:()=>{nmSeg=k;nmSel.clear();render()}},h('span',{text:t}),h('b',{text:String(clients.filter(f).length)}))));
-  const sortTh=(k,t)=>h('th',{class:'srt',onclick:()=>{nmSort=nmSort.k===k?{k,d:-nmSort.d}:{k,d:1};render()}},t+(nmSort.k===k?(nmSort.d>0?' ▲':' ▼'):''));
-  const cb=h('input',{type:'checkbox',class:'nm-cb','aria-label':'Select all'});cb.checked=!!allSel;cb.onchange=()=>{list.forEach(c=>cb.checked?nmSel.add(c.id):nmSel.delete(c.id));render()};
-  const rows=list.map(c=>{const n=nmCnt(c),k=h('input',{type:'checkbox',class:'nm-cb','aria-label':'Select '+c.name});k.checked=nmSel.has(c.id);k.onclick=e=>e.stopPropagation();k.onchange=()=>{k.checked?nmSel.add(c.id):nmSel.delete(c.id);render()};
-    return h('tr',{class:'clk'+(nmSel.has(c.id)?' sel':''),onclick:()=>editClient(c)},h('td',{},k),
-      h('td',{},h('div',{class:'nm-nm'},nmAv(c),h('div',{},h('b',{text:c.name}),h('div',{class:'s',text:c.notes?c.notes.slice(0,48):'No notes'})))),
-      h('td',{text:c.company||'—'}),
-      h('td',{},c.email?h('a',{href:'mailto:'+c.email,text:c.email,onclick:e=>e.stopPropagation()}):'—'),h('td',{text:c.phone||'—'}),
-      h('td',{},n.i?h('span',{class:'pill gs',style:'margin:0',text:n.i+' inquir'+(n.i===1?'y':'ies')}):h('span',{class:'muted',text:'—'})),
-      h('td',{},n.t?h('span',{class:'pill med',style:'margin:0',text:n.t+' open'}):h('span',{class:'muted',text:'—'})),
-      h('td',{text:c.created_at?fmtDate(String(c.created_at).slice(0,10)):'—'}),
-      h('td',{onclick:e=>e.stopPropagation()},h('div',{class:'acts',style:'margin:0;flex-wrap:nowrap'},h('button',{class:'btn ghost sm',text:'+ Task',onclick:()=>addTask(c.id)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delClient(c)}))));});
-  const bulk=picked.length?h('div',{class:'nm-bulk'},h('b',{text:picked.length+' selected'}),h('span',{class:'sp'}),h('button',{class:'btn ghost sm',text:'Export selected',onclick:()=>nmCsv(picked)}),
-    h('button',{class:'btn ghost sm danger',text:'Delete selected',onclick:()=>{if(confirm('Delete '+picked.length+' contacts? Their inquiries and tasks stay, but are unlinked.')){const ids=picked.map(c=>c.id);nmSel.clear();run(sb.from('crm_clients').delete().in('id',ids),ids.length+' contacts deleted.')}}}),h('button',{class:'btn ghost sm',text:'Clear',onclick:()=>{nmSel.clear();render()}})):null;
-  const table=list.length?h('div',{class:'tl-card flush'},h('div',{class:'tl-scroll'},h('table',{class:'tbl dt nm-t'},h('thead',{},h('tr',{},h('th',{},cb),sortTh('name','Name'),sortTh('company','Company'),sortTh('email','Email'),h('th',{text:'Phone'}),h('th',{text:'Inquiries'}),h('th',{text:'Tasks'}),sortTh('added','Added'),h('th',{text:''}))),h('tbody',{},rows))),h('div',{class:'nm-ft',text:'Showing '+list.length+' of '+clients.length+' contacts'})):empty(clients.length?'No contacts here':'No clients yet',clients.length?'Try a different list or search.':'Add a client, or turn an inquiry into one.',clients.length?null:h('button',{class:'btn blue',text:'Add contact',onclick:addClient}));
-  return h('div',{class:'nm'},side,h('div',{class:'nm-main'},
-    h('div',{class:'nm-top'},h('div',{},h('div',{class:'s',text:'Contacts'}),h('h2',{text:seg[1]+' ('+list.length+')'})),h('span',{class:'sp'}),searchBar('Search contacts'),h('button',{class:'btn ghost sm',text:'Export CSV',onclick:()=>nmCsv(list)}),h('button',{class:'btn blue',text:'+ Add contact',onclick:addClient})),bulk,table));
+  const list=clients.filter(c=>match(c,['name','email','phone','company','notes']));
+  const row=c=>{
+    const nt=tasks.filter(t=>t.client_id===c.id&&!t.done).length,ni=inquiries.filter(i=>i.client_id===c.id).length;
+    return h('div',{class:'card item acc c-emerald'},h('div',{class:'body'},
+      h('div',{class:'t',text:c.name+(c.company?' — '+c.company:'')}),
+      h('div',{class:'s',text:[c.email,c.phone].filter(Boolean).join(' · ')||'No contact details'}),
+      h('div',{class:'s',text:ni+' inquir'+(ni===1?'y':'ies')+' · '+nt+' open task'+(nt===1?'':'s')}),
+      c.notes?h('div',{class:'m',text:c.notes}):null,
+      h('div',{class:'acts'},h('button',{class:'btn ghost sm',text:'Add task',onclick:()=>addTask(c.id)}),h('button',{class:'btn ghost sm',text:'Edit',onclick:()=>editClient(c)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delClient(c)}))));
+  };
+  return h('div',{},
+    h('div',{class:'bar'},searchBar('Search clients'),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'Add client',onclick:addClient})),
+    list.length?h('div',{class:'list'},list.map(row)):empty(clients.length?'No matches':'No clients yet',clients.length?'Try a different search.':'Add a client, or turn an inquiry into one.',clients.length?null:h('button',{class:'btn blue',text:'Add client',onclick:addClient})));
 }
 /* ---- which Orchid apps each person can open after login (stored in orchid_app_access; Pals is always on) ---- */
 const ORCHID_APPS=[['crm','CRM'],['solo','Solopreneur'],['ally','Ally'],['uni','University']];
@@ -2883,6 +2868,13 @@ function kzDrawer(){
     h('div',{class:'df'},o.status!=='Cancelled'?h('button',{class:'btn ghost danger',text:'Cancel order',onclick:()=>{if(confirm('Cancel order '+o.id+'?'))setKzStatus(o,'Cancelled')}}):h('button',{class:'btn ghost',text:'Reopen',onclick:()=>setKzStatus(o,'Processing')}))));
 }
 
+/* sub-tools shown under "Tools" in the sidebar */
+const TOOL_SUBS=[['sales','Sales','<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>'],['orders','Orders','<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'],['products','Products','<path d="M6 7h12l1 13H5z"/><path d="M9 7V6a3 3 0 0 1 6 0v1"/>'],['seo','SEO','<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>']];
+function toolsSubNav(){
+  const badge={orders:kzOrders.filter(o=>o.status==='Processing'||o.status==='Paid').length,products:kzProducts.length};
+  return h('div',{class:'subnav',role:'group','aria-label':'Tools'},h('div',{class:'sub-h',text:'Kloze store'}),TOOL_SUBS.map(([k,t,ic])=>{const i=h('span',{class:'ico','aria-hidden':'true'});i.innerHTML='<svg viewBox="0 0 24 24">'+ic+'</svg>';
+    return h('button',{class:'subtab','aria-selected':String(kzTab===k),onclick:()=>{view='tools';kzTab=k;q='';render();window.scrollTo(0,0)}},i,t,badge[k]?h('span',{class:'n',text:String(badge[k])}):null)}));
+}
 /* Tools tab (admin) */
 function toolsView(){
   const T=[['sales','Sales'],['orders','Orders',kzOrders.filter(o=>o.status==='Processing'||o.status==='Paid').length],['products','Products',kzProducts.length],['seo','SEO']];
@@ -2890,7 +2882,7 @@ function toolsView(){
   const tabs=h('div',{class:'tl-tabs',role:'tablist'},T.map(([k,t,n])=>h('button',{role:'tab','aria-selected':String(kzTab===k),onclick:()=>{kzTab=k;q='';render();window.scrollTo(0,0)}},t,n?h('span',{class:'n',text:String(n)}):null)));
   const body=kzErr?empty('Kloze store tools are not set up','The Kloze tables could not be loaded for your account. Ask the admin to check your access, then reload.'):kzTab==='orders'?toolsOrders():kzTab==='products'?toolsProducts():kzTab==='seo'?kzSeoView():toolsSales();
   return h('div',{class:'tools'},
-    h('div',{class:'tl-head'},h('div',{class:'tl-ic','aria-hidden':'true',text:'K'}),h('div',{},h('div',{class:'s',text:'Tools'}),h('h2',{text:'Kloze store'})),h('span',{class:'sp'}),
+    h('div',{class:'tl-head'},h('div',{class:'tl-ic','aria-hidden':'true',text:'K'}),h('div',{},h('div',{class:'s',text:'Tools › '+(TOOL_SUBS.find(x=>x[0]===kzTab)||TOOL_SUBS[0])[1]}),h('h2',{text:'Kloze store'})),h('span',{class:'sp'}),
       h('button',{class:'btn ghost sm',text:'Refresh',onclick:async()=>{await syncKloze();toast('Updated.')}}),h('button',{class:'btn blue sm',text:'+ New product',onclick:()=>{kzTab='products';addKzProduct()}})),
     tabs,body,kzDrawer());
 }
@@ -2926,7 +2918,7 @@ function appView(){
       h('button',{class:'btn ghost sm',text:'Manual',onclick:openManual}),h('button',{class:'btn ghost sm',text:'Apps',onclick:home}),
       h('button',{class:'btn ghost sm',text:'Log out',onclick:logout}))),
     h('div',{class:'shell'},
-      h('aside',{class:'side'},h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>h('button',{class:'tab',id:'tab_'+k,role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0);if(k==='chat')pollChat();if(k==='approvals')syncApprovals();if(k==='tools')syncKloze()}},ico(k),t,n?h('span',{class:'n',text:String(n)}):null)))),
+      h('aside',{class:'side'},h('nav',{class:'tabs',role:'tablist'},tabs.map(([k,t,n])=>[h('button',{class:'tab',id:'tab_'+k,role:'tab','aria-selected':String(view===k),onclick:()=>{view=k;q='';render();window.scrollTo(0,0);if(k==='chat')pollChat();if(k==='approvals')syncApprovals();if(k==='tools')syncKloze()}},ico(k),t,n?h('span',{class:'n',text:String(n)}):null),k==='tools'&&view==='tools'?toolsSubNav():null]).flat())),
       h('main',{},view==='chat'?null:statusBar(),body)));
 }
 function noAccess(){
@@ -3148,31 +3140,22 @@ init().catch(e=>{console.error(e);home()});
   .side .tab[aria-selected=true]{background:rgba(255,255,255,.2)!important;border-color:rgba(255,255,255,.35)!important;color:#fff!important;box-shadow:inset 0 -2px 0 #f97316!important}
 }
 </style>
-<style id="nimble-theme">
-/* ===== Teal professional theme ===== */
-:root{--bg:#f3f7f7;--ink:#10252b;--muted:#5d7277;--line:#e1e9e9;--bd:#cbd8d8;--brand:#0d9488;--brand-d:#0f766e;--dark:#0b2f33;--grad:linear-gradient(135deg,#0f766e,#14b8a6)}
-.side{background:#0b2d31!important}.side .tab[aria-selected=true]{background:rgba(45,212,191,.16)!important;box-shadow:inset 3px 0 0 #2dd4bf!important}
-.side .tab[aria-selected=true]:after{background:#2dd4bf!important;box-shadow:0 0 0 4px rgba(45,212,191,.22)!important}.side .tab .n{background:#f59e0b!important;color:#2b1a00!important}
-.side::-webkit-scrollbar-thumb{background:#2a5559}
-@media(max-width:900px){.side{background:#0b2d31!important}.side .tab[aria-selected=true]{box-shadow:inset 0 -2px 0 #2dd4bf!important}}
-.btn.primary,.btn.blue{background:var(--brand)}.btn.primary:hover:not(:disabled),.btn.blue:hover:not(:disabled){background:var(--brand-d)}
-/* contact list */
-.nm{display:grid;grid-template-columns:230px 1fr;gap:18px;align-items:start}.nm-main{min-width:0}
-.nm-side{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;position:sticky;top:72px}
-.nm-st{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 10px}
-.nm-seg{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:none;padding:9px 10px;border-radius:8px;font:inherit;font-size:.88rem;color:var(--ink);cursor:pointer;text-align:left}
-.nm-seg:hover{background:#f1f6f6}.nm-seg[aria-pressed=true]{background:#d9f2ee;color:#0f766e;font-weight:600}.nm-seg b{font-size:.75rem;color:var(--muted);font-weight:600}
-.nm-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}.nm-top h2{margin:0;font-size:1.25rem}.nm-top .s,.nm-t .s{font-size:.78rem;color:var(--muted)}
-.nm-top>input,.nm-top>div:has(input){flex:0 1 280px;width:280px;min-width:180px;margin:0}
-.nm-bulk{display:flex;align-items:center;gap:8px;background:#0b2d31;color:#fff;border-radius:10px;padding:8px 12px;margin-bottom:10px;flex-wrap:wrap}.nm-bulk .btn{background:#fff}
-.nm-t th.srt{cursor:pointer;user-select:none}.nm-t th.srt:hover{color:var(--brand)}.nm-t tr.sel{background:#e8f6f4}.nm-t a{color:var(--brand-d);text-decoration:none}.nm-t a:hover{text-decoration:underline}
-.nm-t{min-width:900px}.nm-cb{width:16px;height:16px;accent-color:var(--brand);cursor:pointer}
-.nm-nm{display:flex;gap:10px;align-items:center}.nm-av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.78rem;flex:none}
-.nm-ft{padding:10px 14px;border-top:1px solid var(--line);font-size:.78rem;color:var(--muted);background:#f8fbfb}
-@media(max-width:900px){.nm{grid-template-columns:1fr}.nm-side{position:static;display:flex;gap:6px;overflow-x:auto}.nm-st{display:none}.nm-seg{width:auto;white-space:nowrap;gap:8px;border:1px solid var(--line)}}
+<style id="tools-grey">
+/* sub-tools nested in the sidebar (grey) */
+.subnav{margin:2px 0 8px 18px;padding:6px 0 6px 10px;border-left:2px solid #4a4e54;display:flex;flex-direction:column;gap:2px}
+.sub-h{font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8d9299;padding:2px 10px 4px}
+.subtab{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:8px 10px;border-radius:8px;font:inherit;font-size:.86rem;font-weight:500;color:#c4c8cd;cursor:pointer;text-align:left}
+.subtab .ico svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+.subtab:hover{background:rgba(255,255,255,.08);color:#fff}.subtab[aria-selected=true]{background:#3b3f45;color:#fff;font-weight:600;box-shadow:inset 2px 0 0 #d1d5db}
+.subtab .n{margin-left:auto;font-size:.68rem;font-weight:700;background:#6b7280;color:#fff;border-radius:999px;padding:1px 7px}
+/* Tools workspace in grey */
+.tools{--brand:#4b5563;--brand-d:#374151;--grad:linear-gradient(135deg,#4b5563,#9ca3af)}
+.tools .tl-chip,.tools .chip[aria-pressed=true]{background:#4b5563;border-color:#4b5563}
+.tools .tl-card h4{color:#374151}.tools .kpi{background:#fff}
+.tools .btn.blue,.tools .btn.primary,.tl-drawer .btn.primary{background:#4b5563!important;border-color:#4b5563!important;color:#fff}.tools .btn.blue:hover,.tools .btn.primary:hover{background:#374151!important}
+.tl-tabs{display:none}
+@media(max-width:900px){.subnav{display:none}.tl-tabs{display:flex}}
 </style>
-
-
 
 <button id="oai-fab" type="button" aria-label="Open AI assistant" aria-expanded="false" hidden>
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9L12 2z"/><path d="M19 15l.9 2.6 2.6.9-2.6.9L19 22l-.9-2.6-2.6-.9 2.6-.9L19 15z" opacity=".85"/></svg>
