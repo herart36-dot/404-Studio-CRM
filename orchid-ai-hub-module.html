@@ -74,6 +74,8 @@ html.oa-open body{margin-right:400px}
 .oi-c p{margin:0 0 14px;color:#44507e;line-height:1.55;font-size:1rem;font-weight:600}
 .oi-l{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:8px;text-align:left}.oi-l li{background:rgba(255,255,255,.85);border:1px solid #dedbf8;border-radius:12px;padding:10px 13px;font-size:.92rem;color:#33407f;font-weight:700}
 .oi-b{display:flex;gap:10px;justify-content:center}.oi-d{display:block;margin-top:12px;font-size:.8rem;color:#6f7aa8;font-weight:600;cursor:pointer}
+#oa,#oa *,#oa-fab,#oa-bub,#oa-intro,#oa-intro *{font-family:Outfit,Nunito,system-ui,sans-serif}
+#oa .oh-m,#oa .oh-ac,.oa-hi{letter-spacing:.005em;line-height:1.6}
 @media(max-width:760px){.oa-hero canvas{width:170px;height:170px}}
 @media(prefers-reduced-motion:reduce){#oa-intro{animation:none}}
 </style>
@@ -98,7 +100,8 @@ function ctx(a){return'[Live analysis'+(sample?' (SAMPLE data)':'')+'] open inqu
 async function callAI(msgs){const c=sbc(),{data:{session}}=await c.auth.getSession();if(!session)throw new Error('Please log in again.');think=true;
  try{for(const fn of ['crm-agent','crm-ai']){const r=await fetch(c.supabaseUrl+'/functions/v1/'+fn,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:c.supabaseKey},body:JSON.stringify({messages:msgs,today:ymd(new Date()),tz:Intl.DateTimeFormat().resolvedOptions().timeZone})});
   if(r.status===404&&fn==='crm-agent')continue;let d={};try{d=await r.json()}catch(e){}if(!r.ok||!d.reply)throw new Error(d.error||'The AI is busy. Try again in a minute.');return d}throw new Error('The AI is not deployed.')}finally{think=false}}
-function typeInto(n,txt,cb){if(RM||txt.length>1200){n.textContent=txt;cb&&cb();return}let i=0;const f=()=>{i=Math.min(txt.length,i+3);n.textContent=txt.slice(0,i);if(i<txt.length)requestAnimationFrame(f);else cb&&cb()};f()}
+function clean(t){return String(t==null?'':t).replace(/\*\*(.+?)\*\*/gs,'$1').replace(/__(.+?)__/gs,'$1').replace(/`([^`]*)`/g,'$1').replace(/^\s{0,3}#{1,6}\s+/gm,'').replace(/^(\s*)[-*]\s+/gm,'$1\u2022 ').replace(/\*+/g,'')}
+function typeInto(n,txt,cb){txt=clean(txt);if(RM||txt.length>1200){n.textContent=txt;cb&&cb();return}let i=0;const f=()=>{i=Math.min(txt.length,i+3);n.textContent=txt.slice(0,i);if(i<txt.length)requestAnimationFrame(f);else cb&&cb()};f()}
 const W=async q=>{const r=await q;if(r.error)throw new Error(r.error.message||'Something went wrong.');return r},hx=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),meE=()=>String(D().me.email||'').toLowerCase();
 const TT={create_lead:'Add lead',create_task:'Add task',set_schedule:'Set schedule',create_client:'Add client',update_inquiry:'Update inquiry',log_touch:'Log a touch',update_task:'Update task',create_case:'Open a case',update_case:'Update case',add_case_note:'Add case note',create_deal:'Add deal',move_deal:'Move deal',send_email:'Send email',send_chat:'Send team chat'};
 const stage=async n=>{const st=(await W(sbc().from('crm_deal_stages').select('*').order('position'))).data||[],o=st.filter(x=>x.kind==='open');const s=o.find(x=>n&&x.name.toLowerCase().includes(String(n).toLowerCase()))||(n?null:o[0]);if(!s)throw new Error('No open deal stage called "'+n+'". Use the Deals tab for won or lost.');return s};
@@ -184,7 +187,7 @@ function askTab(b){const log=E('div','oa-log');log.style.cssText='display:flex;f
   hr.append(h2,cv,qa);
   const vs=(VC[(D()||{}).view]||[]).slice(0,2);if(vs.length){const g=E('div','oa-chips');vs.forEach(s=>{const x=E('button','oa-b',s);x.onclick=()=>say(s);g.append(x)});hr.append(E('small','oa-lb','Try on '+pg()),g)}
   log.append(hr);hero=orchie(cv,true)}
- hist.forEach(m=>log.append(E('div','oh-m '+(m.role==='user'?'u':'a'),m.text)))}
+ hist.forEach(m=>log.append(E('div','oh-m '+(m.role==='user'?'u':'a'),m.role==='user'?m.text:clean(m.text))))}
 
 /* ---------- Orchie: glowing blue-violet orb with two pill eyes (Three.js) ---------- */
 function orchie(cv,big,wave){const T=window.THREE;if(!T||!cv)return null;let r;try{r=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true})}catch(e){return null}
@@ -234,7 +237,7 @@ function setOpen(v){open=v;document.documentElement.classList.toggle('oa-open',v
 function init(){fab=E('button','');fab.id='oa-fab';fab.type='button';fab.setAttribute('aria-label','Open Orchie, your AI assistant (Ctrl+K)');fab.innerHTML='<i class="oa-fi"></i><span>Ask Orchie</span><b hidden></b>';bub=E('button','');bub.id='oa-bub';bub.hidden=true;
  P=E('aside');P.id='oa';P.hidden=true;P.setAttribute('aria-label','Orchie, your AI assistant');
  P.innerHTML='<div class="oa-h"><div class="oa-av"><canvas></canvas></div><div class="oa-ti"><b>Orchie</b><small class="oa-pg"></small></div><button class="oa-x" aria-label="Close">✕</button></div><div class="oa-tabs" role="tablist"><button role="tab" data-t="next">Next steps</button><button role="tab" data-t="ask">Ask / do it for me</button></div><div class="oa-body"></div><div class="oa-in"><div class="oa-ib"><button class="oa-plus" type="button" aria-label="New chat" title="New chat">+</button><input aria-label="Tell Orchie what to do" placeholder="Ask me anything..."></div><button class="oh-b oa-send" type="button" aria-label="Send"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>';
- document.body.append(fab,bub,P);if(!document.getElementById('oa-font')){const l=document.createElement('link');l.id='oa-font';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap';document.head.append(l)}
+ document.body.append(fab,bub,P);if(!document.getElementById('oa-font')){const l=document.createElement('link');l.id='oa-font';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap';document.head.append(l)}
  try{sbc().auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT'){try{sessionStorage.removeItem('oa_intro');sessionStorage.removeItem('oa_b')}catch(e){}introDone=false;shown=false}})}catch(e){}inp=P.querySelector('.oa-in input');const sn=P.querySelector('.oa-send'),go=()=>{const v=inp.value;inp.value='';say(v)};
  sn.onclick=go;P.querySelector('.oa-plus').onclick=()=>{if(busy)return;hist=[];tab='ask';paint();inp.focus()};inp.onkeydown=e=>{if(e.key==='Enter')go()};fab.onclick=bub.onclick=()=>setOpen(true);P.querySelector('.oa-x').onclick=()=>setOpen(false);
  P.querySelectorAll('[role=tab]').forEach(t=>t.onclick=()=>{tab=t.dataset.t;paint()});
