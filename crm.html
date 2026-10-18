@@ -2933,6 +2933,25 @@ init().catch(e=>{console.error(e);home()});
 @media (max-width:520px){#oai-panel{right:8px;left:8px;width:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
 @media (prefers-reduced-motion:reduce){#oai-panel{animation:none}.oai-dots i{animation:none}}
 </style>
+<style id="orchid-dark-sidebar">
+/* ===== Dark sidebar: tools in a dark, high-contrast style ===== */
+.side{background:#25272a!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-right:0!important;box-shadow:none}
+.side:before{color:#8d9299!important}
+.side .tab{color:#f1f2f4!important;font-weight:600;background:transparent;border-color:transparent}
+.side .tab .ico,.side .tab .ico svg{color:#f1f2f4!important}
+.side .tab:hover{background:rgba(255,255,255,.09)!important;color:#fff!important}
+.side .tab[aria-selected=true]{background:rgba(255,255,255,.15)!important;color:#fff!important;box-shadow:inset 3px 0 0 #f97316!important}
+.side .tab[aria-selected=true] .ico,.side .tab[aria-selected=true] .ico svg{color:#fff!important}
+.side .tab[aria-selected=true]:after{background:#f97316!important;box-shadow:0 0 0 4px rgba(249,115,22,.22)!important}
+.side .tab .n{background:#f97316!important;color:#fff!important;border:0!important;font-weight:700}
+.side::-webkit-scrollbar{width:8px}.side::-webkit-scrollbar-thumb{background:#44474c;border-radius:8px}
+@media(max-width:900px){
+  .side{background:#25272a!important;box-shadow:0 4px 18px rgba(0,0,0,.25)!important;border-bottom:0!important}
+  .side .tab{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.12)!important;color:#f1f2f4!important;box-shadow:none!important}
+  .side .tab[aria-selected=true]{background:rgba(255,255,255,.2)!important;border-color:rgba(255,255,255,.35)!important;color:#fff!important;box-shadow:inset 0 -2px 0 #f97316!important}
+}
+</style>
+
 
 <button id="oai-fab" type="button" aria-label="Open AI assistant" aria-expanded="false" hidden>
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9L12 2z"/><path d="M19 15l.9 2.6 2.6.9-2.6.9L19 22l-.9-2.6-2.6-.9 2.6-.9L19 15z" opacity=".85"/></svg>
