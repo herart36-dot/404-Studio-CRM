@@ -3842,6 +3842,7 @@ async function connectGoogle(){
   const w=window.open('about:blank','_blank');
   const r=await sb.functions.invoke('crm-gmail-connect',{body:{action:'start'}});
   if(r.error||!r.data||!r.data.url){if(w)w.close();return toast(await fnError(r,'Could not start the Google connection.'),6000)}
+  try{const u=new URL(r.data.url);console.log('[Orchid] Google auth URL:',u.origin+u.pathname,Object.fromEntries([...u.searchParams].filter(([k])=>k!=='state')))}catch(e){}
   gConnecting=true;if(w)w.location.href=r.data.url;else toast('Allow pop-ups for this site, then press Connect Google again.',6000);
 }
 async function disconnectGoogle(){
