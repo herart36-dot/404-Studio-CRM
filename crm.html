@@ -1178,7 +1178,41 @@ input[type=range]{width:100%;accent-color:var(--brand);margin:6px 0 0}
 </style>
 
 <style>.pill.kz-awaiting-payment{background:#fef3c7;color:#92400e}.pill.kz-processing{background:#dbeafe;color:#1d4ed8}.pill.kz-paid{background:#d1fae5;color:#065f46}.pill.kz-shipped{background:#ede9fe;color:#5b21b6}.pill.kz-delivered{background:#bbf7d0;color:#14532d}.pill.kz-cancelled{background:#e2e8f0;color:#475569}</style>
+<style id="tools-crm">
+.tools .sp{flex:1}.tools .s{font-size:.8rem;color:var(--muted)}
+.tl-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}.tl-head h2{margin:0;font-size:1.25rem;letter-spacing:-.01em}
+.tl-ic{width:40px;height:40px;border-radius:10px;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:700}
+.tl-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:8px 0 16px;overflow-x:auto}
+.tl-tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;margin-bottom:-1px}
+.tl-tabs button:hover{color:var(--ink)}.tl-tabs button[aria-selected=true]{color:var(--brand);border-bottom-color:var(--brand)}
+.tl-tabs .n{margin-left:6px;font-size:.7rem;background:#e6e9ef;color:#323338;border-radius:999px;padding:1px 7px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .l{font-size:.78rem;color:var(--muted);font-weight:600}.kpi .v{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin:2px 0}
+.dl{font-size:.76rem;color:var(--muted);min-height:1em}.dl.up{color:#15803d}.dl.down{color:#b91c1c}
+.tl-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}@media(max-width:860px){.tl-grid{grid-template-columns:1fr}}
+.tl-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}.tl-card.flush{padding:0;overflow:hidden}.tl-card h4{margin:0 0 10px;font-size:.9rem}
+.tl-chart{display:flex;align-items:flex-end;gap:5px;height:130px}.tl-chart .col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}
+.tl-chart i{display:block;width:100%;background:var(--brand);border-radius:4px 4px 0 0}.tl-chart span{font-size:.65rem;color:var(--muted)}
+.pipe{display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center;padding:5px 0;font-size:.86rem}.trk{background:#eef1f6;border-radius:6px;height:8px;overflow:hidden}.trk i{display:block;height:100%;border-radius:6px;background:#94a3b8}
+.kz-b-processing,.kz-b-paid{background:var(--brand)!important}.kz-b-shipped{background:#7c3aed!important}.kz-b-delivered{background:#16a34a!important}.kz-b-awaiting-payment{background:#f59e0b!important}
+.tl-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 8px;margin:0 -8px;border-radius:8px;cursor:pointer}.tl-row:hover,.dt tr.clk:hover{background:#f6f8fc}
+.tl-scroll{overflow-x:auto}.dt{min-width:640px}.dt th{background:#f8fafc;position:sticky;top:0}.dt td{padding:11px 10px;border-top:1px solid var(--line);vertical-align:middle}.dt tr.clk{cursor:pointer}.dt tr.dim{opacity:.62}
+.pn{display:flex;gap:10px;align-items:center}.th{width:38px;height:38px;border-radius:8px;object-fit:cover;flex:none}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}.seg button{border:0;background:none;padding:6px 12px;font:inherit;font-size:.82rem;font-weight:600;cursor:pointer;color:var(--muted)}.seg button[aria-pressed=true]{background:var(--brand);color:#fff}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(220px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px}
+.bcol{background:#eef1f6;border-radius:12px;padding:10px;min-height:200px}.bcol.over{outline:2px dashed var(--brand)}.bh{display:flex;flex-direction:column;margin-bottom:8px;font-size:.84rem}
+.bcard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:grab;box-shadow:0 1px 2px rgba(15,23,42,.05)}.bcard:hover{border-color:var(--brand)}
+.tl-scrim{position:fixed;inset:0;background:rgba(15,23,42,.35);z-index:60}
+.tl-drawer{position:fixed;top:0;right:0;bottom:0;width:min(480px,100%);background:#f6f8fc;z-index:61;display:flex;flex-direction:column;box-shadow:-12px 0 30px rgba(15,23,42,.18);padding-top:env(safe-area-inset-top,0px)}
+.tl-drawer .dh{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:#fff;border-bottom:1px solid var(--line)}.tl-drawer .db{flex:1;overflow-y:auto;padding:14px 18px}.tl-drawer .df{padding:12px 18px;background:#fff;border-top:1px solid var(--line)}
+.path{display:flex;padding:12px 18px;background:#fff;gap:4px;overflow-x:auto}.path button{flex:1;min-width:84px;border:0;padding:8px 10px 8px 16px;font:inherit;font-size:.74rem;font-weight:600;background:#e6e9ef;color:#475569;cursor:pointer;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%,10px 50%)}
+.path button.done{background:#bfdbfe;color:#1e3a8a}.path button.now{background:var(--brand);color:#fff}
+.fld{padding:6px 0;font-size:.88rem}.fld span{display:block;font-size:.72rem;color:var(--muted);font-weight:600}.ln{display:flex;gap:10px;align-items:center;padding:6px 0;font-size:.88rem}
+.sum{display:flex;justify-content:space-between;padding:3px 0;font-size:.86rem;color:var(--muted)}.sum.tot{color:var(--ink);font-weight:700;border-top:1px solid var(--line);margin-top:6px;padding-top:8px}
+</style>
 </head>
+
 <body>
 <div id="app"></div>
 <script>
@@ -2701,14 +2735,111 @@ function kzSeoView(){
       h('p',{class:'hint',text:'Google reads these settings. Facebook and Messenger link previews read the page file itself, so they may keep showing the default title and picture. Each product also gets automatic Google product info (name, photo, price, availability).'}),
       err,h('div',{class:'row'},save)));
 }
-/* Tools tab (admin): the existing Kloze store tools, opened from the CRM sidebar */
-function toolsView(){
-  const T=[['sales','Sales'],['orders','Orders',kzOrders.filter(o=>o.status==='Processing'||o.status==='Paid').length],['products','Products'],['seo','SEO']];
-  if(!T.some(x=>x[0]===kzTab))kzTab='sales';
-  const bar=h('div',{class:'acts',style:'margin-bottom:14px;flex-wrap:wrap'},T.map(([k,t,n])=>h('button',{class:'btn sm '+(kzTab===k?'primary':'ghost'),text:t+(n?' ('+n+')':''),onclick:()=>{kzTab=k;q='';render();window.scrollTo(0,0)}})));
-  const body=kzErr?empty('Kloze store tools are not set up','The Kloze tables could not be loaded for your account. Ask the admin to check your access, then reload.'):kzTab==='orders'?kzOrdersView():kzTab==='products'?kzProductsView():kzTab==='seo'?kzSeoView():kzSalesView();
-  return h('div',{},h('h3',{style:'margin:0 0 4px',text:'Tools'}),h('div',{class:'muted',style:'font-size:.82rem;margin-bottom:12px',text:'Kloze store: sales, orders, products and SEO.'}),bar,body);
+/* ===== Tools (admin): HubSpot / Salesforce style Kloze workspace ===== */
+let kzMode='table',kzOpen=null,kzPF='all';
+const kzStk=p=>p.sizes&&p.sizes.length?p.sizes.reduce((a,z)=>a+(z.stock==null?1e9:Number(z.stock)),0):(p.stock==null?1e9:Number(p.stock));
+const kzLow=p=>{const s=kzStk(p);return s>0&&s<=5};
+const kzT=o=>new Date(o.created_at).getTime();
+const kzPrev=()=>{if(kzRange==='all')return null;const d=kzRange==='1'?1:Number(kzRange),a=kzRangeStart();return[a-d*864e5,a]};
+const kzSold=(a,b)=>kzOrders.filter(o=>kzT(o)>=a&&kzT(o)<b&&KZ_COUNTS.includes(o.status));
+const kzDelta=(c,p)=>{if(p===null||p===undefined)return null;if(!p)return c?h('div',{class:'dl up',text:'▲ New'}):null;const x=(c-p)/p*100;return h('div',{class:'dl '+(x>=0?'up':'down'),text:(x>=0?'▲ ':'▼ ')+Math.abs(x).toFixed(0)+'% vs previous period'})};
+const kzKpi=(l,v,d)=>h('div',{class:'kpi'},h('div',{class:'l',text:l}),h('div',{class:'v',text:v}),d||h('div',{class:'dl',text:' '}));
+const kzOpenOrder=o=>{kzOpen=o.id;render()};
+function kzCsv(rows){const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';const t=['Order','Date','Customer','Phone','Email','City','Payment','Status','Total'].join(',')+'\n'+rows.map(o=>[o.id,o.created_at,o.customer_name,o.phone,o.email,o.city,o.payment_method,o.status,o.total].map(q).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='kloze-orders.csv';a.click();toast('Exported '+rows.length+' orders.')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&kzOpen){kzOpen=null;render()}});
+
+function toolsSales(){
+  const now=Date.now(),inR=kzOrders.filter(o=>kzT(o)>=kzRangeStart()),sales=inR.filter(o=>KZ_COUNTS.includes(o.status));
+  const rev=sales.reduce((a,o)=>a+Number(o.total),0),pr=kzPrev(),ps=pr?kzSold(pr[0],pr[1]):null,prev=ps?ps.reduce((a,o)=>a+Number(o.total),0):null;
+  const toShip=kzOrders.filter(o=>o.status==='Processing'||o.status==='Paid'),wait=inR.filter(o=>o.status==='Awaiting payment');
+  const items=sales.reduce((a,o)=>a+(o.items||[]).reduce((x,i)=>x+Number(i.q||0),0),0);
+  const tp={};sales.forEach(o=>(o.items||[]).forEach(i=>{const t=tp[i.n]||(tp[i.n]={q:0,r:0});t.q+=Number(i.q||0);t.r+=Number(i.q||0)*Number(i.p||0)}));
+  const top=Object.entries(tp).sort((a,b)=>b[1].r-a[1].r).slice(0,5),topMax=Math.max(1,...top.map(t=>t[1].r));
+  const byDay={};kzOrders.filter(o=>KZ_COUNTS.includes(o.status)).forEach(o=>{const d=kzDay(o.created_at);byDay[d]=(byDay[d]||0)+Number(o.total)});
+  const bars=[];for(let i=13;i>=0;i--){const d=kzDay(now-i*864e5);bars.push([d,byDay[d]||0])}const mx=Math.max(1,...bars.map(b=>b[1]));
+  const chart=h('div',{class:'tl-chart'},bars.map(([d,v])=>h('div',{class:'col',title:d+': '+peso(v)},h('i',{style:'height:'+Math.max(3,Math.round(v/mx*100))+'%;opacity:'+(v?1:.18)}),h('span',{text:d.slice(-2)}))));
+  const pm=Math.max(1,...KZ_STATUS.map(s=>inR.filter(o=>o.status===s).length));
+  const pipe=KZ_STATUS.map(s=>{const n=inR.filter(o=>o.status===s).length;return h('div',{class:'pipe'},h('span',{text:s}),h('div',{class:'trk'},h('i',{class:'kz-b-'+kzSlug(s),style:'width:'+Math.round(n/pm*100)+'%'})),h('b',{text:String(n)}))});
+  const todo=toShip.slice(0,6).map(o=>h('div',{class:'tl-row',onclick:()=>kzOpenOrder(o)},h('div',{},h('b',{text:o.id}),h('div',{class:'s',text:(o.customer_name||'Customer')+' · '+kzDate(o.created_at)})),h('b',{text:peso(o.total)})));
+  return h('div',{},
+    h('div',{class:'kpis'},kzKpi('Revenue',peso(rev),kzDelta(rev,prev)),kzKpi('Orders',String(sales.length),kzDelta(sales.length,ps?ps.length:null)),kzKpi('Average order',sales.length?peso(rev/sales.length):'—'),kzKpi('Items sold',String(items)),kzKpi('Awaiting payment',String(wait.length),h('div',{class:'dl',text:peso(wait.reduce((a,o)=>a+Number(o.total),0))}))),
+    h('div',{class:'tl-grid'},
+      h('div',{},h('div',{class:'tl-card'},h('h4',{text:'Revenue · last 14 days'}),chart),h('div',{class:'tl-card',style:'margin-top:14px'},h('h4',{text:'Order pipeline'}),pipe)),
+      h('div',{},h('div',{class:'tl-card'},h('h4',{},'Needs action ',h('span',{class:'pill high',text:String(toShip.length)})),todo.length?todo:h('div',{class:'muted',text:'Nothing to ship. All caught up.'})),
+        h('div',{class:'tl-card',style:'margin-top:14px'},h('h4',{text:'Top products'}),top.length?top.map(([n,t])=>h('div',{class:'pipe'},h('span',{text:n+' ×'+t.q}),h('div',{class:'trk'},h('i',{style:'width:'+Math.round(t.r/topMax*100)+'%;background:var(--brand)'})),h('b',{text:peso(t.r)}))):h('div',{class:'muted',text:'No sales in this period yet.'})))));
 }
+
+function toolsOrders(){
+  const inR=kzOrders.filter(o=>kzT(o)>=kzRangeStart()),needs=o=>o.status==='Processing'||o.status==='Paid';
+  const shown=inR.filter(o=>(kzStatus==='all'||(kzStatus==='action'?needs(o):o.status===kzStatus))&&match({id:o.id,n:o.customer_name,e:o.email,p:o.phone},['id','n','e','p']));
+  const cnt=k=>k==='all'?inR.length:k==='action'?inR.filter(needs).length:inR.filter(o=>o.status===k).length;
+  const views=[['all','All orders'],['action','Needs action'],...KZ_STATUS.map(s=>[s,s])];
+  const vb=h('div',{class:'chips',style:'margin-bottom:12px'},views.map(([k,t])=>h('button',{class:'chip','aria-pressed':String(kzStatus===k),text:t+' · '+cnt(k),onclick:()=>{kzStatus=k;render()}})));
+  const mode=h('div',{class:'seg'},[['table','Table'],['board','Board']].map(([k,t])=>h('button',{'aria-pressed':String(kzMode===k),text:t,onclick:()=>{kzMode=k;render()}})));
+  const tb=h('div',{class:'bar'},searchBar('Search order, name, phone'),h('span',{class:'sp'}),kzRangeBar(),mode,h('button',{class:'btn ghost sm',text:'Export CSV',onclick:()=>kzCsv(shown)}));
+  let body;
+  if(!shown.length&&kzMode==='table')body=empty(kzOrders.length?'No orders match':'No orders yet',kzOrders.length?'Try another period, view or search.':'Orders placed on the Kloze shop appear here automatically.');
+  else if(kzMode==='table')body=h('div',{class:'tl-card flush'},h('div',{class:'tl-scroll'},h('table',{class:'tbl dt'},
+    h('thead',{},h('tr',{},['Order','Customer','Date','Items','Total','Payment','Status'].map(t=>h('th',{text:t})))),
+    h('tbody',{},shown.map(o=>h('tr',{class:'clk',onclick:()=>kzOpenOrder(o)},
+      h('td',{},h('b',{text:o.id})),h('td',{},h('div',{text:o.customer_name||'—'}),h('div',{class:'s',text:o.phone||o.email||''})),
+      h('td',{text:kzDate(o.created_at)}),h('td',{text:String((o.items||[]).reduce((a,i)=>a+Number(i.q||0),0))}),h('td',{},h('b',{text:peso(o.total)})),
+      h('td',{text:o.payment_method||'—'}),h('td',{},h('span',{class:'pill kz-'+kzSlug(o.status),style:'margin:0',text:o.status}))))))));
+  else body=h('div',{class:'board'},KZ_STATUS.map(s=>{const col=shown.filter(o=>o.status===s);
+    return h('div',{class:'bcol',ondragover:e=>{e.preventDefault();e.currentTarget.classList.add('over')},ondragleave:e=>e.currentTarget.classList.remove('over'),ondrop:e=>{e.preventDefault();const o=kzOrders.find(x=>x.id===e.dataTransfer.getData('text/plain'));if(o&&o.status!==s)setKzStatus(o,s)}},
+      h('div',{class:'bh'},h('b',{text:s}),h('span',{class:'muted',text:col.length+' · '+peso(col.reduce((a,o)=>a+Number(o.total),0))})),
+      col.map(o=>h('div',{class:'bcard',draggable:'true',ondragstart:e=>e.dataTransfer.setData('text/plain',o.id),onclick:()=>kzOpenOrder(o)},h('b',{text:o.id+' · '+peso(o.total)}),h('div',{class:'s',text:o.customer_name||'Customer'}),h('div',{class:'s',text:kzDate(o.created_at)}))))}));
+  return h('div',{},tb,vb,body);
+}
+
+function toolsProducts(){
+  const f={all:()=>true,live:p=>p.active,hidden:p=>!p.active,low:kzLow,out:p=>kzSoldOut(p)};
+  const base=kzProducts.filter(p=>match(p,['name','category','description'])),list=base.filter(f[kzPF]);
+  const chips=h('div',{class:'chips',style:'margin-bottom:12px'},[['all','All'],['live','Live'],['hidden','Hidden'],['low','Low stock'],['out','Sold out']].map(([k,t])=>h('button',{class:'chip','aria-pressed':String(kzPF===k),text:t+' · '+base.filter(f[k]).length,onclick:()=>{kzPF=k;render()}})));
+  const th=p=>(p.images&&p.images[0])?h('img',{src:p.images[0],alt:'',class:'th'}):h('div',{class:'th',style:'background:'+(/^#[0-9a-f]{3,8}$/i.test(p.bg)?p.bg:'#eee')});
+  const stock=p=>{const s=kzStk(p);return s>1e8?h('span',{class:'muted',text:'Unlimited'}):h('span',{class:'pill '+(s<=0?'high':s<=5?'med':'won'),style:'margin:0',text:s<=0?'Sold out':s+' left'})};
+  const rows=list.map(p=>h('tr',{class:'clk'+(p.active?'':' dim'),onclick:()=>editKzProduct(p)},
+    h('td',{},h('div',{class:'pn'},th(p),h('div',{},h('b',{text:p.name}),h('div',{class:'s',text:p.category||''})))),
+    h('td',{},h('b',{text:peso(p.price)}),(p.old_price&&Number(p.old_price)>Number(p.price))?h('div',{class:'s',style:'text-decoration:line-through',text:peso(p.old_price)}):null),
+    h('td',{},stock(p)),h('td',{text:String(p.sold||0)}),
+    h('td',{},h('span',{class:'pill '+(p.active?'won':'closed'),style:'margin:0',text:p.active?'Live':'Hidden'})),
+    h('td',{onclick:e=>e.stopPropagation()},h('div',{class:'acts',style:'margin:0;flex-wrap:nowrap'},h('button',{class:'btn ghost sm',text:p.active?'Hide':'Show',onclick:()=>toggleKzProduct(p)}),h('button',{class:'btn ghost sm danger',text:'Delete',onclick:()=>delKzProduct(p)})))));
+  return h('div',{},
+    h('div',{class:'kpis'},kzKpi('Products',String(kzProducts.length)),kzKpi('Live',String(kzProducts.filter(p=>p.active).length)),kzKpi('Low stock',String(kzProducts.filter(kzLow).length)),kzKpi('Sold out',String(kzProducts.filter(kzSoldOut).length)),kzKpi('Units sold',String(kzProducts.reduce((a,p)=>a+Number(p.sold||0),0)))),
+    h('div',{class:'bar'},searchBar('Search products'),h('span',{class:'sp'}),h('button',{class:'btn blue',text:'+ Add product',onclick:addKzProduct})),chips,
+    list.length?h('div',{class:'tl-card flush'},h('div',{class:'tl-scroll'},h('table',{class:'tbl dt'},h('thead',{},h('tr',{},['Product','Price','Stock','Sold','Status',''].map(t=>h('th',{text:t})))),h('tbody',{},rows)))):empty(kzProducts.length?'No matches':'No products yet',kzProducts.length?'Try another filter or search.':'Add your first product. It shows on the Kloze shop right away.',kzProducts.length?null:h('button',{class:'btn blue',text:'Add product',onclick:addKzProduct})));
+}
+
+function kzDrawer(){
+  const o=kzOrders.find(x=>x.id===kzOpen);if(!o)return null;
+  const close=()=>{kzOpen=null;render()},flow=['Awaiting payment','Processing','Paid','Shipped','Delivered'],cur=flow.indexOf(o.status);
+  const path=h('div',{class:'path'},flow.map((s,i)=>h('button',{class:(i<cur?'done ':'')+(i===cur?'now':''),text:s,onclick:()=>{if(s!==o.status)setKzStatus(o,s)}})));
+  const fld=(l,v)=>v?h('div',{class:'fld'},h('span',{text:l}),h('div',{text:v})):null;
+  const lines=(o.items||[]).map(i=>{const pr=kzProducts.find(x=>x.id===i.id),im=pr&&pr.images&&pr.images[0];return h('div',{class:'ln'},im?h('img',{src:im,alt:'',class:'th'}):null,h('div',{style:'flex:1'},h('b',{text:i.n}),h('div',{class:'s',text:i.q+' × '+peso(i.p)})),h('b',{text:peso(Number(i.q||0)*Number(i.p||0))}))});
+  return h('div',{},h('div',{class:'tl-scrim',onclick:close}),h('aside',{class:'tl-drawer',role:'dialog','aria-label':'Order '+o.id},
+    h('div',{class:'dh'},h('div',{},h('div',{class:'s',text:'Order'}),h('h3',{style:'margin:0',text:o.id})),h('button',{class:'btn ghost sm',text:'Close',onclick:close})),
+    path,
+    h('div',{class:'db'},
+      h('div',{class:'tl-card'},h('h4',{text:'Customer'}),fld('Name',o.customer_name),fld('Phone',o.phone),fld('Email',o.email),fld('Address',[o.address,o.city].filter(Boolean).join(', '))),
+      h('div',{class:'tl-card',style:'margin-top:12px'},h('h4',{text:'Items'}),lines,
+        h('div',{class:'sum'},h('span',{text:'Subtotal'}),h('span',{text:peso(o.subtotal)})),Number(o.discount)?h('div',{class:'sum'},h('span',{text:'Discount'}),h('span',{text:'-'+peso(o.discount)})):null,
+        h('div',{class:'sum'},h('span',{text:'Shipping'}),h('span',{text:Number(o.shipping)?peso(o.shipping):'Free'})),h('div',{class:'sum tot'},h('span',{text:'Total'}),h('span',{text:peso(o.total)}))),
+      h('div',{class:'tl-card',style:'margin-top:12px'},h('h4',{text:'Details'}),fld('Placed',kzDate(o.created_at)),fld('Payment',o.payment_method),fld('Status',o.status))),
+    h('div',{class:'df'},o.status!=='Cancelled'?h('button',{class:'btn ghost danger',text:'Cancel order',onclick:()=>{if(confirm('Cancel order '+o.id+'?'))setKzStatus(o,'Cancelled')}}):h('button',{class:'btn ghost',text:'Reopen',onclick:()=>setKzStatus(o,'Processing')}))));
+}
+
+/* Tools tab (admin) */
+function toolsView(){
+  const T=[['sales','Sales'],['orders','Orders',kzOrders.filter(o=>o.status==='Processing'||o.status==='Paid').length],['products','Products',kzProducts.length],['seo','SEO']];
+  if(!T.some(x=>x[0]===kzTab))kzTab='sales';
+  const tabs=h('div',{class:'tl-tabs',role:'tablist'},T.map(([k,t,n])=>h('button',{role:'tab','aria-selected':String(kzTab===k),onclick:()=>{kzTab=k;q='';render();window.scrollTo(0,0)}},t,n?h('span',{class:'n',text:String(n)}):null)));
+  const body=kzErr?empty('Kloze store tools are not set up','The Kloze tables could not be loaded for your account. Ask the admin to check your access, then reload.'):kzTab==='orders'?toolsOrders():kzTab==='products'?toolsProducts():kzTab==='seo'?kzSeoView():toolsSales();
+  return h('div',{class:'tools'},
+    h('div',{class:'tl-head'},h('div',{class:'tl-ic','aria-hidden':'true',text:'K'}),h('div',{},h('div',{class:'s',text:'Tools'}),h('h2',{text:'Kloze store'})),h('span',{class:'sp'}),
+      h('button',{class:'btn ghost sm',text:'Refresh',onclick:async()=>{await syncKloze();toast('Updated.')}}),h('button',{class:'btn blue sm',text:'+ New product',onclick:()=>{kzTab='products';addKzProduct()}})),
+    tabs,body,kzDrawer());
+}
+
 /* the whole app an Executive sees */
 function execView(){
   const tabs=[['sales','Sales'],['orders','Orders',kzOrders.filter(o=>o.status==='Processing'||o.status==='Paid').length],['products','Products']];
