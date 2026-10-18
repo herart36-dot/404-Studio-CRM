@@ -449,6 +449,7 @@ table.dm-t{width:100%;border-collapse:collapse;background:#fff;border:1px solid 
 .dm-cta{background:linear-gradient(135deg,var(--dm),#06b6d4);color:#fff;border-radius:18px;padding:18px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:18px}.dm-cta b{font-size:1.05rem}.dm-cta span{flex:1;min-width:200px;opacity:.92;font-size:.9rem}.dm-cta .dm-b{border-color:#fff}
 @media(max-width:760px){.dm-wrap{flex-direction:column}.dm-side{width:auto;flex:0 0 auto;display:flex;overflow-x:auto;padding:8px}.dm-side button{width:auto;white-space:nowrap}.dm-grid2{grid-template-columns:1fr}}
 </style>
+<style id="orchid-sq-css">.fqbox{margin:12px 0 0;padding:12px 14px;border-radius:14px;background:#eef5fd;color:var(--ink);font-weight:700;font-size:.95rem;text-align:left}.fqbox[hidden]{display:none}#form select.field{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:38px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23667' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center}#form .row{margin-top:16px}#form .row .link{margin-top:0}</style>
 <style id="orchid-crm-host-css">html.crm-open,html.crm-open body{overflow:hidden}html.crm-open body>*:not(#orchid-crm-frame){display:none!important}#orchid-crm-frame{position:fixed;top:0;left:0;width:100%;height:100%;border:0;margin:0;padding:0;background:#f4f6f9;z-index:2147483000}</style>
 </head>
 <body data-v="land">
@@ -742,10 +743,24 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
   <input id="email" class="field" type="email" placeholder="Email" autocomplete="username" maxlength="320" aria-label="Email">
   <input id="pass" class="field" type="password" placeholder="Password" autocomplete="current-password" maxlength="200" aria-label="Password">
   <input id="pass2" class="field" type="password" placeholder="Confirm password" autocomplete="new-password" maxlength="200" aria-label="Confirm password" hidden>
-  <label class="show"><input id="showpw" type="checkbox"> Show password</label>
+  <p class="fqbox" id="fq" hidden></p>
+  <select id="sq" class="field" aria-label="Security question" hidden>
+    <option value="" selected disabled>Choose a security question…</option>
+    <option>What was the name of your first pet?</option>
+    <option>What was the name of your first school?</option>
+    <option>What street did you grow up on?</option>
+    <option>What was the make and model of your first car?</option>
+    <option>What was the name of your childhood best friend?</option>
+    <option>What is the name of your favorite teacher?</option>
+    <option value="__custom">Write my own question…</option>
+  </select>
+  <input id="sqc" class="field" type="text" placeholder="Write your own question" maxlength="140" autocomplete="off" aria-label="Your own security question" hidden>
+  <input id="sa" class="field" type="text" placeholder="Answer to your security question" maxlength="100" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Security answer" hidden>
+  <input id="sa2" class="field" type="text" placeholder="Confirm your answer" maxlength="100" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Confirm security answer" hidden>
+  <label class="show" id="showrow"><input id="showpw" type="checkbox"> Show password</label>
   <button id="go" class="btn" type="button">Log in</button>
   <div id="msg" class="msg" role="alert" hidden></div>
-  <button id="swap" class="link" type="button">New here? Create your password</button>
+  <div class="row"><button id="forgot" class="link" type="button">Forgot password?</button><button id="swap" class="link" type="button">New here? Create your password</button></div>
 </div>
 
 <!-- CHOOSE (shown after login) -->
@@ -801,13 +816,86 @@ function $(id){return document.getElementById(id)}
 const routeFor=email=>{const e=String(email||'').trim().toLowerCase();return LEGAL_USERS.some(x=>{x=x.toLowerCase();return x.startsWith('@')?e.endsWith(x):e===x})?'legal':'crm'};
 let mode='in',clients={},who='',lastPass='';
 function say(t,ok,id){const m=$(id||'msg');m.textContent=t;m.className='msg'+(ok?' ok':'');m.hidden=!t}
+// ---- security question: set at sign-up (or on first login), used to reset a forgotten password ----
+// modes: in (log in) | up (create password + question) | fq (forgot: enter email) | fr (forgot: answer + new password) | sq (set question after login)
+const MODE_TXT={
+  in:['Log in','Use the email your admin added.','Log in','New here? Create your password'],
+  up:['Create your password','Use the email your admin added, then choose a password and a security question.','Create account','Already have a password? Log in'],
+  fq:['Forgot your password?','Enter your email. You will answer your security question to choose a new password.','Continue','Back to log in'],
+  fr:['Reset your password','Answer your security question, then choose a new password.','Reset password','Back to log in'],
+  sq:['Set a security question','If you ever forget your password, answering this question lets you choose a new one.','Save and continue','Log out']
+};
+let fqText='';
+const goLabel=()=>(MODE_TXT[mode]||MODE_TXT.in)[2];
+function syncSq(){$('sqc').hidden=!(!$('sq').hidden&&$('sq').value==='__custom')}
 function renderForm(){
-  const up=mode==='up';
-  $('title').textContent=up?'Create your password':'Log in';
-  $('sub').textContent=up?'Use the email your admin added, then choose a password.':'Use the email your admin added.';
-  $('pass2').hidden=!up;$('go').textContent=up?'Create account':'Log in';
-  $('swap').textContent=up?'Already have a password? Log in':'New here? Create your password';
-  $('pass').autocomplete=up?'new-password':'current-password';say('');
+  const up=mode==='up',fq=mode==='fq',fr=mode==='fr',sg=mode==='sq',T=MODE_TXT[mode]||MODE_TXT.in;
+  $('title').textContent=T[0];$('sub').textContent=T[1];$('go').textContent=T[2];$('swap').textContent=T[3];
+  $('email').hidden=sg;$('email').disabled=fr;
+  $('pass').hidden=fq||sg;$('pass').placeholder=fr?'New password':'Password';$('pass').autocomplete=(up||fr)?'new-password':'current-password';
+  $('pass2').hidden=!(up||fr);$('pass2').placeholder=fr?'Confirm new password':'Confirm password';
+  $('showrow').style.display=(fq||sg)?'none':'';
+  $('sq').hidden=!(up||sg);$('sa').hidden=!(up||sg||fr);$('sa2').hidden=!(up||sg);
+  $('fq').hidden=!fr;$('fq').textContent=fr?fqText:'';
+  $('sa').placeholder=fr?'Your answer':'Answer to your security question';
+  if(fr)$('pass').before($('fq'),$('sa'));else $('pass2').after($('fq'),$('sq'),$('sqc'),$('sa'),$('sa2'));
+  $('forgot').hidden=mode!=='in';$('back').hidden=sg;
+  syncSq();say('');
+}
+function sqRead(){
+  const q=($('sq').value==='__custom'?$('sqc').value:$('sq').value).trim().replace(/\s+/g,' '),a=$('sa').value.trim().replace(/\s+/g,' '),a2=$('sa2').value.trim().replace(/\s+/g,' ');
+  if(!q)return{error:'Choose a security question.'};
+  if(q.length<8)return{error:'Your security question is too short.'};
+  if(a.length<4)return{error:'The answer must be at least 4 characters.'};
+  if(a.toLowerCase()!==a2.toLowerCase())return{error:'The two answers do not match.'};
+  return{q,a};
+}
+const clearSq=()=>{['sa','sa2','sqc'].forEach(id=>{$(id).value=''});$('sq').selectedIndex=0};
+// after a good login: make sure a security question exists. If the database part is not installed yet, do not block anyone.
+async function afterAuth(email){
+  try{const r=await clients[routeFor(email)].rpc('orchid_sq_status');
+    if(!r.error&&r.data&&r.data.has===false){
+      who=email;document.body.dataset.v='login';clearTimeout(timer);tiles.forEach(t=>t.classList.remove('dim'));
+      $('land').hidden=true;$('story').hidden=true;$('pick').hidden=true;$('form').hidden=false;mode='sq';renderForm();return false}
+  }catch(e){}
+  showPick(email);return true;
+}
+async function saveSq(){
+  const v=sqRead();if(v.error)return say(v.error);
+  $('go').disabled=true;$('go').textContent='Please wait…';
+  try{
+    const{error}=await withTimeout(clients[routeFor(who)].rpc('orchid_sq_set',{p_question:v.q,p_answer:v.a}));
+    if(error)return say(error.message||'Could not save your security question.');
+    clearSq();mode='in';showPick(who);
+  }catch(e){say(e.message||'Something went wrong. Please try again.')}
+  finally{$('go').disabled=false;$('go').textContent=goLabel()}
+}
+async function forgotStart(){
+  const email=$('email').value.trim().toLowerCase();
+  if(!/^\S+@\S+\.\S+$/.test(email))return say('Enter a valid email address.');
+  const c=clients[routeFor(email)];if(!c)return say('Still loading, try again in a moment.');
+  $('go').disabled=true;$('go').textContent='Please wait…';
+  try{
+    const{data,error}=await withTimeout(c.rpc('orchid_sq_question',{p_email:email}));
+    if(error||!data)return say('Password reset is not switched on yet. Ask your admin.');
+    fqText=String(data);mode='fr';renderForm();$('sa').focus();
+  }catch(e){say(e.message||'Something went wrong. Please try again.')}
+  finally{$('go').disabled=false;$('go').textContent=goLabel()}
+}
+async function forgotReset(){
+  const email=$('email').value.trim().toLowerCase(),a=$('sa').value.trim(),pw=$('pass').value;
+  if(!a)return say('Type the answer to your security question.');
+  if(pw.length<8)return say('Password must be at least 8 characters.');
+  if(pw!==$('pass2').value)return say('The two passwords do not match.');
+  const k=routeFor(email);
+  $('go').disabled=true;$('go').textContent='Please wait…';
+  try{
+    const r=await withTimeout(fetch(APPS[k].url+'/functions/v1/orchid-reset',{method:'POST',headers:{'Content-Type':'application/json',apikey:APPS[k].key},body:JSON.stringify({email,answer:a,new_password:pw})}));
+    let d={};try{d=await r.json()}catch(e){}
+    if(!r.ok||!d.ok)return say(r.status===404?'Password reset is not switched on yet. Ask your admin.':(d.error||'Could not reset the password. Please try again.'));
+    clearSq();$('pass').value=$('pass2').value='';mode='in';renderForm();say('Password updated. Log in with your new password.',true);
+  }catch(e){say(e.message||'Something went wrong. Please try again.')}
+  finally{$('go').disabled=false;$('go').textContent=goLabel()}
 }
 // Orchid CRM only shows if the admin granted it in the Supabase table public.orchid_app_access (email + app).
 async function applyAccess(email){
@@ -830,27 +918,29 @@ function showPick(email){
 async function logoutAll(){
   for(const c of Object.values(clients)){try{await c.auth.signOut()}catch(e){}}
   lastPass='';who='';try{localStorage.removeItem('orchid_last')}catch(e){}
-  $('email').value=$('pass').value=$('pass2').value='';showLogin();
+  $('email').value=$('pass').value=$('pass2').value='';clearSq();showLogin();
 }
 const withTimeout=(p,ms=15000)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('This is taking too long. Check your connection and try again.')),ms))]);
 async function submit(){
+  if(mode==='fq')return forgotStart();if(mode==='fr')return forgotReset();if(mode==='sq')return saveSq();
   const email=$('email').value.trim().toLowerCase(),pass=$('pass').value,up=mode==='up';say('');
   if(!/^\S+@\S+\.\S+$/.test(email))return say('Enter a valid email address.');
   if(!pass)return say('Enter your email and password.');
-  if(up){if(pass.length<8)return say('Password must be at least 8 characters.');if(pass!==$('pass2').value)return say('The two passwords do not match.')}
+  if(up){if(pass.length<8)return say('Password must be at least 8 characters.');if(pass!==$('pass2').value)return say('The two passwords do not match.');const sv=sqRead();if(sv.error)return say(sv.error)}
   const k=routeFor(email),c=clients[k];if(!c)return say('Still loading, try again in a moment.');
   $('go').disabled=true;$('go').textContent='Please wait…';
   try{
     if(up){
       const{data,error}=await withTimeout(c.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname}}));
       if(error)return say(/already registered/i.test(error.message)?'This email already has a password. Log in instead.':error.message);
-      if(!data.session){mode='in';renderForm();return say('Check your email and tap the confirmation link, then log in here.',true)}
+      if(!data.session){mode='in';renderForm();return say('Check your email and tap the confirmation link, then log in here. You will be asked for your security question on your first login.',true)}
+      const sv=sqRead();try{await c.rpc('orchid_sq_set',{p_question:sv.q,p_answer:sv.a})}catch(e){}
     }else{
       const{error}=await withTimeout(c.auth.signInWithPassword({email,password:pass}));
       if(error)return say(error.message==='Invalid login credentials'?'Wrong email or password. If you just signed up, confirm your email first.':error.message);
     }
-    lastPass=pass;keep('orchid_email',email);showPick(email);
-  }catch(e){say(e.message||'Something went wrong. Please try again.')}finally{$('go').disabled=false;$('go').textContent=mode==='up'?'Create account':'Log in'}
+    lastPass=pass;keep('orchid_email',email);clearSq();await afterAuth(email);
+  }catch(e){say(e.message||'Something went wrong. Please try again.')}finally{$('go').disabled=false;$('go').textContent=goLabel()}
 }
 function showErr(m){const id=$('pick').hidden?'msg':'pmsg';say('Something went wrong: '+m,false,id)}
 window.addEventListener('error',e=>showErr(e.message||'unknown error'));
@@ -865,7 +955,7 @@ async function boot(){
   if(qs.get('logout')){history.replaceState(null,'',location.pathname);return logoutAll()}
   for(const k of Object.keys(APPS)){   // already logged in to Orchid? show the app picker
     const{data:{session}}=await clients[k].auth.getSession();if(!session)continue;
-    if(routeFor(session.user.email)===k){showPick(session.user.email);if(k==='crm'&&location.hash==='#crm'&&window.__orchidOpenCrm)window.__orchidOpenCrm(false);return}
+    if(routeFor(session.user.email)===k){const ok=await afterAuth(session.user.email);if(ok&&k==='crm'&&location.hash==='#crm'&&window.__orchidOpenCrm)window.__orchidOpenCrm(false);return}
     await clients[k].auth.signOut({scope:'local'});
   }
   if(location.hash==='#crm')history.replaceState(null,'',location.pathname+location.search);
@@ -877,9 +967,11 @@ $('story').addEventListener('click',e=>{if(!e.target.closest('button')&&idx<last
 document.addEventListener('keydown',e=>{if($('story').hidden)return;if(e.key==='ArrowRight'&&idx<last)show(idx+1);if(e.key==='ArrowLeft'&&idx>0)show(idx-1)});
 document.querySelectorAll('.card').forEach(b=>b.onclick=()=>{if(b.dataset.p==='uni')return location.assign('orchid-university.html');if(b.dataset.p==='solo')return location.assign('solopreneur.html');if(b.dataset.p==='ally'){try{if(who)localStorage.setItem('orchid_ally_hint',who)}catch(e){}return location.assign('ally.html')}{const k=routeFor(who);if(k==='crm')return window.__orchidOpenCrm();location.assign(APPS[k].page)}});
 $('back').onclick=showLand;$('logout').onclick=logoutAll;
-$('go').onclick=submit;$('swap').onclick=()=>{mode=mode==='in'?'up':'in';renderForm()};
+$('go').onclick=submit;$('swap').onclick=()=>{if(mode==='sq')return logoutAll();mode=(mode==='in')?'up':'in';renderForm()};
+$('forgot').onclick=()=>{mode='fq';renderForm();$('email').focus()};
+$('sq').onchange=syncSq;
 $('showpw').onchange=e=>{const t=e.target.checked?'text':'password';$('pass').type=t;$('pass2').type=t};
-['email','pass','pass2'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')submit()}));
+['email','pass','pass2','sa','sa2','sqc'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')submit()}));
 
 // ---- Inquiry form: saves into the CRM inquiries; falls back to email until welcome_inquiry_setup.sql is run ----
 const INQUIRY_EMAIL='herart36@gmail.com'; // change to your business email (shown only if the database save is not available)
