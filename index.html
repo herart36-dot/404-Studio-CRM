@@ -1137,7 +1137,7 @@ async function applyAccess(email){
   if(String(email).trim().toLowerCase()!==who.toLowerCase())return;   // user changed meanwhile
   // Open to everyone who signs in with Google: the CRM is always available to them (they get their own workspace + setup questions).
   // Other apps (Ally etc.) still need an admin grant in orchid_app_access.
-  try{if(await window.__orchidIsGoogle(email)&&!apps.includes('crm'))apps.push('crm')}catch(e){}
+  try{if(!apps.includes('crm')){const ss=(await clients[k].auth.getSession()).data.session,u=ss&&ss.user,am=(u&&u.app_metadata)||{};if(am.provider==='google'||(am.providers||[]).includes('google')||(u&&(u.identities||[]).some(i=>i.provider==='google')))apps.push('crm')}}catch(e){}
   if(String(email).trim().toLowerCase()!==who.toLowerCase())return;
   cards.forEach(b=>{b.hidden=!apps.includes(b.dataset.p)});
   // only one app available: skip the picker and open it straight away
