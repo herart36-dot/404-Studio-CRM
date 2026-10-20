@@ -647,8 +647,8 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
     <section class="ox-hero" id="top" data-pg="home">
       <div>
         <p class="vx-tag">Simplicity, built.</p>
-        <h1 class="ox-h1"><span>Work that feels calm.</span><span class="b">Connection that feels real.</span></h1>
-        <p class="ox-sub">Hellobase CRM keeps every inquiry, client and task in one calm place, for $8 a month.</p>
+        <h1 class="ox-h1"><span>Reply to every lead</span><span class="b">before it goes cold.</span></h1>
+        <p class="ox-sub">Hellobase CRM shows each client, their next task, when it is due, and the follow-up reminder that keeps the deal moving.</p>
         <p class="ox-q" id="oxQ">Which sounds like you?</p>
         <div class="ox-who" role="group" aria-labelledby="oxQ">
           <button class="ox-chip on" type="button" data-who="team" aria-pressed="true">I lead a team</button>
@@ -657,12 +657,24 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
         </div>
         <div class="ox-act">
           <button class="ox-btn js-start" type="button">Get started</button>
-          <button class="ox-btn alt js-demo" type="button">Try the demo</button>
+          <button class="ox-btn alt js-demo" type="button">Try demo instantly</button>
           <button class="ox-btn alt js-inq" type="button">Send an inquiry</button>
         </div>
-        <p class="ox-note">Already have a password? <button class="ox-lnk in js-login" type="button">Log in</button></p>
+        <p class="ox-note" style="margin-top:12px">No sign-up, no card. The demo opens in one click with sample data. Or <a href="#preview">scroll to the live preview</a>.</p>
+        <p class="ox-note" style="margin-top:6px">Already have a password? <button class="ox-lnk in js-login" type="button">Log in</button></p>
       </div>
-      <div class="ox3" id="ox3"><div class="ox3-cv" id="ox3cv" role="img" aria-label="Animated 3D pipeline: an inquiry card moving from New to Waiting to Done"><canvas id="hero3d"></canvas><span class="ox3-k k1">New</span><span class="ox3-k k2">Following up</span><span class="ox3-k k3">Done</span></div><aside class="gl"><b>Hellobase CRM at a glance</b><ul><li>Live waiting timer on every inquiry</li><li>Going-cold alerts after 5+ quiet days</li><li>Hello, an AI assistant that does the work for you</li><li>Cases with routing and SLA tracking</li><li>Team chat log for every client</li></ul><div><strong>$8</strong> a month &middot; one login &middot; cancel anytime</div><a href="#/products/crm">See every CRM function &rarr;</a></aside></div>
+      <div class="ox3 nogl" id="ox3"><div class="ox3-cv" id="ox3cv" aria-hidden="true"><canvas id="hero3d"></canvas></div>
+        <div class="hbm" role="img" aria-label="Sample CRM screen: client Anna Reyes, next task Send revised quote due Thursday, follow-up reminder Friday 9:00 AM">
+          <div class="hbm-bar"><i></i><i></i><i></i><span>Sample data</span></div>
+          <div class="hbm-hd"><div class="hbm-av">AR</div><div><b>Anna Reyes</b><small>Reyes Social Media &middot; Quote sent</small></div><span class="hbm-w">Waiting 2h 14m</span></div>
+          <div class="hbm-g">
+            <div><small>Next task</small><b>Send revised quote</b></div>
+            <div><small>Due</small><b>Thu, Oct 22</b></div>
+            <div class="hbm-r"><small>Follow-up reminder</small><b>Fri, Oct 23 &middot; 9:00 AM</b><em>If no reply, we nudge you to call.</em></div>
+          </div>
+          <ul class="hbm-l"><li><span>Cafe Luna</span><em>Replied</em></li><li><span>J. Reyes</span><em class="w">Going cold &middot; 6 days</em></li><li><span>Green Leaf Salon</span><em>Task due today</em></li></ul>
+          <button class="ox-btn js-demo hbm-b" type="button">Click around this screen</button>
+        </div></div>
 <div class="ox-bloom" id="bloom">
         <div class="ox-ring" aria-hidden="true"></div>
         <button class="ox-pt" type="button" data-sel="crm" style="--r:0deg" aria-label="Hellobase CRM" title="Hellobase CRM"><span class="ic crm" data-ic="crm"></span></button>
@@ -686,7 +698,6 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
     </section>
 
     
-    <div class="ox-stats" data-pg="home"><div><p style="margin:0"><b>$8</b><span>a month, one simple price</span></p><p style="margin:0"><b>5+</b><span>quiet days trigger a going-cold alert</span></p><p style="margin:0"><b>24/7</b><span>live waiting timer on every inquiry</span></p><p style="margin:0"><b>0</b><span>sales calls needed</span></p></div></div>
 <style id="pv-css">
 .pv{background:#fff}.pv-in{max-width:1480px;margin:0 auto;padding:clamp(44px,7vw,92px) var(--pad)}
 .pv h2{font-size:clamp(1.8rem,3.8vw,3rem);line-height:1.06;letter-spacing:-.03em;margin:8px 0 12px;max-width:21em}
@@ -762,11 +773,10 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
     </div>
     <div class="pv-main" id="pvMain" role="tabpanel" aria-live="polite"></div>
     <div class="pv-toast" id="pvToast" role="status"></div>
-    <div class="pv-cta" id="pvCta"><span>Liking it? Your own data works the same way.</span><button class="ox-btn js-start" type="button">Get started · $8/mo</button></div>
+    <div class="pv-cta" id="pvCta"><span>Liking it? Your own data works the same way.</span><button class="ox-btn js-start" type="button">Get started</button></div>
   </div>
   <p class="pv-eg">Sample data only. Everything resets when you reload the page.</p>
-  <div class="pv-a"><button class="ox-btn js-start" type="button">Get started</button><button class="ox-btn alt js-demo" type="button">Open the full demo</button></div>
-</div></section>
+  </div></section>
 <script id="pv-js">(()=>{
 const $=id=>document.getElementById(id),main=$('pvMain'),tabsEl=$('pvTabs');if(!main)return;
 const MIN=60e3,HR=36e5,DAY=864e5;let S,view='leads',filter='all',sel='c1',acts=0,nid=100;
@@ -880,7 +890,7 @@ S=seed();render();setInterval(()=>{if(document.hidden)return;if(view==='leads')t
 .lp-eg{text-align:center;color:var(--mut);font-size:.82rem;margin:12px 0 0}
 @media(max-width:800px){.lp-3,.lp-2{grid-template-columns:1fr}.lp-row{grid-template-columns:1fr auto}.lp-row .lp-btn{display:none}}
 </style>
-<section class="lp" id="problem" data-pg="home" aria-labelledby="pbT"><div class="lp-in">
+<section class="lp" id="problem" data-pg="solutions" aria-labelledby="pbT"><div class="lp-in">
   <span class="ox-kick">The problem</span>
   <h2 id="pbT">Inquiries don’t get ignored. They get buried.</h2>
   <p class="lp-lead">A message lands in one inbox, a reply is promised in a chat, a client goes quiet. Nobody decides to drop it, and nobody notices until the client has moved on.</p>
@@ -890,9 +900,8 @@ S=seed();render();setInterval(()=>{if(document.hidden)return;if(view==='leads')t
   <span class="ox-kick">What Hellobase does about it</span>
   <h2 id="tmT">A timer on every inquiry. An alert before a client goes cold.</h2>
   <div class="lp-2"><div class="lp-c lp-big"><span class="lp-n">Live waiting timer</span><b>See exactly who has been left on read</b><span>Every inquiry shows how long it has been waiting for a reply, counting live, so nobody sits unanswered without you knowing.</span></div><div class="lp-c lp-big"><span class="lp-n">Going-cold alerts</span><b>Get nudged before the silence costs you</b><span>When a client has been quiet for 5+ days, Hellobase reminds you to check in while the relationship is still warm.</span></div></div>
-  <div class="vx-a"><button class="ox-btn js-start" type="button">Get started</button><button class="ox-btn alt js-demo" type="button">Try the demo</button></div>
-</div></section>
-<section class="lp" id="loop" data-pg="home" aria-labelledby="lpT"><div class="lp-in">
+  </div></section>
+<section class="lp" id="loop" data-pg="solutions" aria-labelledby="lpT"><div class="lp-in">
   <span class="ox-kick">See it in action (example)</span>
   <h2 id="lpT" style="margin-bottom:26px">Your day, with the clock running.</h2>
   <div class="lp-win" role="img" aria-label="Example inquiry list with a live waiting timer and a going-cold alert">
@@ -1091,28 +1100,30 @@ if(!RM){let on=false;watch($('.ob-say'),v=>{on=v});(async()=>{let k=0;for(;;){co
       <div class="ox-pr">
         <div>
           <h2>Your own CRM for $8 a month.</h2>
-          <p class="l">No sales call, no per-seat maze. One simple price, and your Hellobase login opens your CRM.</p>
+          <p class="l">No sales call, no per-seat maze. One simple price. Your Hellobase login opens your CRM.</p>
         </div>
         <div class="ox-pc">
           <div class="ox-amt">$8<small>a month</small></div>
-          <ul><li>Inquiries with a live waiting timer</li><li>Clients, tasks and cases in one calm home</li><li>SLA tracking so you never miss a reply</li><li>Team chat log for every client</li><li>Phone friendly, nothing to learn</li></ul>
+          <ul><li>Inquiries with a live waiting timer and going-cold alerts</li><li>Clients, tasks and cases in one calm home</li><li>SLA tracking and a team chat log for every client</li><li>Hello, the AI assistant that drafts follow-ups</li></ul>
+          <p class="ox-fine" style="margin:12px 0 4px"><b>How it works</b></p>
+          <ol class="ox-fine" style="margin:0 0 14px;padding-left:1.2em"><li>Enter your name and work email.</li><li>Pay $8 on the payment provider&rsquo;s secure page (card or wallet).</li><li>Your CRM is activated as soon as payment is confirmed.</li></ol>
           <button class="ox-btn js-sub" type="button">Start my CRM</button>
-          <p class="ox-fine">Cancel anytime.</p>
+          <p class="ox-fine">Billed monthly, cancel anytime. We only need your name, email and payment method. Not ready? <button class="ox-lnk js-demo" type="button">Try the demo first</button>, no sign-up.</p>
         </div>
       </div>
     </section>
-<section class="vx" id="va" data-pg="home solutions" aria-labelledby="vaT"><div class="vx-in">
+<section class="vx" id="va" data-pg="solutions" aria-labelledby="vaT"><div class="vx-in">
   <span class="ox-kick">For virtual assistants</span>
   <h2 id="vaT">Juggle every client’s inbox without dropping a single reply.</h2>
   <p class="vx-lead">When you answer for several people at once, the one message you miss is the one they remember. Hellobase shows who is waiting, and for how long.</p>
   <div class="vx-g"><div><b>A live waiting timer</b><span>Every inquiry shows how long it has been waiting, so the longest wait is always easy to spot.</span></div><div><b>Going-cold alerts</b><span>A nudge after 5+ quiet days, before a client starts wondering if anyone is there.</span></div><div><b>A chat log for every client</b><span>Messages and decisions stay in one place, easy to review, report back on or hand over.</span></div></div>
   <div class="vx-a"><button class="ox-btn js-start" type="button">Get started</button><button class="ox-btn alt js-demo" type="button">Try the demo</button></div>
 </div></section>
-<section class="vx alt" id="smb" data-pg="home solutions" aria-labelledby="smbT"><div class="vx-in">
+<section class="vx alt" id="smb" data-pg="solutions" aria-labelledby="smbT"><div class="vx-in">
   <span class="ox-kick">For small businesses</span>
   <h2 id="smbT">A CRM that fits a small team and a small budget.</h2>
   <p class="vx-lead">No long setup and no big-company price tag. Keep every customer, inquiry and task in one calm place.</p>
-  <div class="vx-g"><div><b>$8 a month</b><span>One simple price and one login. Cancel anytime.</span></div><div><b>Know who is owed what</b><span>Your Today view lists money owed and replies due first.</span></div><div><b>Hello writes the follow-ups</b><span>The AI assistant drafts replies from what your CRM already knows. You approve every change.</span></div></div>
+  <div class="vx-g"><div><b>One simple price</b><span>One login, no per-seat maze. See Pricing for what is included.</span></div><div><b>Know who is owed what</b><span>Your Today view lists money owed and replies due first.</span></div><div><b>Hello writes the follow-ups</b><span>The AI assistant drafts replies from what your CRM already knows. You approve every change.</span></div></div>
   <div class="vx-a"><button class="ox-btn js-start" type="button">Get started</button><button class="ox-btn alt js-inq" type="button">Send an inquiry</button></div>
 </div></section>
     <section class="cx" id="crmx" data-pg="products"><div class="cx-in"><nav class="cx-sub"><b>Hellobase CRM</b><button type="button" onclick="document.getElementById('cxf').scrollIntoView({behavior:'smooth'})">Functions</button><button type="button" onclick="document.getElementById('cxd').scrollIntoView({behavior:'smooth'})">Why it is different</button><button type="button" onclick="document.getElementById('cxc').scrollIntoView({behavior:'smooth'})">Compare</button><button type="button" onclick="document.getElementById('cxq').scrollIntoView({behavior:'smooth'})">FAQ</button><button type="button" class="js-sub cta">Start my CRM</button></nav><div class="cx-ov"><span class="ox-kick">Overview</span><h2>Know who is waiting, who has gone quiet, and what comes next.</h2><p>Hellobase CRM is a simple home for every inquiry, client and task. It is built for agencies, clinics, service teams, support desks and small sales teams that want to respond faster and follow up better, without a sales call or a per-seat price maze.</p><div class="ox-act"><button class="ox-btn js-sub" type="button">Start my CRM</button><button class="ox-btn alt js-inq" type="button">Talk to us</button></div></div><h3 class="cx-h" id="cxf">What Hellobase CRM does</h3><div class="cx-g"><article><i>1</i><h4>Inquiries with a live waiting timer</h4><p>Every new inquiry shows how long it has been waiting.</p><em>The longest-waiting client is always visible, so replies do not slip.</em></article><article><i>2</i><h4>Going-cold alerts</h4><p>Clients who have been quiet for five or more days are flagged.</p><em>You follow up before the relationship fades.</em></article><article><i>3</i><h4>Cases with routing</h4><p>Each case is sent to the right person on your team.</p><em>Every issue has a clear owner.</em></article><article><i>4</i><h4>SLA tracking</h4><p>Cases are tracked against your response targets.</p><em>Risk shows early instead of arriving as a complaint.</em></article><article><i>5</i><h4>Team chat log for every client</h4><p>Every conversation with a client is kept in one log.</p><em>Anyone can pick up where a colleague left off.</em></article><article><i>6</i><h4>Clients, tasks and cases in one home</h4><p>Clients, what you owe them and what they asked for sit together.</p><em>No jumping between inboxes and spreadsheets.</em></article></div><h3 class="cx-h" id="cxd">Why it is different</h3><div class="cx-g"><article><h4>Response time comes first</h4><p>The live waiting timer puts how long people have waited at the centre of your day.</p></article><article><h4>One flat price</h4><p>$8 a month. No per-seat maze, so the cost is easy to predict.</p></article><article><h4>No sales call</h4><p>Log in and start. You do not need a demo or a quote.</p></article><article><h4>Nothing to learn</h4><p>A simple layout that is comfortable to use on a phone.</p></article><article><h4>Everything in one home</h4><p>Clients, tasks, cases and your team's conversations live together, so you do not need separate tools.</p></article><article><h4>Private by design</h4><p>Only members your admin adds can log in, and CRM data stays with your team.</p></article></div><h3 class="cx-h" id="cxc">How it compares with other CRM platforms</h3><table class="cx-t"><thead><tr><th></th><th>Many CRM platforms</th><th>Hellobase CRM</th></tr></thead><tbody><tr><th scope="row">Pricing</th><td>Tiers and per-seat pricing can be hard to predict</td><td>$8 a month, one simple price</td></tr><tr><th scope="row">Getting started</th><td>Demos and sales calls are common</td><td>Log in and start</td></tr><tr><th scope="row">Learning curve</th><td>Feature-heavy tools can take time to set up</td><td>Simple and phone friendly</td></tr><tr><th scope="row">Response times</th><td>Usually something you configure</td><td>Live waiting timer built in</td></tr><tr><th scope="row">Follow-up</th><td>Depends on how you set it up</td><td>Going-cold alerts after 5+ quiet days</td></tr><tr><th scope="row">Access</th><td>Varies by product</td><td>Approved members only</td></tr></tbody></table><p class="cx-fn">A general comparison. Features and pricing vary by product.</p><div class="cx-pr"><div><span class="ox-kick">Pricing</span><h3>$8 a month, no per-seat maze.</h3><p>One simple price. Cancel anytime.</p></div><button class="ox-btn js-sub" type="button">Start my CRM</button></div><h3 class="cx-h" id="cxq">CRM questions</h3><div class="ox-faq"><details><summary>Is there a setup fee or sales call?</summary><p>No. Log in and start. There is no sales call and no per-seat maze.</p></details><details><summary>Who can see my client data?</summary><p>Only people your admin has added can log in, and your CRM data stays with your team.</p></details><details><summary>Can I use it on my phone?</summary><p>Yes. It is phone friendly and made so there is nothing to learn.</p></details><details><summary>Can I cancel?</summary><p>Yes, anytime.</p></details></div></div></section>
@@ -1581,7 +1592,7 @@ function openJoin(){
     f('h2',{text:'How would you like to start?'}),f('p',{class:'sub',text:'Join with your own CRM, or look around first. Both take about a minute.'}),
     f('div',{class:'pick2'},
       f('button',{class:'opt',type:'button',onclick:()=>{m.close();openSubscribe()}},f('span',{class:'tag',text:'Join'}),f('b',{text:'Subscribe · '+PRICE+' a month'}),f('small',{text:'Your own Hellobase CRM. Pay by card, GCash or Maya. Cancel anytime.'})),
-      f('button',{class:'opt',type:'button',onclick:()=>{m.close();openDemoForm()}},f('span',{class:'tag',text:'Free'}),f('b',{text:'Explore a demo'}),f('small',{text:'No card needed. We set the demo up for your industry with sample data.'}))),
+      f('button',{class:'opt',type:'button',onclick:()=>{m.close();window.openDemoInstant()}},f('span',{class:'tag',text:'Free'}),f('b',{text:'Explore a demo'}),f('small',{text:'No sign-up, no card. Opens instantly with sample data.'}))),
     f('div',{class:'r2',style:'justify-content:space-between'},f('button',{class:'b gh',type:'button',text:'Just have a question?',onclick:()=>{m.close();window.openInquiry&&window.openInquiry()}}),f('button',{class:'b gh',type:'button',text:'Close',onclick:()=>m.close()})));
 }
 
@@ -1602,9 +1613,9 @@ function openSubscribe(pre={}){
     return f('label',{class:'pm'},r,f('span',{},t,f('em',{text:s})))}));
   const send=f('button',{class:'b go',type:'button',text:'Continue to payment'});
   const m=modal('jn','Subscribe to Hellobase CRM',
-    f('h2',{text:'Create your Hellobase CRM'}),f('p',{class:'sub',text:'Tell us about you, pick how you want to pay, and we will set up your CRM.'}),
-    f('div',{class:'g2'},lab('First name',first),lab('Last name',last),lab('Job title',job),lab('Company',comp),lab('Company size',size),lab('Country/region',country),lab('Work email',email),lab('Phone',f('div',{class:'jn-ph'},dial,phone))),
-    lab('Industry (we match your CRM to it)',ind),
+    f('h2',{text:'Create your Hellobase CRM'}),f('p',{class:'sub',text:'We only need your name, work email and how you want to pay. Everything else is optional.'}),
+    f('div',{class:'g2'},lab('First name',first),lab('Last name',last),lab('Job title (optional)',job),lab('Company (optional)',comp),lab('Company size (optional)',size),lab('Country/region',country),lab('Work email',email),lab('Phone (optional)',f('div',{class:'jn-ph'},dial,phone))),
+    lab('Industry (optional, we match your CRM to it)',ind),
     f('div',{class:'gs-step',text:'Payment method'}),pay,
     f('div',{class:'sum'},f('span',{},'Hellobase CRM',f('br'),f('small',{text:'Billed monthly. Cancel anytime.'})),f('span',{text:PRICE+' / month'})),
     f('p',{class:'fine',text:'You enter your card or wallet details on the payment provider\'s secure page. Hellobase never sees or stores them.'}),
@@ -1615,14 +1626,11 @@ function openSubscribe(pre={}){
     err.textContent='';if(hp.value)return m.close();
     const v={first:first.value.trim(),last:last.value.trim(),job:job.value.trim(),comp:comp.value.trim(),email:email.value.trim(),phone:phone.value.trim()};
     if(!v.first||!v.last)return err.textContent='Please enter your first and last name.';
-    if(!v.comp)return err.textContent='Please enter your company.';
-    if(!size.value)return err.textContent='Select your company size.';
     if(!emailOk(v.email))return err.textContent='Enter a valid work email.';
-    if(!phoneOk(v.phone))return err.textContent='Enter a phone number we can reach you on.';
-    if(!ind.value)return err.textContent='Select your industry.';
+    if(v.phone&&!phoneOk(v.phone))return err.textContent='That phone number looks too short. Fix it or leave it empty.';
     if(!agree.checked)return err.textContent='Please accept the terms to continue.';
-    const mName=PAY_METHODS.find(x=>x[0]===method)[1],indName=(INDUSTRIES.find(x=>x[0]===ind.value)||[0,'Other'])[1],ph=dial.textContent+' '+v.phone;
-    const lines=['Subscribe signup','Plan: Hellobase CRM '+PRICE+'/month','Payment method: '+mName+' (awaiting payment)','Company: '+v.comp,'Job title: '+(v.job||'not given'),'Company size: '+size.value,'Industry: '+indName,'Country: '+country.value];
+    const mName=PAY_METHODS.find(x=>x[0]===method)[1],indName=(INDUSTRIES.find(x=>x[0]===ind.value)||[0,'Other'])[1],ph=v.phone?dial.textContent+' '+v.phone:'not given';
+    const lines=['Subscribe signup','Plan: Hellobase CRM '+PRICE+'/month','Payment method: '+mName+' (awaiting payment)','Company: '+(v.comp||'not given'),'Job title: '+(v.job||'not given'),'Company size: '+(size.value||'not given'),'Industry: '+indName,'Country: '+country.value];
     const nm=v.first+' '+v.last;
     send.disabled=true;send.textContent='Saving…';
     let saved=true;try{await saveLead('Subscribe signup',nm,v.email,ph,lines)}catch(e){console.error(e);saved=false}
@@ -1749,6 +1757,7 @@ function dmRender(){
     f('button',{class:'dm-b',type:'button',text:'Exit demo',onclick:dmExit}));
   const side=f('nav',{class:'dm-side','aria-label':'Demo sections'},d.nav.map(([k,t])=>f('button',{type:'button','aria-current':String(DM.view===k),text:t,onclick:()=>{DM.view=k;dmRender()}})));
   const main=f('div',{class:'dm-main'});
+  if(DM.banner&&!DM.who.name)main.append(f('div',{class:'dm-banner'},f('div',{},f('b',{text:'You are in a sample workspace.'}),f('br'),'No sign-up needed. Click anything, then use the menu at the top to switch industry. Nothing is saved.'),f('button',{type:'button','aria-label':'Dismiss',text:'×',onclick:()=>{DM.banner=false;dmRender()}})));
   if(DM.banner&&DM.who.name)main.append(f('div',{class:'dm-banner'},f('div',{},f('b',{text:'Welcome, '+DM.who.name+(DM.who.company?' from '+DM.who.company:'')+'.'}),f('br'),'This is Hellobase set up for '+d.name+'. Everything is sample data you can click through.'),f('button',{type:'button','aria-label':'Dismiss',text:'×',onclick:()=>{DM.banner=false;dmRender()}})));
   main.append(dmView(d));
   root.replaceChildren(top,f('div',{class:'dm-wrap'},side,main));
@@ -1849,7 +1858,9 @@ function dmTasks(d){
 
 window.openJoin=openJoin;window.openSubscribe=openSubscribe;window.openDemoForm=openDemoForm;
 document.querySelectorAll('.js-sub').forEach(b=>b.addEventListener('click',()=>{if(window.closeMenus)closeMenus();openSubscribe()}));
-document.querySelectorAll('.js-demo').forEach(b=>b.addEventListener('click',()=>{if(window.closeMenus)closeMenus();openDemoForm()}));
+/* Instant demo: no form, no email. Picks an industry from the hero chip (or Small business) and loads sample data straight away. */
+window.openDemoInstant=function(){if(window.closeMenus)closeMenus();const w=document.querySelector('.ox-chip.on[data-who]'),k=w&&w.dataset.who==='team'?'professional':'smallbiz';startDemo(k,{})};
+document.querySelectorAll('.js-demo').forEach(b=>b.addEventListener('click',window.openDemoInstant));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dmEl()&&!dmEl().hidden&&!document.querySelector('.iq-scrim'))dmExit()});
 })();
 </script>
@@ -2088,9 +2099,9 @@ window.__orchidOpenCrm=function(){
 <script>
 (function(){var L=document.getElementById('land');if(!L)return;
 var h1=L.querySelector('.ox-hero .ox-h1'),sub=L.querySelector('.ox-hero .ox-sub'),chips=L.querySelectorAll('.ox-chip[data-who]');if(!h1||!sub||!chips.length)return;
-var P={team:['Work that feels calm.','Connection that feels real.',sub.textContent],
-va:['Never leave a client’s inquiry on read.','Look organized for every client.','Hellobase keeps every client’s inquiries, follow-ups and tasks in one calm place, with a live timer on whoever is waiting. $8 a month.'],
-biz:['Every customer gets a reply.','Without the big-company CRM.','Keep every inquiry, customer and task in one calm place, for $8 a month. No long setup.']};
+var P={team:['Reply to every lead','before it goes cold.',sub.textContent],
+va:['Never leave a client’s inquiry on read.','Look organized for every client.','Hellobase keeps every client’s inquiries, follow-ups and tasks in one calm place, with a live timer on whoever is waiting.'],
+biz:['Every customer gets a reply.','Without the big-company CRM.','Keep every inquiry, customer and task in one calm place. No long setup.']};
 function set(k){var d=P[k]||P.team;h1.innerHTML='';[d[0],d[1]].forEach(function(t,i){var s=document.createElement('span');if(i)s.className='b';s.textContent=t;h1.appendChild(s)});sub.textContent=d[2];
 chips.forEach(function(c){var on=c.dataset.who===k;c.classList.toggle('on',on);c.setAttribute('aria-pressed',on)})}
 chips.forEach(function(c){c.addEventListener('click',function(){set(c.dataset.who)})});
@@ -2103,6 +2114,17 @@ setInterval(function(){if(document.hidden)return;
 if(r){if(--r===0){t=41;el.className='lp-tm';el.textContent='Waiting '+f(t)}return}
 t++;el.textContent='Waiting '+f(t);if(t>=100)el.className='lp-tm w';if(t>=112){r=3;el.className='lp-tm ok';el.textContent='Replied in '+f(t)}},1000)})();
 </script>
+<style id="hbm-css">
+#ox3cv{display:none!important}
+.hbm{background:#fff;color:#0f172a;border:1px solid #d3e2f3;border-radius:20px;box-shadow:0 24px 60px rgba(15,23,42,.16);overflow:hidden;font-size:.92rem}
+.hbm-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;background:#f4f8fc;border-bottom:1px solid #d3e2f3}.hbm-bar i{width:9px;height:9px;border-radius:50%;background:#cbd5e1}.hbm-bar span{margin-left:auto;font-size:.75rem;color:#64748b}
+.hbm-hd{display:flex;align-items:center;gap:12px;padding:16px 18px 6px}.hbm-hd small{display:block;color:#64748b}.hbm-av{width:40px;height:40px;border-radius:50%;background:#2563eb;color:#fff;display:grid;place-items:center;font-weight:700}
+.hbm-w{margin-left:auto;background:#fef3c7;color:#92400e;border-radius:99px;padding:4px 10px;font-weight:700;font-size:.8rem;white-space:nowrap}
+.hbm-g{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 18px}.hbm-g>div{border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px}.hbm-g small{display:block;color:#64748b;font-size:.75rem}.hbm-g em{display:block;font-style:normal;color:#475569;font-size:.8rem;margin-top:2px}
+.hbm-r{grid-column:1/-1;border-color:#2563eb!important;background:#eff6ff}
+.hbm-l{list-style:none;margin:0;padding:4px 18px 8px}.hbm-l li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #eef2f7}.hbm-l em{font-style:normal;color:#047857;font-size:.8rem}.hbm-l em.w{color:#b45309}
+.hbm-b{margin:4px 18px 18px;width:calc(100% - 36px)}
+</style>
 <style id="hellobase-brand">
 .wm{align-items:center}
 .wm .hbl{height:1.15em;width:auto;display:block;overflow:visible;flex:none}
