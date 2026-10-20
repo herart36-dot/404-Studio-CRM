@@ -1135,10 +1135,9 @@ async function applyAccess(email){
   let apps=[];
   try{const r=await clients[k].from('orchid_app_access').select('app');if(!r.error&&r.data)apps=r.data.map(x=>x.app)}catch(e){}
   if(String(email).trim().toLowerCase()!==who.toLowerCase())return;   // user changed meanwhile
-  // Open to everyone who signs in with Google: the CRM is always available to them (they get their own workspace + setup questions).
+  // Open to everyone who signs in: the CRM always shows. It gives each person a 14-day trial; after that an admin must give full access or add them as a member.
   // Other apps (Ally etc.) still need an admin grant in orchid_app_access.
-  try{if(!apps.includes('crm')){const ss=(await clients[k].auth.getSession()).data.session,u=ss&&ss.user,am=(u&&u.app_metadata)||{};if(am.provider==='google'||(am.providers||[]).includes('google')||(u&&(u.identities||[]).some(i=>i.provider==='google')))apps.push('crm')}}catch(e){}
-  if(String(email).trim().toLowerCase()!==who.toLowerCase())return;
+  if(!apps.includes('crm'))apps.push('crm');
   cards.forEach(b=>{b.hidden=!apps.includes(b.dataset.p)});
   // only one app available: skip the picker and open it straight away
   const vis=cards.filter(b=>!b.hidden);
@@ -1147,7 +1146,7 @@ async function applyAccess(email){
 }
 function showPick(email){
   document.body.dataset.v='pick';clearTimeout(timer);tiles.forEach(t=>t.classList.remove('dim'));who=email;$('land').hidden=true;hbCover(true);setTimeout(function(){if(!window.__hbOpening)hbCover(false)},8000);applyAccess(email).then(hbDone,hbDone);
-  $('who').textContent='Signed in as '+email;$('story').hidden=true;$('form').hidden=true;$('pick').hidden=false;say('',0,'pmsg');
+  $('who').textContent='Signed in as '+email+' · v3';$('story').hidden=true;$('form').hidden=true;$('pick').hidden=false;say('',0,'pmsg');
 }
 async function logoutAll(){
   for(const c of Object.values(clients)){try{await c.auth.signOut()}catch(e){}}
