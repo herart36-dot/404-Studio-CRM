@@ -687,6 +687,164 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
 
     
     <div class="ox-stats" data-pg="home"><div><p style="margin:0"><b>$8</b><span>a month, one simple price</span></p><p style="margin:0"><b>5+</b><span>quiet days trigger a going-cold alert</span></p><p style="margin:0"><b>24/7</b><span>live waiting timer on every inquiry</span></p><p style="margin:0"><b>0</b><span>sales calls needed</span></p></div></div>
+<style id="pv-css">
+.pv{background:#fff}.pv-in{max-width:1480px;margin:0 auto;padding:clamp(44px,7vw,92px) var(--pad)}
+.pv h2{font-size:clamp(1.8rem,3.8vw,3rem);line-height:1.06;letter-spacing:-.03em;margin:8px 0 12px;max-width:21em}
+.pv-lead{color:var(--mut);font-size:1.06rem;line-height:1.6;max-width:44em;margin:0 0 26px}
+.pv-app{display:grid;grid-template-columns:200px minmax(0,1fr);background:#fff;border:1px solid var(--ln);border-radius:18px;box-shadow:0 24px 60px rgba(11,27,52,.14);overflow:hidden;min-height:540px;position:relative}
+.pv-side{background:#f8fafc;border-right:1px solid var(--ln);padding:14px 10px;display:flex;flex-direction:column;gap:4px}
+.pv-dots{display:flex;gap:6px;padding:2px 8px 12px}.pv-dots i{width:10px;height:10px;border-radius:50%;background:#cbd5e1}
+.pv-tab{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;border:0;background:none;font:inherit;font-weight:700;font-size:.93rem;color:var(--mut);padding:10px 12px;border-radius:10px;cursor:pointer;text-align:left}
+.pv-tab:hover{background:#eef2f8;color:var(--ink)}.pv-tab[aria-selected=true]{background:#fff;color:var(--a);box-shadow:0 1px 3px rgba(15,23,42,.12)}
+.pv-tab em{font-style:normal;font-size:.75rem;min-width:22px;text-align:center;padding:2px 7px;border-radius:999px;background:#e2e8f0;color:#334155}
+.pv-tab em.hot{background:#fee2e2;color:#991b1b}
+.pv-reset{margin-top:auto;border:0;background:none;font:inherit;font-size:.8rem;color:var(--mut);text-decoration:underline;cursor:pointer;padding:8px 12px;text-align:left}
+.pv-main{padding:20px 22px 24px;min-width:0;display:flex;flex-direction:column}
+.pv-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.pv-hd h3{font-size:1.25rem;letter-spacing:-.02em}
+.pv-chips{display:flex;gap:6px;flex-wrap:wrap}
+.pv-chip{border:1px solid var(--ln);background:#fff;border-radius:999px;padding:5px 13px;font:inherit;font-size:.83rem;font-weight:600;color:var(--ink);cursor:pointer}
+.pv-chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pv-b{border:1px solid var(--ln);background:#fff;border-radius:999px;padding:6px 14px;font:inherit;font-size:.85rem;font-weight:700;color:var(--ink);cursor:pointer;white-space:nowrap}
+.pv-b:hover{border-color:var(--a);color:var(--a)}.pv-b.p{background:var(--a);border-color:var(--a);color:#fff}.pv-b.p:hover{filter:brightness(.92);color:#fff}
+.pv-list{display:grid;gap:0;border:1px solid var(--ln);border-radius:14px;overflow:hidden}
+.pv-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--ln);font-size:.95rem;background:#fff}.pv-row:last-child{border:0}
+.pv-row.cold{background:#fff7f7}.pv-row small{display:block;color:var(--mut);font-size:.83rem}
+.pv-nm{background:none;border:0;padding:0;font:inherit;font-weight:700;color:var(--ink);cursor:pointer;text-align:left}.pv-nm:hover{color:var(--a);text-decoration:underline}
+.pv-tm{font-variant-numeric:tabular-nums;font-weight:700;font-size:.85rem;padding:4px 12px;border-radius:999px;background:#dcfce7;color:#166534;min-width:112px;text-align:center}
+.pv-tm.w{background:#fef3c7;color:#92400e}.pv-tm.ok{background:#dbeafe;color:#1e40af}.pv-tm.cold{background:#fee2e2;color:#991b1b}
+.pv-act{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.pv-form{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.pv-form input,.pv-form select,.pv-note textarea{font:inherit;font-size:.92rem;border:1px solid var(--ln);border-radius:12px;padding:9px 12px;background:#fff;color:var(--ink);min-width:0}
+.pv-form input{flex:1 1 140px}.pv-form input:focus,.pv-form select:focus,.pv-note textarea:focus{outline:2px solid color-mix(in srgb,var(--a) 40%,transparent);border-color:var(--a)}
+.pv-grp{font-size:.75rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:16px 0 8px}.pv-grp:first-of-type{margin-top:0}
+.pv-fu{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--ln);border-radius:12px;margin-bottom:8px;background:#fff}
+.pv-fu.od{border-color:#fecaca;background:#fff7f7}.pv-fu.done{opacity:.55}.pv-fu.done .pv-nm,.pv-fu.done span.t{text-decoration:line-through}
+.pv-fu input[type=checkbox]{width:20px;height:20px;accent-color:var(--a);cursor:pointer}.pv-fu small{display:block;color:var(--mut);font-size:.83rem}
+.pv-due{font-size:.8rem;font-weight:700;padding:3px 10px;border-radius:999px;background:#e2e8f0;color:#334155;white-space:nowrap}.pv-fu.od .pv-due{background:#fee2e2;color:#991b1b}
+.pv-cl{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;flex:1}
+.pv-clist{display:grid;gap:6px;align-content:start}
+.pv-cli{display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--ln);background:#fff;border-radius:12px;padding:9px 11px;font:inherit;cursor:pointer;text-align:left}
+.pv-cli[aria-pressed=true]{border-color:var(--a);background:color-mix(in srgb,var(--a) 7%,#fff)}.pv-cli b{display:block;font-size:.92rem}.pv-cli small{color:var(--mut);font-size:.78rem}
+.pv-av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:none;color:#fff;font-weight:800;font-size:.8rem;background:linear-gradient(135deg,#2563eb,#06b6d4)}.pv-av.l{width:54px;height:54px;font-size:1.1rem}
+.pv-prof{border:1px solid var(--ln);border-radius:14px;padding:18px 20px;min-width:0}
+.pv-ph{display:flex;gap:14px;align-items:center;flex-wrap:wrap}.pv-ph h4{margin:0;font-size:1.2rem;font-family:var(--dsp);letter-spacing:-.02em}.pv-ph p{margin:2px 0 0;color:var(--mut);font-size:.88rem}
+.pv-tags{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}.pv-tag{font-size:.74rem;font-weight:700;padding:2px 9px;border-radius:999px;background:color-mix(in srgb,var(--a) 12%,#fff);color:var(--a)}
+.pv-st{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.pv-st div{background:var(--tint);border-radius:12px;padding:10px 12px}.pv-st b{display:block;font-size:1.05rem}.pv-st span{font-size:.78rem;color:var(--mut)}
+.pv-tl{list-style:none;margin:10px 0 0;padding:0 0 0 16px;border-left:2px solid var(--ln);display:grid;gap:12px}
+.pv-tl li{position:relative;font-size:.9rem}.pv-tl li:before{content:"";position:absolute;left:-23px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--a);border:2px solid #fff}
+.pv-tl small{display:block;color:var(--mut);font-size:.78rem}
+.pv-note{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.pv-note textarea{flex:1 1 200px;min-height:42px;resize:vertical}
+.pv-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;flex:1}
+.pv-col{background:#f1f5f9;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:240px}.pv-col.over{outline:2px dashed var(--a);outline-offset:-4px}
+.pv-col h4{margin:2px 4px 4px;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:#334155;display:flex;justify-content:space-between;font-family:inherit}
+.pv-card{background:#fff;border:1px solid var(--ln);border-radius:12px;padding:10px 12px;font-size:.9rem;box-shadow:0 1px 2px rgba(15,23,42,.06);cursor:grab}.pv-card.drag{opacity:.4}
+.pv-card b{display:block;font-weight:600;margin-bottom:6px}.pv-card .m{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.78rem;color:var(--mut)}
+.pv-mv{display:flex;gap:4px}.pv-mv button{border:1px solid var(--ln);background:#fff;border-radius:8px;width:28px;height:26px;cursor:pointer;font:inherit;line-height:1}.pv-mv button:hover:not(:disabled){border-color:var(--a);color:var(--a)}.pv-mv button:disabled{opacity:.3;cursor:default}
+.pv-empty{color:var(--mut);font-size:.9rem;padding:18px;text-align:center}
+.pv-cta{position:absolute;left:50%;bottom:14px;transform:translate(-50%,24px);opacity:0;pointer-events:none;transition:.35s;display:flex;align-items:center;gap:12px;background:var(--ink);color:#fff;border-radius:999px;padding:8px 8px 8px 20px;box-shadow:0 14px 34px rgba(11,27,52,.35);font-size:.9rem;font-weight:600;max-width:calc(100% - 24px)}
+.pv-app.cta .pv-main{padding-bottom:84px}.pv-cta.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}.pv-cta .ox-btn{background:#fff;color:var(--ink);border-color:#fff;padding:8px 16px;font-size:.88rem;white-space:nowrap}
+.pv-toast{position:absolute;left:50%;bottom:78px;margin-left:-90px;width:180px;text-align:center;background:#065f46;color:#fff;font-size:.83rem;font-weight:600;padding:8px 14px;border-radius:999px;opacity:0;transform:translateY(6px);transition:.25s;pointer-events:none;z-index:2}.pv-toast.on{opacity:1;transform:none}
+.pv-eg{text-align:center;color:var(--mut);font-size:.84rem;margin:14px 0 0}.pv-a{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+@media(max-width:560px){.pv-cta span{display:none}.pv-cta{padding:6px}}
+@media(max-width:900px){.pv-app{grid-template-columns:1fr}.pv-side{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--ln);padding:8px}.pv-dots,.pv-reset{display:none}.pv-tab{width:auto;white-space:nowrap}.pv-cl{grid-template-columns:1fr}.pv-board{grid-template-columns:1fr}.pv-col{min-height:0}.pv-row{grid-template-columns:1fr auto}.pv-row .pv-act{grid-column:1/-1;justify-content:flex-start}.pv-main{padding:16px}}
+@media(prefers-reduced-motion:reduce){.pv-cta,.pv-toast{transition:none}}
+</style>
+<section class="pv" id="preview" data-pg="home" aria-labelledby="pvT"><div class="pv-in">
+  <span class="ox-kick">Live preview · no account needed</span>
+  <h2 id="pvT">Try Hellobase right here, before you sign up.</h2>
+  <p class="pv-lead">This is the real workflow with sample data. Reply to a lead, set a follow-up, open a client profile, move a task. Nothing is saved and nothing asks for your email.</p>
+  <div class="pv-app" id="pvApp">
+    <div class="pv-side">
+      <div class="pv-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div role="tablist" aria-label="Preview sections" style="display:contents" id="pvTabs"></div>
+      <button class="pv-reset" id="pvReset" type="button">Reset sample data</button>
+    </div>
+    <div class="pv-main" id="pvMain" role="tabpanel" aria-live="polite"></div>
+    <div class="pv-toast" id="pvToast" role="status"></div>
+    <div class="pv-cta" id="pvCta"><span>Liking it? Your own data works the same way.</span><button class="ox-btn js-start" type="button">Get started · $8/mo</button></div>
+  </div>
+  <p class="pv-eg">Sample data only. Everything resets when you reload the page.</p>
+  <div class="pv-a"><button class="ox-btn js-start" type="button">Get started</button><button class="ox-btn alt js-demo" type="button">Open the full demo</button></div>
+</div></section>
+<script id="pv-js">(()=>{
+const $=id=>document.getElementById(id),main=$('pvMain'),tabsEl=$('pvTabs');if(!main)return;
+const MIN=60e3,HR=36e5,DAY=864e5;let S,view='leads',filter='all',sel='c1',acts=0,nid=100;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ini=n=>n.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+function seed(){const n=Date.now();return{
+ leads:[{id:'l1',name:'Maria Santos',subj:'Pricing question',src:'Website form',at:n-41e3,st:'new'},
+  {id:'l2',name:'Cafe Luna',subj:'Quote for Friday',src:'Email',at:n-(2*HR+10*MIN),st:'new'},
+  {id:'l3',name:'J. Reyes',subj:'Contract follow-up',src:'Referral',at:n-6*DAY,st:'new'},
+  {id:'l4',name:'Tala Studio',subj:'Monthly retainer',src:'Instagram',at:n-3*HR,st:'replied',rep:n-2*HR}],
+ clients:[{id:'c1',name:'Northwind Dental',who:'Dr. Ana Cruz',email:'ana@northwind.example',tags:['Retainer','VIP'],value:4800,last:n-2*DAY,tl:[['Call','Agreed on Q4 scope, sending revised quote.',n-2*DAY],['Email','Sent invoice #1042.',n-9*DAY],['Note','Prefers replies before noon.',n-20*DAY]]},
+  {id:'c2',name:'Bayside Bakery',who:'Rico Dela Peña',email:'rico@bayside.example',tags:['Monthly'],value:1900,last:n-5*DAY,tl:[['Email','Asked for holiday menu mockups.',n-5*DAY],['Call','Intro call, 20 min.',n-30*DAY]]},
+  {id:'c3',name:'Lumen Fitness',who:'Kaye Ocampo',email:'kaye@lumen.example',tags:['New'],value:900,last:n-DAY,tl:[['Note','Signed up for the starter plan.',n-DAY]]}],
+ fus:[{id:'f1',cid:'c2',text:'Send holiday menu mockups',due:n-DAY,done:0},{id:'f2',cid:'c1',text:'Confirm Q4 scope call',due:n+2*HR,done:0},{id:'f3',cid:'c3',text:'Check in after first week',due:n+3*DAY,done:0},{id:'f4',cid:'c1',text:'Renewal conversation',due:n+14*DAY,done:0}],
+ tasks:[{id:'t1',text:'Revise Northwind quote',cid:'c1',col:0},{id:'t2',text:'Draft holiday menu mockups',cid:'c2',col:1},{id:'t3',text:'Send welcome pack',cid:'c3',col:1},{id:'t4',text:'Invoice #1042 sent',cid:'c1',col:2},{id:'t5',text:'Log intro call notes',cid:'c2',col:2}]}}
+function dur(ms){const s=Math.max(0,Math.floor(ms/1e3));if(s<3600)return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');if(s<86400)return Math.floor(s/3600)+'h '+Math.floor(s%3600/60)+'m';return Math.floor(s/86400)+' days'}
+function lstat(l){if(l.st==='replied')return['ok','Replied '+dur(Date.now()-l.rep)+' ago','replied'];const a=Date.now()-l.at;if(a>=5*DAY)return['cold','Quiet '+dur(a),'cold'];if(a>=HR)return['w','Waiting '+dur(a),'waiting'];return['','Waiting '+dur(a),'waiting']}
+function due(t){const d=t-Date.now();if(d<-DAY)return'Overdue '+Math.ceil(-d/DAY)+'d';if(d<0)return'Overdue';if(d<DAY)return'Today';return'In '+Math.round(d/DAY)+' day'+(Math.round(d/DAY)>1?'s':'')}
+const cn=id=>(S.clients.find(c=>c.id===id)||{name:'Unknown'}).name;
+function toast(m){const t=$('pvToast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),1800)}
+function touch(){acts++;if(acts>=3){$('pvCta').classList.add('on');$('pvApp').classList.add('cta')}}
+function counts(){return{leads:S.leads.filter(l=>lstat(l)[2]!=='replied').length,fu:S.fus.filter(f=>!f.done&&f.due<Date.now()).length,cl:S.clients.length,tk:S.tasks.filter(t=>t.col<2).length}}
+let lastTabs='';function tabs(){const c=counts(),T=[['leads','Leads',c.leads,0],['fu','Follow-ups',c.fu,1],['clients','Clients',c.cl,0],['tasks','Task board',c.tk,0]];
+ const h=T.map(t=>'<button class="pv-tab" role="tab" data-v="'+t[0]+'" aria-selected="'+(view===t[0])+'">'+t[1]+'<em class="'+(t[3]&&t[2]?'hot':'')+'">'+t[2]+'</em></button>').join('');if(h!==lastTabs){lastTabs=h;tabsEl.innerHTML=h}}
+function vLeads(){const rows=S.leads.filter(l=>filter==='all'||lstat(l)[2]===filter);
+ return'<div class="pv-hd"><h3>Inquiries</h3><div class="pv-chips">'+[['all','All'],['waiting','Waiting'],['cold','Going cold'],['replied','Replied']].map(f=>'<button class="pv-chip" data-f="'+f[0]+'" aria-pressed="'+(filter===f[0])+'">'+f[1]+'</button>').join('')+'</div></div>'
+ +(rows.length?'<div class="pv-list">'+rows.map(l=>{const s=lstat(l),cl=S.clients.some(c=>c.src===l.id);return'<div class="pv-row '+(s[2]==='cold'?'cold':'')+'"><div><button class="pv-nm" data-lc="'+l.id+'">'+esc(l.name)+'</button><small>'+esc(l.subj)+' · '+esc(l.src)+'</small></div><span class="pv-tm '+s[0]+'" data-t="'+l.id+'">'+s[1]+'</span><div class="pv-act">'
+ +(s[2]==='replied'?'':'<button class="pv-b p" data-reply="'+l.id+'">'+(s[2]==='cold'?'Check in':'Reply')+'</button>')
+ +'<button class="pv-b" data-fu="'+l.id+'">Follow up</button>'+(cl?'':'<button class="pv-b" data-conv="'+l.id+'">Make client</button>')+'</div></div>'}).join('')+'</div>':'<div class="pv-empty">Nothing here. Try another filter.</div>')
+ +'<form class="pv-form" id="pvAddLead"><input name="n" placeholder="Name, e.g. Alex Tan" maxlength="40" aria-label="Lead name" required><input name="s" placeholder="What do they need?" maxlength="60" aria-label="Lead subject"><button class="pv-b p" type="submit">+ Add lead</button></form>'}
+function vFu(){const now=Date.now(),open=S.fus.filter(f=>!f.done).sort((a,b)=>a.due-b.due),done=S.fus.filter(f=>f.done);
+ const item=f=>'<div class="pv-fu '+(f.done?'done':f.due<now?'od':'')+'"><input type="checkbox" data-done="'+f.id+'" '+(f.done?'checked':'')+' aria-label="Mark done: '+esc(f.text)+'"><div><span class="t">'+esc(f.text)+'</span><small><button class="pv-nm" data-cl="'+f.cid+'">'+esc(cn(f.cid))+'</button></small></div><div class="pv-act"><span class="pv-due">'+(f.done?'Done':due(f.due))+'</span>'+(f.done?'':'<button class="pv-b" data-snz="'+f.id+'">Snooze 1 day</button>')+'</div></div>';
+ const od=open.filter(f=>f.due<now),td=open.filter(f=>f.due>=now&&f.due<now+DAY),up=open.filter(f=>f.due>=now+DAY);
+ const g=(t,a)=>a.length?'<div class="pv-grp">'+t+'</div>'+a.map(item).join(''):'';
+ return'<div class="pv-hd"><h3>Follow-up reminders</h3></div>'+(open.length?g('Overdue',od)+g('Today',td)+g('Upcoming',up):'<div class="pv-empty">All caught up. Add a reminder below.</div>')+g('Completed',done)
+ +'<form class="pv-form" id="pvAddFu"><input name="t" placeholder="Remind me to…" maxlength="60" aria-label="Reminder" required><select name="c" aria-label="Client">'+S.clients.map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join('')+'</select><select name="d" aria-label="When"><option value="0">Today</option><option value="1" selected>Tomorrow</option><option value="7">Next week</option></select><button class="pv-b p" type="submit">+ Add reminder</button></form>'}
+function vClients(){const c=S.clients.find(x=>x.id===sel)||S.clients[0];sel=c.id;const open=S.tasks.filter(t=>t.cid===c.id&&t.col<2).length;
+ return'<div class="pv-hd"><h3>Clients</h3></div><div class="pv-cl"><div class="pv-clist">'+S.clients.map(x=>'<button class="pv-cli" data-cl="'+x.id+'" aria-pressed="'+(x.id===sel)+'"><span class="pv-av">'+ini(x.name)+'</span><span><b>'+esc(x.name)+'</b><small>'+esc(x.who)+'</small></span></button>').join('')+'</div>'
+ +'<div class="pv-prof"><div class="pv-ph"><span class="pv-av l">'+ini(c.name)+'</span><div><h4>'+esc(c.name)+'</h4><p>'+esc(c.who)+' · '+esc(c.email)+'</p><div class="pv-tags">'+c.tags.map(t=>'<span class="pv-tag">'+esc(t)+'</span>').join('')+'</div></div></div>'
+ +'<div class="pv-st"><div><b>$'+c.value.toLocaleString()+'</b><span>Lifetime value</span></div><div><b>'+dur(Date.now()-c.last).replace(/^(\d+) days$/,'$1d ago')+(/:|h/.test(dur(Date.now()-c.last))?' ago':'')+'</b><span>Last contact</span></div><div><b>'+open+'</b><span>Open tasks</span></div></div>'
+ +'<div class="pv-act" style="justify-content:flex-start"><button class="pv-b" data-log="Call">Log call</button><button class="pv-b" data-addtask="'+c.id+'">Add task</button><button class="pv-b" data-quickfu="'+c.id+'">Follow up tomorrow</button></div>'
+ +'<ul class="pv-tl">'+c.tl.map(e=>'<li><b>'+esc(e[0])+'</b> · '+esc(e[1])+'<small>'+new Date(e[2]).toLocaleDateString(undefined,{month:'short',day:'numeric'})+(Date.now()-e[2]<MIN?' · just now':'')+'</small></li>').join('')+'</ul>'
+ +'<form class="pv-note" id="pvNote"><textarea name="n" rows="1" maxlength="160" placeholder="Add a note…" aria-label="Note"></textarea><button class="pv-b p" type="submit">Save note</button></form></div></div>'}
+function vTasks(){const N=['To do','In progress','Done'];
+ return'<div class="pv-hd"><h3>Task board</h3><span class="pv-eg" style="margin:0">Drag cards, or use the arrows</span></div><div class="pv-board">'+N.map((n,i)=>'<div class="pv-col" data-col="'+i+'"><h4>'+n+'<span>'+S.tasks.filter(t=>t.col===i).length+'</span></h4>'+S.tasks.filter(t=>t.col===i).map(t=>'<div class="pv-card" draggable="true" data-task="'+t.id+'"><b>'+esc(t.text)+'</b><div class="m"><button class="pv-nm" data-cl="'+t.cid+'" style="font-weight:600;font-size:.78rem;color:var(--mut)">'+esc(cn(t.cid))+'</button><span class="pv-mv"><button data-mv="'+t.id+':-1" '+(i===0?'disabled':'')+' aria-label="Move left">←</button><button data-mv="'+t.id+':1" '+(i===2?'disabled':'')+' aria-label="Move right">→</button></span></div></div>').join('')+'</div>').join('')+'</div>'
+ +'<form class="pv-form" id="pvAddTask"><input name="t" placeholder="New task…" maxlength="60" aria-label="Task" required><select name="c" aria-label="Client">'+S.clients.map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join('')+'</select><button class="pv-b p" type="submit">+ Add task</button></form>'}
+function render(){tabs();main.innerHTML=({leads:vLeads,fu:vFu,clients:vClients,tasks:vTasks})[view]()}
+function tick(){S.leads.forEach(l=>{const e=main.querySelector('[data-t="'+l.id+'"]');if(!e)return;const s=lstat(l);e.className='pv-tm '+s[0];e.textContent=s[1]});}
+function go(v){view=v;render()}
+function addEv(cid,type,text){const c=S.clients.find(x=>x.id===cid);if(c){c.tl.unshift([type,text,Date.now()]);c.last=Date.now()}}
+tabsEl.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)});
+$('pvReset').onclick=()=>{S=seed();acts=0;filter='all';sel='c1';$('pvCta').classList.remove('on');$('pvApp').classList.remove('cta');render();toast('Sample data reset')};
+main.addEventListener('click',e=>{const t=e.target,q=a=>t.closest('['+a+']'),g=a=>q(a)&&q(a).getAttribute(a);let v;
+ if(v=g('data-f')){filter=v;render();return}
+ if(v=g('data-reply')){const l=S.leads.find(x=>x.id===v);l.st='replied';l.rep=Date.now();touch();render();toast('Reply sent. Timer stopped.');return}
+ if(v=g('data-conv')){const l=S.leads.find(x=>x.id===v),id='c'+(++nid);S.clients.push({id,src:l.id,name:l.name,who:l.name,email:l.name.toLowerCase().replace(/[^a-z]+/g,'.').replace(/^\.|\.$/g,'')+'@example.com',tags:['New lead'],value:0,last:Date.now(),tl:[['Note','Converted from inquiry: '+l.subj,Date.now()]]});if(l.st!=='replied'){l.st='replied';l.rep=Date.now()}sel=id;touch();go('clients');toast('Added to Clients');return}
+ if(v=g('data-fu')){const l=S.leads.find(x=>x.id===v);let c=S.clients.find(x=>x.src===l.id);if(!c){const id='c'+(++nid);c={id,src:l.id,name:l.name,who:l.name,email:'—',tags:['New lead'],value:0,last:l.at,tl:[['Note','Inquiry: '+l.subj,l.at]]};S.clients.push(c)}S.fus.push({id:'f'+(++nid),cid:c.id,text:'Follow up on: '+l.subj,due:Date.now()+DAY,done:0});touch();render();toast('Reminder set for tomorrow');return}
+ if(v=g('data-lc')){const l=S.leads.find(x=>x.id===v),c=S.clients.find(x=>x.src===l.id);if(c){sel=c.id;go('clients')}else toast('Tap “Make client” to create a profile');return}
+ if(v=g('data-cl')){sel=v;go('clients');return}
+ if(v=g('data-done')){const f=S.fus.find(x=>x.id===v);f.done=t.checked?1:0;touch();render();if(f.done)toast('Done. Nice.');return}
+ if(v=g('data-snz')){const f=S.fus.find(x=>x.id===v);f.due=Math.max(f.due,Date.now())+DAY;touch();render();toast('Snoozed 1 day');return}
+ if(v=g('data-mv')){const[id,d]=v.split(':'),k=S.tasks.find(x=>x.id===id);k.col=Math.min(2,Math.max(0,k.col+ +d));if(k.col===2)addEv(k.cid,'Task','Completed: '+k.text);touch();render();return}
+ if(v=g('data-log')){addEv(sel,v,'Logged a quick call.');touch();render();toast('Call logged');return}
+ if(v=g('data-addtask')){S.tasks.push({id:'t'+(++nid),text:'Follow up with '+cn(v),cid:v,col:0});touch();render();toast('Task added to the board');return}
+ if(v=g('data-quickfu')){S.fus.push({id:'f'+(++nid),cid:v,text:'Check in with '+cn(v),due:Date.now()+DAY,done:0});touch();render();toast('Reminder set for tomorrow');return}});
+main.addEventListener('submit',e=>{e.preventDefault();const f=e.target,d=new FormData(f),id=f.id;
+ if(id==='pvAddLead'){const n=String(d.get('n')).trim();if(!n)return;S.leads.unshift({id:'l'+(++nid),name:n,subj:String(d.get('s')).trim()||'New inquiry',src:'Website form',at:Date.now(),st:'new'});filter='all';touch();render();toast('Lead added. Timer is running.')}
+ else if(id==='pvAddFu'){const t=String(d.get('t')).trim();if(!t)return;S.fus.push({id:'f'+(++nid),cid:d.get('c'),text:t,due:Date.now()+ +d.get('d')*DAY,done:0});touch();render();toast('Reminder added')}
+ else if(id==='pvNote'){const t=String(d.get('n')).trim();if(!t)return;addEv(sel,'Note',t);touch();render();toast('Note saved')}
+ else if(id==='pvAddTask'){const t=String(d.get('t')).trim();if(!t)return;S.tasks.push({id:'t'+(++nid),text:t,cid:d.get('c'),col:0});touch();render();toast('Task added')}});
+let dragId=null;
+main.addEventListener('dragstart',e=>{const c=e.target.closest('[data-task]');if(!c)return;dragId=c.dataset.task;c.classList.add('drag');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',dragId)}catch(_){}});
+main.addEventListener('dragend',e=>{dragId=null;main.querySelectorAll('.drag,.over').forEach(x=>x.classList.remove('drag','over'))});
+main.addEventListener('dragover',e=>{const c=e.target.closest('[data-col]');if(c&&dragId){e.preventDefault();main.querySelectorAll('.over').forEach(x=>x!==c&&x.classList.remove('over'));c.classList.add('over')}});
+main.addEventListener('drop',e=>{const c=e.target.closest('[data-col]');if(!c||!dragId)return;e.preventDefault();const k=S.tasks.find(x=>x.id===dragId);k.col=+c.dataset.col;if(k.col===2)addEv(k.cid,'Task','Completed: '+k.text);touch();render()});
+S=seed();render();setInterval(()=>{if(document.hidden)return;if(view==='leads')tick();tabs()},1000);
+})();</script>
+
 <style id="vx-css">
 #land .ox-q{display:block!important;margin:0 0 10px;font-weight:600;color:var(--mut)}#land .ox-who{display:flex!important;margin-bottom:24px}
 .vx{background:var(--tint)}.vx.alt{background:#fff}
