@@ -700,19 +700,49 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
 @media(max-width:800px){.vx-g{grid-template-columns:1fr}}
 .vx-tag{margin:0 0 12px;font-weight:800;font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--a)}.vx-tag:before{content:"";display:inline-block;width:22px;height:2px;border-radius:2px;background:#06b6d4;vertical-align:middle;margin-right:10px}
 </style>
-<section class="vx" id="va" data-pg="home solutions" aria-labelledby="vaT"><div class="vx-in">
-  <span class="ox-kick">For virtual assistants</span>
-  <h2 id="vaT">Juggle every client’s inbox without dropping a single reply.</h2>
-  <p class="vx-lead">When you answer for several people at once, the one message you miss is the one they remember. Hellobase shows who is waiting, and for how long.</p>
-  <div class="vx-g"><div><b>A live waiting timer</b><span>Every inquiry shows how long it has been waiting, so the longest wait is always easy to spot.</span></div><div><b>Going-cold alerts</b><span>A nudge after 5+ quiet days, before a client starts wondering if anyone is there.</span></div><div><b>A chat log for every client</b><span>Messages and decisions stay in one place, easy to review, report back on or hand over.</span></div></div>
+<style id="lp-css">
+.lp{background:#fff}.lp.t{background:var(--tint)}
+.lp-in{max-width:1480px;margin:0 auto;padding:clamp(44px,7vw,92px) var(--pad)}
+.lp h2{font-size:clamp(1.8rem,3.8vw,3rem);line-height:1.06;letter-spacing:-.03em;margin:8px 0 12px;max-width:21em}
+.lp-lead{color:var(--mut);font-size:1.06rem;line-height:1.6;max-width:44em;margin:0 0 26px}
+.lp-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.lp-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:24px}
+.lp-c{background:var(--tint);border:1px solid var(--ln);border-radius:18px;padding:20px 22px}.lp.t .lp-c{background:#fff}
+.lp-c b{display:block;font-size:1.05rem;margin-bottom:5px}.lp-c span{color:var(--mut);font-size:.95rem;line-height:1.55}
+.lp-big{padding:26px 28px}.lp-big b{font-size:1.25rem}.lp-big .lp-n{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--a);margin-bottom:8px}
+.lp-win{max-width:860px;margin:0 auto;background:#fff;border:1px solid var(--ln);border-radius:18px;box-shadow:0 24px 60px rgba(11,27,52,.14);overflow:hidden}
+.lp-bar{display:flex;align-items:center;gap:6px;padding:12px 16px;border-bottom:1px solid var(--ln);background:#f8fafc}.lp-bar i{width:10px;height:10px;border-radius:50%;background:#cbd5e1}.lp-bar span{margin-left:10px;font-weight:700;font-size:.88rem}
+.lp-row{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;padding:16px 20px;border-bottom:1px solid var(--ln);font-size:.95rem}.lp-row:last-child{border:0}
+.lp-row small{display:block;color:var(--mut)}
+.lp-tm{font-variant-numeric:tabular-nums;font-weight:700;padding:4px 12px;border-radius:999px;background:#dcfce7;color:#166534;transition:background .3s,color .3s;min-width:104px;text-align:center}
+.lp-tm.w{background:#fef3c7;color:#92400e}.lp-tm.ok{background:#dbeafe;color:#1e40af}.lp-tm.cold{background:#fee2e2;color:#991b1b}
+.lp-btn{border:1px solid var(--ln);background:#fff;border-radius:999px;padding:5px 14px;font:inherit;font-size:.85rem;font-weight:600;color:var(--ink);cursor:default}
+.lp-row.cold{background:#fff7f7;animation:lpp 2.4s ease-in-out infinite}@keyframes lpp{50%{background:#fff}}
+@media(prefers-reduced-motion:reduce){.lp-row.cold{animation:none}}
+.lp-eg{text-align:center;color:var(--mut);font-size:.82rem;margin:12px 0 0}
+@media(max-width:800px){.lp-3,.lp-2{grid-template-columns:1fr}.lp-row{grid-template-columns:1fr auto}.lp-row .lp-btn{display:none}}
+</style>
+<section class="lp" id="problem" data-pg="home" aria-labelledby="pbT"><div class="lp-in">
+  <span class="ox-kick">The problem</span>
+  <h2 id="pbT">Inquiries don’t get ignored. They get buried.</h2>
+  <p class="lp-lead">A message lands in one inbox, a reply is promised in a chat, a client goes quiet. Nobody decides to drop it, and nobody notices until the client has moved on.</p>
+  <div class="lp-3"><div class="lp-c"><b>No one can see who is waiting</b><span>Without a clock, a client waiting two minutes looks the same as one waiting two days.</span></div><div class="lp-c"><b>Quiet clients slip away</b><span>Silence feels like “all fine” right up until it is a lost client.</span></div><div class="lp-c"><b>Context is scattered</b><span>Replies, notes and promises live in different inboxes and chats.</span></div></div>
+</div></section>
+<section class="lp t" id="timer" data-pg="home" aria-labelledby="tmT"><div class="lp-in">
+  <span class="ox-kick">What Hellobase does about it</span>
+  <h2 id="tmT">A timer on every inquiry. An alert before a client goes cold.</h2>
+  <div class="lp-2"><div class="lp-c lp-big"><span class="lp-n">Live waiting timer</span><b>See exactly who has been left on read</b><span>Every inquiry shows how long it has been waiting for a reply, counting live, so nobody sits unanswered without you knowing.</span></div><div class="lp-c lp-big"><span class="lp-n">Going-cold alerts</span><b>Get nudged before the silence costs you</b><span>When a client has been quiet for 5+ days, Hellobase reminds you to check in while the relationship is still warm.</span></div></div>
   <div class="vx-a"><button class="ox-btn js-start" type="button">Get started</button><button class="ox-btn alt js-demo" type="button">Try the demo</button></div>
 </div></section>
-<section class="vx alt" id="smb" data-pg="home solutions" aria-labelledby="smbT"><div class="vx-in">
-  <span class="ox-kick">For small businesses</span>
-  <h2 id="smbT">A CRM that fits a small team and a small budget.</h2>
-  <p class="vx-lead">No long setup and no big-company price tag. Keep every customer, inquiry and task in one calm place.</p>
-  <div class="vx-g"><div><b>$8 a month</b><span>One simple price and one login. Cancel anytime.</span></div><div><b>Know who is owed what</b><span>Your Today view lists money owed and replies due first.</span></div><div><b>Hello writes the follow-ups</b><span>The AI assistant drafts replies from what your CRM already knows. You approve every change.</span></div></div>
-  <div class="vx-a"><button class="ox-btn js-start" type="button">Get started</button><button class="ox-btn alt js-inq" type="button">Send an inquiry</button></div>
+<section class="lp" id="loop" data-pg="home" aria-labelledby="lpT"><div class="lp-in">
+  <span class="ox-kick">See it in action (example)</span>
+  <h2 id="lpT" style="margin-bottom:26px">Your day, with the clock running.</h2>
+  <div class="lp-win" role="img" aria-label="Example inquiry list with a live waiting timer and a going-cold alert">
+    <div class="lp-bar"><i></i><i></i><i></i><span>Inquiries</span></div>
+    <div class="lp-row"><div><b>Maria Santos</b><small>Pricing question</small></div><span class="lp-tm" id="lpA">Waiting 0:41</span><span class="lp-btn">Reply</span></div>
+    <div class="lp-row"><div><b>Cafe Luna</b><small>Quote for Friday</small></div><span class="lp-tm w">Waiting 2h 10m</span><span class="lp-btn">Reply</span></div>
+    <div class="lp-row cold"><div><b>J. Reyes</b><small>Contract follow-up</small></div><span class="lp-tm cold">Quiet 6 days</span><span class="lp-btn">Check in</span></div>
+  </div>
+  <p class="lp-eg">Example data. Maria’s timer runs until you reply.</p>
 </div></section>
     <section class="ob" id="orchie" data-pg="home" aria-labelledby="obT">
 <style id="ob-css">
@@ -898,18 +928,7 @@ if(!RM){let on=false;watch($('.ob-say'),v=>{on=v});(async()=>{let k=0;for(;;){co
 })();</script>
 </section>
 
-    <section class="cx" id="crmx" data-pg="products"><div class="cx-in"><nav class="cx-sub"><b>Hellobase CRM</b><button type="button" onclick="document.getElementById('cxf').scrollIntoView({behavior:'smooth'})">Functions</button><button type="button" onclick="document.getElementById('cxd').scrollIntoView({behavior:'smooth'})">Why it is different</button><button type="button" onclick="document.getElementById('cxc').scrollIntoView({behavior:'smooth'})">Compare</button><button type="button" onclick="document.getElementById('cxq').scrollIntoView({behavior:'smooth'})">FAQ</button><button type="button" class="js-sub cta">Start my CRM</button></nav><div class="cx-ov"><span class="ox-kick">Overview</span><h2>Know who is waiting, who has gone quiet, and what comes next.</h2><p>Hellobase CRM is a simple home for every inquiry, client and task. It is built for agencies, clinics, service teams, support desks and small sales teams that want to respond faster and follow up better, without a sales call or a per-seat price maze.</p><div class="ox-act"><button class="ox-btn js-sub" type="button">Start my CRM</button><button class="ox-btn alt js-inq" type="button">Talk to us</button></div></div><h3 class="cx-h" id="cxf">What Hellobase CRM does</h3><div class="cx-g"><article><i>1</i><h4>Inquiries with a live waiting timer</h4><p>Every new inquiry shows how long it has been waiting.</p><em>The longest-waiting client is always visible, so replies do not slip.</em></article><article><i>2</i><h4>Going-cold alerts</h4><p>Clients who have been quiet for five or more days are flagged.</p><em>You follow up before the relationship fades.</em></article><article><i>3</i><h4>Cases with routing</h4><p>Each case is sent to the right person on your team.</p><em>Every issue has a clear owner.</em></article><article><i>4</i><h4>SLA tracking</h4><p>Cases are tracked against your response targets.</p><em>Risk shows early instead of arriving as a complaint.</em></article><article><i>5</i><h4>Team chat log for every client</h4><p>Every conversation with a client is kept in one log.</p><em>Anyone can pick up where a colleague left off.</em></article><article><i>6</i><h4>Clients, tasks and cases in one home</h4><p>Clients, what you owe them and what they asked for sit together.</p><em>No jumping between inboxes and spreadsheets.</em></article></div><h3 class="cx-h" id="cxd">Why it is different</h3><div class="cx-g"><article><h4>Response time comes first</h4><p>The live waiting timer puts how long people have waited at the centre of your day.</p></article><article><h4>One flat price</h4><p>$8 a month. No per-seat maze, so the cost is easy to predict.</p></article><article><h4>No sales call</h4><p>Log in and start. You do not need a demo or a quote.</p></article><article><h4>Nothing to learn</h4><p>A simple layout that is comfortable to use on a phone.</p></article><article><h4>Everything in one home</h4><p>Clients, tasks, cases and your team's conversations live together, so you do not need separate tools.</p></article><article><h4>Private by design</h4><p>Only members your admin adds can log in, and CRM data stays with your team.</p></article></div><h3 class="cx-h" id="cxc">How it compares with other CRM platforms</h3><table class="cx-t"><thead><tr><th></th><th>Many CRM platforms</th><th>Hellobase CRM</th></tr></thead><tbody><tr><th scope="row">Pricing</th><td>Tiers and per-seat pricing can be hard to predict</td><td>$8 a month, one simple price</td></tr><tr><th scope="row">Getting started</th><td>Demos and sales calls are common</td><td>Log in and start</td></tr><tr><th scope="row">Learning curve</th><td>Feature-heavy tools can take time to set up</td><td>Simple and phone friendly</td></tr><tr><th scope="row">Response times</th><td>Usually something you configure</td><td>Live waiting timer built in</td></tr><tr><th scope="row">Follow-up</th><td>Depends on how you set it up</td><td>Going-cold alerts after 5+ quiet days</td></tr><tr><th scope="row">Access</th><td>Varies by product</td><td>Approved members only</td></tr></tbody></table><p class="cx-fn">A general comparison. Features and pricing vary by product.</p><div class="cx-pr"><div><span class="ox-kick">Pricing</span><h3>$8 a month, no per-seat maze.</h3><p>One simple price. Cancel anytime.</p></div><button class="ox-btn js-sub" type="button">Start my CRM</button></div><h3 class="cx-h" id="cxq">CRM questions</h3><div class="ox-faq"><details><summary>Is there a setup fee or sales call?</summary><p>No. Log in and start. There is no sales call and no per-seat maze.</p></details><details><summary>Who can see my client data?</summary><p>Only people your admin has added can log in, and your CRM data stays with your team.</p></details><details><summary>Can I use it on my phone?</summary><p>Yes. It is phone friendly and made so there is nothing to learn.</p></details><details><summary>Can I cancel?</summary><p>Yes, anytime.</p></details></div></div></section>
-    
-
-    <section class="ox-sec" id="day" style="padding-top:0" data-pg="solutions">
-      <div class="ox-day">
-        
-        <div><span class="ox-kick">A day with Hellobase (example)</span><h2 style="font-size:clamp(1.8rem,3.6vw,2.8rem);letter-spacing:-.03em;line-height:1.08;margin:8px 0">From first coffee to closed tickets.</h2>
-          <ol class="ox-tl"><li><b>8:30 &middot; Open your Today view</b><span>Money owed and replies due are listed first.</span></li><li><b>11:00 &middot; A new inquiry arrives</b><span>A waiting timer starts so nobody is left on read.</span></li><li><b>3:00 &middot; A client goes quiet</b><span>A going-cold alert reminds you to check in.</span></li><li><b>5:30 &middot; Wrap up</b><span>Review open cases and tasks, and see who is still waiting.</span></li></ol></div>
-      </div>
-    </section>
-
-    <section class="ox-sec" id="pricing" data-pg="pricing">
+    <section class="ox-sec" id="pricing" data-pg="home pricing">
       <div class="ox-pr">
         <div>
           <h2>Your own CRM for $8 a month.</h2>
@@ -923,6 +942,31 @@ if(!RM){let on=false;watch($('.ob-say'),v=>{on=v});(async()=>{let k=0;for(;;){co
         </div>
       </div>
     </section>
+<section class="vx" id="va" data-pg="home solutions" aria-labelledby="vaT"><div class="vx-in">
+  <span class="ox-kick">For virtual assistants</span>
+  <h2 id="vaT">Juggle every client’s inbox without dropping a single reply.</h2>
+  <p class="vx-lead">When you answer for several people at once, the one message you miss is the one they remember. Hellobase shows who is waiting, and for how long.</p>
+  <div class="vx-g"><div><b>A live waiting timer</b><span>Every inquiry shows how long it has been waiting, so the longest wait is always easy to spot.</span></div><div><b>Going-cold alerts</b><span>A nudge after 5+ quiet days, before a client starts wondering if anyone is there.</span></div><div><b>A chat log for every client</b><span>Messages and decisions stay in one place, easy to review, report back on or hand over.</span></div></div>
+  <div class="vx-a"><button class="ox-btn js-start" type="button">Get started</button><button class="ox-btn alt js-demo" type="button">Try the demo</button></div>
+</div></section>
+<section class="vx alt" id="smb" data-pg="home solutions" aria-labelledby="smbT"><div class="vx-in">
+  <span class="ox-kick">For small businesses</span>
+  <h2 id="smbT">A CRM that fits a small team and a small budget.</h2>
+  <p class="vx-lead">No long setup and no big-company price tag. Keep every customer, inquiry and task in one calm place.</p>
+  <div class="vx-g"><div><b>$8 a month</b><span>One simple price and one login. Cancel anytime.</span></div><div><b>Know who is owed what</b><span>Your Today view lists money owed and replies due first.</span></div><div><b>Hello writes the follow-ups</b><span>The AI assistant drafts replies from what your CRM already knows. You approve every change.</span></div></div>
+  <div class="vx-a"><button class="ox-btn js-start" type="button">Get started</button><button class="ox-btn alt js-inq" type="button">Send an inquiry</button></div>
+</div></section>
+    <section class="cx" id="crmx" data-pg="products"><div class="cx-in"><nav class="cx-sub"><b>Hellobase CRM</b><button type="button" onclick="document.getElementById('cxf').scrollIntoView({behavior:'smooth'})">Functions</button><button type="button" onclick="document.getElementById('cxd').scrollIntoView({behavior:'smooth'})">Why it is different</button><button type="button" onclick="document.getElementById('cxc').scrollIntoView({behavior:'smooth'})">Compare</button><button type="button" onclick="document.getElementById('cxq').scrollIntoView({behavior:'smooth'})">FAQ</button><button type="button" class="js-sub cta">Start my CRM</button></nav><div class="cx-ov"><span class="ox-kick">Overview</span><h2>Know who is waiting, who has gone quiet, and what comes next.</h2><p>Hellobase CRM is a simple home for every inquiry, client and task. It is built for agencies, clinics, service teams, support desks and small sales teams that want to respond faster and follow up better, without a sales call or a per-seat price maze.</p><div class="ox-act"><button class="ox-btn js-sub" type="button">Start my CRM</button><button class="ox-btn alt js-inq" type="button">Talk to us</button></div></div><h3 class="cx-h" id="cxf">What Hellobase CRM does</h3><div class="cx-g"><article><i>1</i><h4>Inquiries with a live waiting timer</h4><p>Every new inquiry shows how long it has been waiting.</p><em>The longest-waiting client is always visible, so replies do not slip.</em></article><article><i>2</i><h4>Going-cold alerts</h4><p>Clients who have been quiet for five or more days are flagged.</p><em>You follow up before the relationship fades.</em></article><article><i>3</i><h4>Cases with routing</h4><p>Each case is sent to the right person on your team.</p><em>Every issue has a clear owner.</em></article><article><i>4</i><h4>SLA tracking</h4><p>Cases are tracked against your response targets.</p><em>Risk shows early instead of arriving as a complaint.</em></article><article><i>5</i><h4>Team chat log for every client</h4><p>Every conversation with a client is kept in one log.</p><em>Anyone can pick up where a colleague left off.</em></article><article><i>6</i><h4>Clients, tasks and cases in one home</h4><p>Clients, what you owe them and what they asked for sit together.</p><em>No jumping between inboxes and spreadsheets.</em></article></div><h3 class="cx-h" id="cxd">Why it is different</h3><div class="cx-g"><article><h4>Response time comes first</h4><p>The live waiting timer puts how long people have waited at the centre of your day.</p></article><article><h4>One flat price</h4><p>$8 a month. No per-seat maze, so the cost is easy to predict.</p></article><article><h4>No sales call</h4><p>Log in and start. You do not need a demo or a quote.</p></article><article><h4>Nothing to learn</h4><p>A simple layout that is comfortable to use on a phone.</p></article><article><h4>Everything in one home</h4><p>Clients, tasks, cases and your team's conversations live together, so you do not need separate tools.</p></article><article><h4>Private by design</h4><p>Only members your admin adds can log in, and CRM data stays with your team.</p></article></div><h3 class="cx-h" id="cxc">How it compares with other CRM platforms</h3><table class="cx-t"><thead><tr><th></th><th>Many CRM platforms</th><th>Hellobase CRM</th></tr></thead><tbody><tr><th scope="row">Pricing</th><td>Tiers and per-seat pricing can be hard to predict</td><td>$8 a month, one simple price</td></tr><tr><th scope="row">Getting started</th><td>Demos and sales calls are common</td><td>Log in and start</td></tr><tr><th scope="row">Learning curve</th><td>Feature-heavy tools can take time to set up</td><td>Simple and phone friendly</td></tr><tr><th scope="row">Response times</th><td>Usually something you configure</td><td>Live waiting timer built in</td></tr><tr><th scope="row">Follow-up</th><td>Depends on how you set it up</td><td>Going-cold alerts after 5+ quiet days</td></tr><tr><th scope="row">Access</th><td>Varies by product</td><td>Approved members only</td></tr></tbody></table><p class="cx-fn">A general comparison. Features and pricing vary by product.</p><div class="cx-pr"><div><span class="ox-kick">Pricing</span><h3>$8 a month, no per-seat maze.</h3><p>One simple price. Cancel anytime.</p></div><button class="ox-btn js-sub" type="button">Start my CRM</button></div><h3 class="cx-h" id="cxq">CRM questions</h3><div class="ox-faq"><details><summary>Is there a setup fee or sales call?</summary><p>No. Log in and start. There is no sales call and no per-seat maze.</p></details><details><summary>Who can see my client data?</summary><p>Only people your admin has added can log in, and your CRM data stays with your team.</p></details><details><summary>Can I use it on my phone?</summary><p>Yes. It is phone friendly and made so there is nothing to learn.</p></details><details><summary>Can I cancel?</summary><p>Yes, anytime.</p></details></div></div></section>
+    
+
+    <section class="ox-sec" id="day" style="padding-top:0" data-pg="solutions">
+      <div class="ox-day">
+        
+        <div><span class="ox-kick">A day with Hellobase (example)</span><h2 style="font-size:clamp(1.8rem,3.6vw,2.8rem);letter-spacing:-.03em;line-height:1.08;margin:8px 0">From first coffee to closed tickets.</h2>
+          <ol class="ox-tl"><li><b>8:30 &middot; Open your Today view</b><span>Money owed and replies due are listed first.</span></li><li><b>11:00 &middot; A new inquiry arrives</b><span>A waiting timer starts so nobody is left on read.</span></li><li><b>3:00 &middot; A client goes quiet</b><span>A going-cold alert reminds you to check in.</span></li><li><b>5:30 &middot; Wrap up</b><span>Review open cases and tasks, and see who is still waiting.</span></li></ol></div>
+      </div>
+    </section>
+
 
     <div class="ox-hw" id="how" data-pg="solutions resources">
       <div class="ox-sec">
@@ -1892,6 +1936,13 @@ function set(k){var d=P[k]||P.team;h1.innerHTML='';[d[0],d[1]].forEach(function(
 chips.forEach(function(c){var on=c.dataset.who===k;c.classList.toggle('on',on);c.setAttribute('aria-pressed',on)})}
 chips.forEach(function(c){c.addEventListener('click',function(){set(c.dataset.who)})});
 })();
+</script>
+<script>
+(function(){var el=document.getElementById('lpA');if(!el||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))return;
+var t=41,r=0,f=function(n){return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')};
+setInterval(function(){if(document.hidden)return;
+if(r){if(--r===0){t=41;el.className='lp-tm';el.textContent='Waiting '+f(t)}return}
+t++;el.textContent='Waiting '+f(t);if(t>=100)el.className='lp-tm w';if(t>=112){r=3;el.className='lp-tm ok';el.textContent='Replied in '+f(t)}},1000)})();
 </script>
 <style id="hellobase-brand">
 .wm{align-items:center}
