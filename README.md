@@ -1,8 +1,9 @@
 # Hellobase CRM
 
-CRM for 404 Studio, backed by Supabase. The Next.js App Router provides the application entry
-point; the existing HTML experience and its related pages are served from `public/` so current
-features and URLs continue to work during the migration.
+CRM for 404 Studio, backed by Supabase. The root route runs a native Next.js/React app. The first
+migration phase includes Google sign-in, the daily overview, inquiries, clients, tasks, and cases.
+Other CRM modules and standalone HTML tools remain under `public/` until their features are
+migrated in later phases.
 
 ## Local development
 
@@ -11,41 +12,37 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`. The root Next.js page hosts the existing CRM from
-`public/index.html` and forwards the URL query string and hash, including the `#crm` entry point.
-Other existing HTML pages remain available at their original `.html` paths.
+Copy `.env.example` to `.env.local` and set the Supabase project URL and publishable/anon key:
 
-## Features
-- **Home:** recent leads, stage funnel (weighted / total), month calendar, today's agenda, quota, top opportunities
-- **Leads:** search, filters, CSV export, sales path, lead score, activity log, tasks, notes, deal value
-- **Pipeline:** drag-and-drop kanban
-- **Calendar, Tasks, Forecast, Reports**
-- **Profile:** photo, position and contact info in the left panel
-- **Shortcuts:** `Ctrl/⌘ + K` command palette, `+ New lead` button
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-publishable-key
+```
+
+Open `http://localhost:3000`. Google sign-in must also be enabled for the project in Supabase
+Authentication, and the local URL must be listed in its redirect URL settings. CRM access is
+checked with the existing `crm_role` and `crm_is_admin` database functions; table access continues
+to be governed by Supabase row-level security.
+
+## Migration status
+
+Available as native Next.js screens: **Today**, **Inquiries**, **Clients**, **Tasks**, and **Cases**.
+The first phase supports Google sign-in, CRM role checks, inquiry search and administrator status
+updates, task creation/completion, and the daily overview. Untouched modules (including Messages,
+Approvals, Chat, Sales, Calendar, Deals, Orders, Productivity, Team, Automation, and Members) remain
+available through the classic CRM at `/index.html#crm` while they are migrated.
 
 ## Deploy
 
 Build with `npm run build` and run with `npm start`, or deploy the repository to a Next.js-compatible
-host such as Vercel. In Supabase > Authentication > URL Configuration, add the deployed CRM's full
-address to **Redirect URLs**.
+host such as Vercel. Set both Supabase environment variables in the host and add the deployed CRM's
+full address to Supabase Authentication's **Redirect URLs**.
 
 ## Database
-The CRM expects these in Supabase (run `supabase-setup.sql` for the Orchid-specific parts):
 
-| Object | Purpose |
-|---|---|
-| `leads` | Created by the client site: name, email, service, concern, status, deal_value, follow_up_on, appointment_at, notes, `closed_at` |
-| `admins` + `is_admin()` | Who may use the CRM |
-| `tasks`, `activities` | To-dos and the call/email/meeting log |
-| `crm_settings` | Single row: monthly quota and profile |
+The migrated screens use the existing `crm_clients`, `crm_inquiries`, `crm_tasks`, and `crm_cases`
+tables and check access using the existing `crm_role` and `crm_is_admin` RPCs. Keep the project's
+row-level security policies enabled; the client app uses the public publishable/anon key.
 
-All CRM tables use row-level security: only admins can read or write them.
-
-## Access
-Sign in with Google. Only accounts in the `admins` table get in; everyone else sees "No admin access".
-To add an admin: insert their `auth.users` id into `public.admins`.
-The Supabase URL and publishable key inside `index.html` are meant to be public. The policies protect the data.
-
-## Notes
-- The profile is one shared record (fine for a single admin).
-- Stage probabilities for the forecast are in the `PROB` line of the script.
+The classic CRM is retained as a compatibility path during migration. Its other modules and
+standalone HTML pages are not yet native Next.js screens.

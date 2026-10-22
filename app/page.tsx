@@ -1,5 +1,5 @@
-import LegacyAppFrame from "./legacy-app-frame";
+import CRMApp from "./crm-app";
 
 export default function Home() {
-  return <LegacyAppFrame />;
+  return <CRMApp />;
 }
