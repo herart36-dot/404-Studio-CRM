@@ -28,9 +28,10 @@ to be governed by Supabase row-level security.
 Native Next.js sections: **Today**, **Inquiries**, **Clients**, **Tasks**, **Cases**, **Messages**,
 **Approvals**, **Chat**, **Sales**, **Calendar**, **Deals**, **Orders**, **Productivity**, **Team**,
 **Automation**, **Members**, and **Settings**. Google sign-in and role checks, inquiry status
-updates, task creation/completion, and team messages are implemented. The additional sections now
-read their corresponding Supabase tables; several legacy-specific workflow actions and full editing
-controls still need migration and live validation.
+updates, task creation/completion, client create/edit, case status/priority changes, inbox folders,
+star/read actions, supported approval decisions, and team messages are implemented. Other sections
+currently show table data; their remaining workflows and complete editing controls still need
+migration and live validation. Unsupported approval actions cannot be approved through this UI.
 
 ## Deploy
 
