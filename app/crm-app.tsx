@@ -4,23 +4,97 @@ import { createClient, type SupabaseClient, type User } from "@supabase/supabase
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Row = Record<string, unknown>;
-type Section = "today" | "inquiries" | "clients" | "tasks" | "cases";
+type CoreSection = keyof CRMData;
+type Section =
+  | "today"
+  | "inquiries"
+  | "clients"
+  | "tasks"
+  | "cases"
+  | "messages"
+  | "approvals"
+  | "chat"
+  | "sales"
+  | "calendar"
+  | "deals"
+  | "orders"
+  | "productivity"
+  | "team"
+  | "automation"
+  | "members"
+  | "settings";
 type CRMData = Record<"clients" | "inquiries" | "tasks" | "cases", Row[]>;
 type LoadErrors = Partial<Record<keyof CRMData, string>>;
 type AccessState = "checking" | "allowed" | "denied" | "executive" | "error";
 
-const sections: { id: Section; label: string; icon: string }[] = [
+type TableSource = { table: string; label: string };
+
+const sections: { id: Section; label: string; icon: string; adminOnly?: boolean; executiveOnly?: boolean }[] = [
   { id: "today", label: "Today", icon: "◷" },
   { id: "inquiries", label: "Inquiries", icon: "↗" },
-  { id: "clients", label: "Clients", icon: "◎" },
-  { id: "tasks", label: "Tasks", icon: "✓" },
+  { id: "messages", label: "Messages", icon: "✉" },
+  { id: "approvals", label: "Approvals", icon: "◉" },
   { id: "cases", label: "Cases", icon: "◇" },
+  { id: "chat", label: "Chat", icon: "▤" },
+  { id: "clients", label: "Clients", icon: "◎" },
+  { id: "sales", label: "Sales", icon: "$" },
+  { id: "tasks", label: "Tasks", icon: "✓" },
+  { id: "calendar", label: "Calendar", icon: "▦" },
+  { id: "deals", label: "Deals", icon: "◈" },
+  { id: "orders", label: "Orders", icon: "▣" },
+  { id: "productivity", label: "Productivity", icon: "◷" },
+  { id: "team", label: "Team", icon: "♧", adminOnly: true },
+  { id: "automation", label: "Automation", icon: "⟳", adminOnly: true },
+  { id: "members", label: "Members", icon: "♙", adminOnly: true },
+  { id: "settings", label: "Settings", icon: "⚙" },
 ];
 
 const emptyData: CRMData = { clients: [], inquiries: [], tasks: [], cases: [] };
 
+const sectionTables: Partial<Record<Section, TableSource[]>> = {
+  messages: [{ table: "crm_messages", label: "Inbox" }],
+  approvals: [{ table: "crm_approvals", label: "Requests" }],
+  chat: [{ table: "crm_team_messages", label: "Team messages" }],
+  sales: [
+    { table: "crm_accounts", label: "Accounts" },
+    { table: "crm_leads", label: "Sales leads" },
+    { table: "crm_opportunities", label: "Opportunities" },
+    { table: "crm_quotes", label: "Quotes" },
+    { table: "crm_invoices", label: "Invoices" },
+    { table: "crm_payments", label: "Payments" },
+  ],
+  calendar: [
+    { table: "crm_schedules", label: "Calendar" },
+    { table: "crm_tasks", label: "Tasks" },
+  ],
+  deals: [
+    { table: "crm_deals", label: "Deals" },
+    { table: "crm_deal_stages", label: "Deal stages" },
+  ],
+  orders: [
+    { table: "kloze_orders", label: "Orders" },
+    { table: "kloze_products", label: "Products" },
+  ],
+  productivity: [{ table: "crm_presence_log", label: "Activity" }],
+  team: [{ table: "crm_staff", label: "Team members" }],
+  automation: [
+    { table: "crm_routing_rules", label: "Routing rules" },
+    { table: "crm_sla_policies", label: "SLA policies" },
+    { table: "crm_report_schedules", label: "Scheduled reports" },
+  ],
+  members: [{ table: "crm_staff", label: "Members" }],
+  settings: [
+    { table: "crm_user_settings", label: "My preferences" },
+    { table: "orchid_profiles", label: "Business profile" },
+  ],
+};
+
 function isRow(value: unknown): value is Row {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isCoreSection(section: Section): section is CoreSection {
+  return section === "clients" || section === "inquiries" || section === "tasks" || section === "cases";
 }
 
 function rows(values: unknown): Row[] {
@@ -59,6 +133,11 @@ export default function CRMApp() {
   const [activeSection, setActiveSection] = useState<Section>("today");
   const [data, setData] = useState<CRMData>(emptyData);
   const [loadErrors, setLoadErrors] = useState<LoadErrors>({});
+  const [moduleData, setModuleData] = useState<Record<string, Row[]>>({});
+  const [moduleErrors, setModuleErrors] = useState<Record<string, string>>({});
+  const [moduleLoading, setModuleLoading] = useState(false);
+  const [activeTable, setActiveTable] = useState("");
+  const [moduleRefresh, setModuleRefresh] = useState(0);
   const [loading, setLoading] = useState(true);
   const [signingIn, setSigningIn] = useState(false);
   const [search, setSearch] = useState("");
@@ -122,7 +201,7 @@ export default function CRMApp() {
     setRole(resolvedRole);
     setIsAdmin(resolvedAdmin);
     if (resolvedRole === "executive") {
-      setAccessState("executive");
+      setAccessState("allowed");
       setData(emptyData);
       setLoading(false);
       return;
@@ -173,8 +252,47 @@ export default function CRMApp() {
     void safelyLoadCRM(client);
   }, [client, user, safelyLoadCRM]);
 
+  useEffect(() => {
+    if (role === "executive" && activeSection !== "orders") {
+      setActiveSection("orders");
+      setActiveTable("kloze_orders");
+    }
+  }, [activeSection, role]);
+
+  useEffect(() => {
+    const sources = sectionTables[activeSection];
+    if (!client || !user || !sources) return;
+    let cancelled = false;
+    setModuleLoading(true);
+    setModuleErrors({});
+    void Promise.all(sources.map(async ({ table }) => {
+      const result = await client.from(table).select("*").limit(200);
+      return { table, rows: rows(result.data), error: result.error?.message };
+    })).then((results) => {
+      if (cancelled) return;
+      const nextData: Record<string, Row[]> = {};
+      const nextErrors: Record<string, string> = {};
+      for (const result of results) {
+        nextData[result.table] = result.rows;
+        if (result.error) nextErrors[result.table] = result.error;
+      }
+      setModuleData((existing) => ({ ...existing, ...nextData }));
+      setModuleErrors(nextErrors);
+      setModuleLoading(false);
+    }).catch((loadError: unknown) => {
+      if (cancelled) return;
+      setModuleErrors(Object.fromEntries(sources.map(({ table }) => [table, errorMessage(loadError)])));
+      setModuleLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [activeSection, client, moduleRefresh, user]);
+
   const filteredRows = useMemo(() => {
-    const source = activeSection === "today" ? [] : data[activeSection];
+    const sources = sectionTables[activeSection];
+    const selectedTable = activeTable || sources?.[0]?.table;
+    const source = isCoreSection(activeSection)
+      ? data[activeSection as keyof CRMData]
+      : selectedTable ? moduleData[selectedTable] ?? [] : [];
     const query = search.trim().toLocaleLowerCase();
     if (!query) return source;
     return source.filter((row) =>
@@ -183,7 +301,7 @@ export default function CRMApp() {
           String(value).toLocaleLowerCase().includes(query),
       ),
     );
-  }, [activeSection, data, search]);
+  }, [activeSection, activeTable, data, moduleData, search]);
 
   async function signIn() {
     if (!client) return;
@@ -206,7 +324,7 @@ export default function CRMApp() {
   }
 
   async function updateInquiryStatus(row: Row, status: string) {
-    if (!client || !isAdmin || typeof row.id !== "string") return;
+    if (!client || (!isAdmin && role !== "admin") || typeof row.id !== "string") return;
     setError("");
     setNotice("");
     const { error: updateError } = await client.from("crm_inquiries").update({ status }).eq("id", row.id);
@@ -259,6 +377,28 @@ export default function CRMApp() {
     await safelyLoadCRM(client);
   }
 
+  async function sendTeamMessage(formData: FormData) {
+    if (!client || !user?.email) return;
+    const body = String(formData.get("body") ?? "").trim();
+    if (!body) return;
+    if (body.length > 4000) {
+      setError("Messages must be 4,000 characters or fewer.");
+      return;
+    }
+    setError("");
+    setNotice("");
+    const { error: sendError } = await client.from("crm_team_messages").insert({
+      sender_email: user.email.toLowerCase(),
+      body,
+    });
+    if (sendError) {
+      setError(sendError.message);
+      return;
+    }
+    setNotice("Message sent.");
+    setModuleRefresh((current) => current + 1);
+  }
+
   if (loading && !client) return <div className="loading-screen">Loading Hellobase…</div>;
   if (!user) {
     return (
@@ -281,21 +421,18 @@ export default function CRMApp() {
     );
   }
 
-  if (accessState === "denied" || accessState === "executive" || accessState === "error") {
+  if (accessState === "denied" || accessState === "error") {
     return (
       <main className="login-screen">
         <section className="login-card access-card">
           <div className="brand-mark">h<span>.</span></div>
           <p className="eyebrow">HELLOBASE CRM</p>
-          <h1>{accessState === "executive" ? "Store tools are still in the classic app." : accessState === "error" ? "We couldn't verify your access." : "This account doesn't have CRM access."}</h1>
+          <h1>{accessState === "error" ? "We couldn't verify your access." : "This account doesn't have CRM access."}</h1>
           <p className="login-copy">
-            {accessState === "executive"
-              ? "Your account is set up for the store workspace. Those tools are still available in the classic app while they are migrated."
-              : accessState === "error"
-                ? error || "The CRM access check failed. Try again or contact your administrator."
-                : `Ask an administrator to add ${user.email ?? "your account"} to the CRM.`}
+            {accessState === "error"
+              ? error || "The CRM access check failed. Try again or contact your administrator."
+              : `Ask an administrator to add ${user.email ?? "your account"} to the CRM.`}
           </p>
-          {accessState === "executive" && <a className="classic-link" href="/index.html#crm">Open classic store workspace <span>→</span></a>}
           {accessState === "error" && client && <button className="secondary-button" onClick={() => void safelyLoadCRM(client)}>Try again</button>}
           <button className="signout-link" onClick={() => void signOut()}>Sign out</button>
         </section>
@@ -305,7 +442,17 @@ export default function CRMApp() {
 
   if (accessState !== "allowed") return <div className="loading-screen">Checking CRM access…</div>;
 
-  const currentSection = sections.find((section) => section.id === activeSection) ?? sections[0];
+  const visibleSections = sections.filter((section) => {
+    if (section.adminOnly && !isAdmin) return false;
+    if (role === "executive") return section.id === "orders";
+    return true;
+  });
+  const currentSection = visibleSections.find((section) => section.id === activeSection) ?? visibleSections[0];
+  const tableSources = sectionTables[activeSection];
+  const activeSource = tableSources?.find((source) => source.table === activeTable) ?? tableSources?.[0];
+  const activeModuleError = activeSource ? moduleErrors[activeSource.table] : undefined;
+  const activeCoreSection = isCoreSection(activeSection) ? activeSection : "clients";
+  const activeCoreError = isCoreSection(activeSection) ? loadErrors[activeSection] : undefined;
   const openTasks = data.tasks.filter((task) => task.done !== true).length;
   const newInquiries = data.inquiries.filter((inquiry) => text(inquiry, "status") === "new").length;
 
@@ -318,11 +465,17 @@ export default function CRMApp() {
         </a>
         <div className="workspace-label">WORKSPACE</div>
         <nav className="main-nav" aria-label="CRM sections">
-          {sections.map((section) => (
+          {visibleSections.map((section) => (
             <button
               className={`nav-item${activeSection === section.id ? " active" : ""}`}
               key={section.id}
-              onClick={() => { setActiveSection(section.id); setSearch(""); setError(""); setNotice(""); }}
+              onClick={() => {
+                setActiveSection(section.id);
+                setActiveTable(sectionTables[section.id]?.[0]?.table ?? "");
+                setSearch("");
+                setError("");
+                setNotice("");
+              }}
             >
               <span className="nav-icon">{section.icon}</span>
               <span>{section.label}</span>
@@ -334,7 +487,10 @@ export default function CRMApp() {
         <div className="sidebar-bottom">
           <span className="online-dot" />
           <span className="connection-label">Connected</span>
-          <button className="icon-button refresh-button" onClick={() => client && void safelyLoadCRM(client)} aria-label="Refresh CRM data">↻</button>
+          <button className="icon-button refresh-button" onClick={() => {
+            if (sectionTables[activeSection]) setModuleRefresh((current) => current + 1);
+            else if (client) void safelyLoadCRM(client);
+          }} aria-label="Refresh CRM data">↻</button>
         </div>
       </aside>
 
@@ -367,6 +523,58 @@ export default function CRMApp() {
               loadErrors={loadErrors}
               loading={loading}
             />
+          ) : tableSources ? (
+            <section>
+              <div className="page-heading">
+                <div>
+                  <p className="eyebrow">YOUR WORKSPACE</p>
+                  <h1>{currentSection.label}</h1>
+                  <p className="page-subtitle">
+                    {activeModuleError
+                      ? "This data source could not be loaded."
+                      : `${filteredRows.length} ${filteredRows.length === 1 ? "record" : "records"}`}
+                  </p>
+                </div>
+                <div className="heading-actions">
+                  {activeSection === "chat" && <ChatComposer onSubmit={sendTeamMessage} />}
+                  <input
+                    className="search-input"
+                    type="search"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder={`Search ${currentSection.label.toLowerCase()}…`}
+                    aria-label={`Search ${currentSection.label.toLowerCase()}`}
+                  />
+                </div>
+              </div>
+              <nav className="module-tabs" aria-label={`${currentSection.label} data`}>
+                {tableSources.map((source) => (
+                  <button
+                    key={source.table}
+                    className={`module-tab${activeSource?.table === source.table ? " selected" : ""}`}
+                    onClick={() => { setActiveTable(source.table); setSearch(""); }}
+                  >
+                    {source.label}
+                    {moduleData[source.table] && <span>{moduleData[source.table].length}</span>}
+                  </button>
+                ))}
+              </nav>
+              {activeModuleError ? (
+                <div className="empty-state">
+                  <strong>Could not load {activeSource?.label.toLowerCase()}</strong>
+                  <span>{activeModuleError}</span>
+                </div>
+              ) : moduleLoading && !moduleData[activeSource?.table ?? ""] ? (
+                <div className="empty-state">Loading {activeSource?.label.toLowerCase()}…</div>
+              ) : filteredRows.length === 0 ? (
+                <div className="empty-state">
+                  <strong>{search ? "No matching records" : `No ${activeSource?.label.toLowerCase()} yet`}</strong>
+                  <span>{search ? "Try a different search." : "Records will appear here when they are available in Supabase."}</span>
+                </div>
+              ) : (
+                <ModuleRecords rows={filteredRows} loading={moduleLoading} />
+              )}
+            </section>
           ) : (
             <section>
               <div className="page-heading">
@@ -374,7 +582,7 @@ export default function CRMApp() {
                   <p className="eyebrow">YOUR WORKSPACE</p>
                   <h1>{currentSection.label}</h1>
                   <p className="page-subtitle">
-                    {loadErrors[activeSection]
+                    {activeCoreError
                       ? "This section could not be loaded from Supabase."
                       : `${filteredRows.length} ${filteredRows.length === 1 ? "record" : "records"}`}
                   </p>
@@ -391,10 +599,10 @@ export default function CRMApp() {
                   />
                 </div>
               </div>
-              {loadErrors[activeSection] ? (
+              {activeCoreError ? (
                 <div className="empty-state">
                   <strong>Could not load {currentSection.label.toLowerCase()}</strong>
-                  <span>{loadErrors[activeSection]}</span>
+                  <span>{activeCoreError}</span>
                 </div>
               ) : loading ? (
                 <div className="empty-state">Loading records…</div>
@@ -405,7 +613,7 @@ export default function CRMApp() {
                 </div>
               ) : (
                 <RecordTable
-                  section={activeSection}
+                  section={activeCoreSection}
                   data={filteredRows}
                   isAdmin={isAdmin}
                   onInquiryStatus={updateInquiryStatus}
@@ -556,7 +764,7 @@ function RecordTable({
     );
   }
 
-  const columns: Record<Exclude<Section, "today" | "tasks">, { key: string; label: string }[]> = {
+  const columns: Record<"inquiries" | "clients" | "cases", { key: string; label: string }[]> = {
     inquiries: [
       { key: "name", label: "Contact" },
       { key: "email", label: "Email" },
@@ -613,6 +821,55 @@ function RecordTable({
   );
 }
 
+function ModuleRecords({ rows: records, loading }: { rows: Row[]; loading: boolean }) {
+  const hiddenField = /token|secret|password|credential|private.?key|api.?key/i;
+  const columns = [...new Set(records.flatMap((record) => Object.keys(record)))]
+    .filter((key) => key !== "id" && !key.startsWith("_") && !hiddenField.test(key))
+    .filter((key) => records.some((record) => record[key] !== null && record[key] !== undefined && record[key] !== ""))
+    .slice(0, 7);
+
+  if (columns.length === 0) {
+    return <div className="empty-state"><strong>No displayable fields</strong><span>Records exist, but they do not contain fields this table can show.</span></div>;
+  }
+
+  return (
+    <div className="table-wrap">
+      <table className="records-table">
+        <thead><tr>{columns.map((key) => <th key={key}>{labelForColumn(key)}</th>)}</tr></thead>
+        <tbody>
+          {records.map((record, index) => (
+            <tr key={text(record, "id") || index}>
+              {columns.map((key) => <td key={key}>{formatCell(record[key])}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="module-footnote">
+        Showing up to 200 records{loading ? " · Refreshing…" : ""}. Full editing and workflow actions are still being migrated.
+      </div>
+    </div>
+  );
+}
+
+function labelForColumn(key: string): string {
+  return key
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatCell(value: unknown): string {
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "string") {
+    const isoDate = /^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(value);
+    if (isoDate) return displayDate(value);
+    return value.length > 160 ? `${value.slice(0, 157)}…` : value;
+  }
+  if (typeof value === "number") return new Intl.NumberFormat().format(value);
+  if (Array.isArray(value)) return value.map((item) => formatCell(item)).join(", ");
+  return "[Details]";
+}
+
 function TaskForm({ onSubmit }: { onSubmit: (formData: FormData) => void }) {
   return (
     <details className="task-form">
@@ -624,6 +881,15 @@ function TaskForm({ onSubmit }: { onSubmit: (formData: FormData) => void }) {
         <button className="primary-button" type="submit">Create task</button>
       </form>
     </details>
+  );
+}
+
+function ChatComposer({ onSubmit }: { onSubmit: (formData: FormData) => void }) {
+  return (
+    <form action={onSubmit} className="chat-composer">
+      <input name="body" required maxLength={4000} placeholder="Message the team…" aria-label="Team message" />
+      <button className="primary-button" type="submit">Send</button>
+    </form>
   );
 }
 

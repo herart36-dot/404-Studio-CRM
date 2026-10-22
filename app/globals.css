@@ -665,6 +665,30 @@ button {
   justify-content: flex-end;
 }
 
+.chat-composer {
+  display: flex;
+  width: min(100%, 380px);
+  gap: 7px;
+}
+
+.chat-composer input {
+  width: 230px;
+  min-width: 150px;
+  height: 36px;
+  padding: 0 11px;
+  border: 1px solid #e1e6ee;
+  border-radius: 9px;
+  outline: 0;
+  color: #37445a;
+  background: white;
+  font-size: 11px;
+}
+
+.chat-composer input:focus {
+  border-color: #81a9f5;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+}
+
 .search-input {
   width: 215px;
   height: 36px;
@@ -763,6 +787,57 @@ button {
 
 .records-table tbody tr:hover {
   background: #fbfcff;
+}
+
+.module-tabs {
+  display: flex;
+  gap: 5px;
+  margin-top: 20px;
+  padding-bottom: 9px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+}
+
+.module-tab {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  color: #748096;
+  background: transparent;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.module-tab:hover {
+  color: #344158;
+  background: #f3f6fb;
+}
+
+.module-tab.selected {
+  color: #245dd2;
+  background: #edf4ff;
+  font-weight: 600;
+}
+
+.module-tab span {
+  min-width: 17px;
+  padding: 2px 4px;
+  border-radius: 9px;
+  color: #79869a;
+  background: #edf0f5;
+  font-size: 9px;
+  text-align: center;
+}
+
+.module-footnote {
+  padding: 10px 14px;
+  border-top: 1px solid #f0f2f6;
+  color: #929eaf;
+  font-size: 9px;
 }
 
 .status-select {

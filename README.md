@@ -1,9 +1,8 @@
 # Hellobase CRM
 
-CRM for 404 Studio, backed by Supabase. The root route runs a native Next.js/React app. The first
-migration phase includes Google sign-in, the daily overview, inquiries, clients, tasks, and cases.
-Other CRM modules and standalone HTML tools remain under `public/` until their features are
-migrated in later phases.
+CRM for 404 Studio, backed by Supabase. The root route runs a native Next.js/React CRM. CRM section
+navigation and read views are being migrated from the legacy app; records remain in Supabase.
+Standalone site pages and the original app are retained under `public/` during the migration.
 
 ## Local development
 
@@ -26,11 +25,12 @@ to be governed by Supabase row-level security.
 
 ## Migration status
 
-Available as native Next.js screens: **Today**, **Inquiries**, **Clients**, **Tasks**, and **Cases**.
-The first phase supports Google sign-in, CRM role checks, inquiry search and administrator status
-updates, task creation/completion, and the daily overview. Untouched modules (including Messages,
-Approvals, Chat, Sales, Calendar, Deals, Orders, Productivity, Team, Automation, and Members) remain
-available through the classic CRM at `/index.html#crm` while they are migrated.
+Native Next.js sections: **Today**, **Inquiries**, **Clients**, **Tasks**, **Cases**, **Messages**,
+**Approvals**, **Chat**, **Sales**, **Calendar**, **Deals**, **Orders**, **Productivity**, **Team**,
+**Automation**, **Members**, and **Settings**. Google sign-in and role checks, inquiry status
+updates, task creation/completion, and team messages are implemented. The additional sections now
+read their corresponding Supabase tables; several legacy-specific workflow actions and full editing
+controls still need migration and live validation.
 
 ## Deploy
 
