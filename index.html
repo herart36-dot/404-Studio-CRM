@@ -625,12 +625,7 @@ html.oc-pad:after{content:"";display:block;height:var(--oc-h,220px)}
     <div class="ox-ni">
       <a class="ox-brand" href="#/home" aria-label="Hellobase home"><span class="wm"><svg class="hbl" viewBox="0 0 478 102" role="img" aria-label="Hellobase" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="46" r="40" fill="#2563eb"/><path d="M16 72L8 96L38 84Z" fill="#2563eb" stroke="#2563eb" stroke-width="4" stroke-linejoin="round"/><path d="M38 28V66M38 54A12 12 0 0 1 62 54V66" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="82" cy="14" r="11" fill="#22d3ee" stroke="var(--hb-ring,#fff)" stroke-width="4"/><g transform="translate(124.74 12.08) scale(.5417)" fill="none" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"><g stroke="currentColor"><path transform="translate(-10 0)" d="M10 20V120M10 88A28 28 0 0 1 66 88V120"/><path transform="translate(78 0)" d="M8 90H68A30 30 0 1 0 60.5 110"/><path transform="translate(170 0)" d="M6 20V120"/><path transform="translate(200 0)" d="M6 20V120"/><g transform="translate(316 0)"><path d="M10 20V120"/><circle cx="40" cy="90" r="30"/></g><g transform="translate(408 0)"><circle cx="38" cy="90" r="30"/><path d="M68 60V120"/></g><path transform="translate(492 0)" d="M60 72C55 64 47 60 38 60C26 60 18 67 18 76C18 85 27 88 38 90C50 92 60 96 60 105C60 114 51 120 38 120C28 120 19 116 14 108"/><path transform="translate(574 0)" d="M8 90H68A30 30 0 1 0 60.5 110"/></g><circle stroke="var(--hb-o,#06b6d4)" transform="translate(228 0)" cx="38" cy="90" r="30"/></g></svg></span></a>
       <nav class="ox-menu" id="menu" aria-label="Primary">
-        <div class="lp-dd">
-          <button class="ox-ddb" id="megaBtn" data-nav="products" type="button" aria-expanded="false" aria-controls="mega">Products &#9662;</button>
-          <div class="ox-mega" id="mega" hidden>
-            <a class="ox-mi" href="#/products/crm" data-go="crm"><span class="ic crm" data-ic="crm"></span><span><b>Hellobase CRM</b><small>Inquiries, clients, tasks and cases</small></span></a>
-          </div>
-        </div>
+        <a href="#/products/crm" data-nav="products" data-go="crm">Products</a>
         <a href="#/solutions" data-nav="solutions">Solutions</a><a href="#/pricing" data-nav="pricing">Pricing</a><a href="#/resources" data-nav="resources">Resources</a>
       </nav>
       <div class="ox-ctas">
@@ -1631,11 +1626,10 @@ document.querySelectorAll('.js-start').forEach(b=>b.addEventListener('click',()=
 document.querySelectorAll('.js-inq,#inqBtn').forEach(b=>b.addEventListener('click',()=>{closeMenus();openInquiry()}));
 
 // ---- landing page: menus, sticky header shadow, scroll reveal ----
-const mega=$('mega'),megaBtn=$('megaBtn'),menu=$('menu'),burger=$('burger'),lpnav=$('lpnav');
-function closeMenus(){mega.hidden=true;megaBtn.setAttribute('aria-expanded','false');menu.classList.remove('open');burger.setAttribute('aria-expanded','false')}
-megaBtn.addEventListener('click',e=>{e.stopPropagation();const open=mega.hidden;mega.hidden=!open;megaBtn.setAttribute('aria-expanded',String(open))});
+const menu=$('menu'),burger=$('burger'),lpnav=$('lpnav');
+function closeMenus(){menu.classList.remove('open');burger.setAttribute('aria-expanded','false')}
 burger.addEventListener('click',e=>{e.stopPropagation();const open=!menu.classList.contains('open');menu.classList.toggle('open',open);burger.setAttribute('aria-expanded',String(open))});
-document.addEventListener('click',e=>{if(!e.target.closest('.lp-dd')&&!e.target.closest('#burger'))closeMenus()});
+document.addEventListener('click',e=>{if(!e.target.closest('#burger'))closeMenus()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenus()});
 $('land').addEventListener('click',e=>{if(e.target.closest('a[href^="#"]'))closeMenus()});
 addEventListener('scroll',()=>lpnav.classList.toggle('sc',scrollY>8),{passive:true});
