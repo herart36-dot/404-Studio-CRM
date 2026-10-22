@@ -1,7 +1,19 @@
-# Orchid CRM
+# Hellobase CRM
 
-Admin CRM for 404 Studio. A single static file (`index.html`), no build step. It talks to the
-404 Studio Supabase project, so leads submitted on the client website appear here.
+CRM for 404 Studio, backed by Supabase. The Next.js App Router provides the application entry
+point; the existing HTML experience and its related pages are served from `public/` so current
+features and URLs continue to work during the migration.
+
+## Local development
+
+```sh
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`. The root Next.js page hosts the existing CRM from
+`public/index.html` and forwards the URL query string and hash, including the `#crm` entry point.
+Other existing HTML pages remain available at their original `.html` paths.
 
 ## Features
 - **Home:** recent leads, stage funnel (weighted / total), month calendar, today's agenda, quota, top opportunities
@@ -12,10 +24,10 @@ Admin CRM for 404 Studio. A single static file (`index.html`), no build step. It
 - **Shortcuts:** `Ctrl/⌘ + K` command palette, `+ New lead` button
 
 ## Deploy
-1. Put `index.html` in its own repo and host it (Netlify, Vercel, Cloudflare Pages or GitHub Pages).
-2. In Supabase > Authentication > URL Configuration, add the CRM's full address to **Redirect URLs**.
-3. Optional: set `CLIENT_URL` near the top of the script to show a "Client site" button.
-4. Optional: add a `favicon.png` next to `index.html`.
+
+Build with `npm run build` and run with `npm start`, or deploy the repository to a Next.js-compatible
+host such as Vercel. In Supabase > Authentication > URL Configuration, add the deployed CRM's full
+address to **Redirect URLs**.
 
 ## Database
 The CRM expects these in Supabase (run `supabase-setup.sql` for the Orchid-specific parts):
