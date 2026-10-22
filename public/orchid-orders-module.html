@@ -1,0 +1,194 @@
+<style id="orchid-orders-css">
+.ord{max-width:1200px}.ord h2{margin:0}.ord .sub{margin:4px 0 0;color:var(--muted)}.ord h3{margin:0}
+.ord input[type=text],.ord input[type=search],.ord input[type=number],.ord input[type=time],.ord select,.ord textarea{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--bd);border-radius:var(--r);background:var(--card);color:var(--ink)}
+.ord-pos{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+.ord-r{position:sticky;top:84px}
+@media(max-width:900px){.ord-pos{grid-template-columns:1fr}.ord-r{position:static}}
+.ord-bar{margin-bottom:10px}.ord-cats,.ord-fl{display:flex;gap:6px;flex-wrap:wrap}
+.ord-chip{border:1px solid var(--bd);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:.82rem;font-weight:600;cursor:pointer}
+.ord-chip.on{background:var(--brand);border-color:var(--brand);color:#fff}.ord-chip small{opacity:.7}
+.ord-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:12px}
+.ord-tile{position:relative;display:flex;flex-direction:column;gap:6px;text-align:left;padding:0 0 10px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--card);color:var(--ink);font:inherit;cursor:pointer;overflow:hidden;box-shadow:var(--sh);transition:transform .12s}
+.ord-tile:hover:not(:disabled){transform:translateY(-2px)}.ord-tile.sel{outline:2px solid var(--brand)}.ord-tile:disabled{opacity:.55;cursor:not-allowed}
+.ord-tn{font-weight:700;padding:0 10px;line-height:1.25}.ord-tp{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:0 10px}
+.ord-img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#e2e8f0}
+.ord-img.ph{display:grid;place-items:center;font-weight:800;font-size:1.8rem;color:#64748b;background:linear-gradient(135deg,#e0e7ff,#cffafe)}
+.ord-img.big{max-width:220px;border-radius:var(--r)}
+.ord-st{font-size:.72rem;font-weight:700;color:var(--ok)}.ord-st.low{color:var(--warn)}.ord-st.out{color:var(--danger)}
+.ord-badge{position:absolute;top:8px;right:8px;min-width:24px;height:24px;border-radius:12px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.8rem;padding:0 6px}
+.ord-cart{display:flex;flex-direction:column;gap:10px}
+.ord-line{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.ord-line .qt{display:inline-flex;align-items:center;gap:8px}
+.ord-line .qt button{width:28px;height:28px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--ink);cursor:pointer;font-weight:700}
+.ord-line .qt button:disabled{opacity:.4;cursor:not-allowed}
+.ord-tot{display:flex;justify-content:space-between;font-size:1.1rem}
+.ord-empty{padding:18px;text-align:center;color:var(--muted)}.ord-empty.sm{padding:8px}
+.ord-sec{margin-top:22px}.ord-sech{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.ord-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.ord-o{display:flex;flex-direction:column;gap:8px;border-left:4px solid var(--bd)}
+.ord-o.st-new{border-left-color:#2563eb}.ord-o.st-preparing{border-left-color:#d97706}.ord-o.st-ready{border-left-color:#059669}
+.ord-oh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ord-tt{margin-left:auto}.ord-t,.ord-cu,.ord-by,.ord-nt,.ord-hint{font-size:.8rem;color:var(--muted)}
+.ord-pill{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:6px;background:#e2e8f0;color:#334155}
+.ord-pill.new{background:#dbeafe;color:#1d4ed8}.ord-pill.preparing{background:#fef3c7;color:#92400e}.ord-pill.ready{background:#d1fae5;color:#065f46}.ord-pill.cancelled{background:#ffe4e6;color:#9f1239}
+.ord-its{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:.88rem}.ord-its li{display:flex;justify-content:space-between;gap:8px}
+.ord-act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.ord-by{margin-left:auto}.ord-lock{font-size:.8rem;font-weight:600;color:var(--muted)}
+.ord-ml{display:grid;gap:10px}.ord-mi{display:grid;grid-template-columns:64px 1fr auto auto;gap:12px;align-items:center}.ord-mi.off{opacity:.6}
+.ord-mi .ord-img{width:64px;height:64px;aspect-ratio:1;border-radius:10px;font-size:1.3rem}.ord-mb small{color:var(--muted)}.ord-mb p{margin:4px 0 0;font-size:.85rem;color:var(--muted)}
+.ord-mr{display:grid;gap:2px;text-align:right}
+@media(max-width:600px){.ord-mi{grid-template-columns:56px 1fr auto}.ord-mi>.btn{grid-column:1/-1}.ord-mi .ord-img{width:56px;height:56px}}
+.ord-form{display:grid;gap:12px;max-width:560px}.ord-f{display:grid;gap:4px;font-weight:600;font-size:.85rem}.ord-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ord-ck{display:flex;gap:8px;align-items:center;font-size:.9rem}
+.ord-set{display:grid;gap:12px;margin-bottom:16px}.ord-sr{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}.ord-f.in{min-width:150px}.ord-note{font-size:.88rem;font-weight:600}
+.ord-day{margin-bottom:10px;padding:0}.ord-dh{background:none;border:0;font:inherit;color:inherit;text-align:left;display:flex;gap:12px;align-items:center;width:100%;padding:14px 16px;cursor:pointer;flex-wrap:wrap}.ord-dh .car{margin-left:auto;color:var(--muted)}.ord-dh small{color:var(--muted)}
+.ord-dh:focus-visible,.ord-tile:focus-visible,.ord-chip:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.ord-wrap{overflow-x:auto;padding:0 16px 14px}.ord-tb{width:100%;border-collapse:collapse;font-size:.88rem}.ord-tb th,.ord-tb td{padding:8px 10px;text-align:right;border-top:1px solid var(--line)}.ord-tb th:first-child,.ord-tb td:first-child{text-align:left}.ord-tb tfoot td{font-weight:700}
+</style>
+<script id="orchid-orders-js">(()=>{
+if(window.__ordersView)return;
+const sb=()=>window.__orchidSb,D=()=>(window.__orc&&window.__orc.d)||{},toast=m=>{try{window.__orc.toast(m)}catch(e){}};
+const peso=n=>'₱'+Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const h=(t,p,...k)=>{const e=document.createElement(t);let v0;for(const a in(p||{})){const v=p[a];if(v==null||v===false)continue;if(a==='text')e.textContent=v;else if(a==='value')v0=v;else if(a.slice(0,2)==='on')e[a]=v;else e.setAttribute(a,v===true?'':v)}k.flat(9).forEach(c=>{if(c!=null&&c!==false)e.append(c.nodeType?c:document.createTextNode(c))});if(v0!==undefined)e.value=v0;return e};
+const OPEN=['new','preparing','ready'],LBL={new:'New',preparing:'Preparing',ready:'Ready',completed:'Completed',cancelled:'Cancelled'},NEXT={new:['preparing','Start preparing'],preparing:['ready','Mark ready'],ready:['completed','Complete']};
+const S={tab:'order',menu:[],orders:[],days:[],lines:{},set:null,cart:{},cat:'All',q:'',cust:'',note:'',filter:'open',openDay:null,form:null,loaded:false,loading:false,err:'',busy:false,box:null,openN:0};
+const admin=()=>!!D().isAdmin,er=e=>(e&&e.message)||'Something went wrong.';
+const when=t=>{const d=new Date(t),n=new Date(),tm=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});return d.toDateString()===n.toDateString()?tm:d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+tm};
+const fmtDay=d=>new Date(d+'T00:00:00').toLocaleDateString([],{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+
+async function load(quiet){if(S.loading)return;S.loading=true;
+ try{const c=sb();
+  const [m,o,s,d]=await Promise.all([
+   c.from('crm_menu_items').select('*').order('category',{nullsFirst:false}).order('name'),
+   c.from('crm_orders').select('*,crm_order_items(*)').order('created_at',{ascending:false}).limit(150),
+   c.from('crm_inventory_settings').select('*').eq('id',1).maybeSingle(),
+   c.from('crm_inventory_days').select('*').order('day',{ascending:false}).limit(90)]);
+  const bad=[m,o,s,d].find(r=>r.error);if(bad)throw bad.error;
+  S.menu=m.data||[];S.orders=o.data||[];S.set=s.data;S.days=d.data||[];S.loaded=true;S.err='';
+ }catch(e){S.err=er(e)}
+ S.loading=false;S.openN=S.orders.filter(o=>OPEN.includes(o.status)).length;
+ if(!quiet)paint();else paintLive()}
+
+const pic=m=>m.image_url?h('img',{src:m.image_url,alt:'',loading:'lazy',class:'ord-img'}):h('span',{class:'ord-img ph',text:(m.name||'?').trim().slice(0,1).toUpperCase()});
+const stockEl=m=>!m.track_stock?null:m.stock_qty<=0?h('span',{class:'ord-st out',text:'Sold out'}):h('span',{class:'ord-st'+(m.stock_qty<=m.low_stock_at?' low':''),text:m.stock_qty+' left'});
+
+/* ---------- page ---------- */
+window.__ordersView=()=>{const b=S.box=h('div',{class:'ord'});if(!S.loaded&&!S.loading)load();else if(S.loaded)load(true);paint();return b};
+window.__ordBadge=()=>S.openN||0;
+function paint(){const b=S.box;if(!b)return;S.gridBox=S.listBox=S.cartList=null;
+ b.replaceChildren(h('h2',{text:'Orders & inventory'}),h('p',{class:'sub',text:'Tap items to take an order, move it through its status, and review the locked daily inventory.'}),tabsBar(),body())}
+function paintLive(){const b=S.box;if(!b||!document.body.contains(b))return;
+ if(S.nEl)S.nEl.textContent=String(S.openN);
+ if(S.tab==='order'&&S.gridBox){paintGrid();paintCart();paintOrders()}else if(S.tab==='menu'&&!S.form)paint()}
+function tabsBar(){S.nEl=null;return h('div',{class:'tl-tabs',role:'tablist'},[['order','Take orders'],['menu','Menu'],['inv','Daily inventory']].map(([k,t])=>h('button',{role:'tab','aria-selected':String(S.tab===k),onclick:async()=>{S.tab=k;S.form=null;paint();if(k!=='order'){await load(true);paint()}}},t,k==='order'&&S.openN?(S.nEl=h('span',{class:'n',text:String(S.openN)})):null)))}
+function body(){if(S.err)return h('div',{class:'card'},h('p',{text:S.err}),h('button',{class:'btn primary sm',type:'button',onclick:()=>load()},'Try again'));
+ if(!S.loaded)return h('div',{class:'ord-empty',text:'Loading…'});
+ return S.tab==='menu'?menuTab():S.tab==='inv'?invTab():orderTab()}
+
+/* ---------- take orders ---------- */
+function orderTab(){
+ S.gridBox=h('div',{class:'ord-grid'});S.catBox=h('div',{class:'ord-cats'});S.cartList=h('div');S.totalEl=h('b');S.listBox=h('div',{class:'ord-list'});S.filtBox=h('div',{class:'ord-fl'});
+ S.placeBtn=h('button',{class:'btn primary',type:'button',onclick:place},'Place order');
+ const search=h('input',{type:'search',placeholder:'Search menu…','aria-label':'Search menu',value:S.q,oninput:e=>{S.q=e.target.value;paintGrid()}});
+ const cust=h('input',{type:'text',placeholder:'Customer name (optional)','aria-label':'Customer name',value:S.cust,oninput:e=>{S.cust=e.target.value}});
+ const note=h('input',{type:'text',placeholder:'Note (optional)','aria-label':'Order note',value:S.note,oninput:e=>{S.note=e.target.value}});
+ const left=h('div',{},h('div',{class:'ord-bar'},search),S.catBox,S.gridBox);
+ const right=h('div',{class:'ord-r'},h('div',{class:'card ord-cart'},h('h3',{text:'New order'}),cust,S.cartList,note,h('div',{class:'ord-tot'},h('span',{text:'Total'}),S.totalEl),S.placeBtn,h('button',{class:'btn ghost sm',type:'button',onclick:()=>{S.cart={};paintCart();paintGrid()}},'Clear order')));
+ const sec=h('div',{class:'ord-sec'},h('div',{class:'ord-sech'},h('h3',{text:'Orders'}),S.filtBox),S.listBox);
+ paintGrid();paintCart();paintOrders();
+ return h('div',{},h('div',{class:'ord-pos'},left,right),sec)}
+function paintGrid(){if(!S.gridBox)return;
+ const items=S.menu.filter(m=>m.active),cats=['All',...new Set(items.map(m=>m.category||'Other'))];if(!cats.includes(S.cat))S.cat='All';
+ S.catBox.replaceChildren(...cats.map(c=>h('button',{type:'button',class:'ord-chip'+(c===S.cat?' on':''),onclick:()=>{S.cat=c;paintGrid()}},c)));
+ const q=S.q.trim().toLowerCase(),list=items.filter(m=>(S.cat==='All'||(m.category||'Other')===S.cat)&&(!q||(m.name+' '+(m.description||'')).toLowerCase().includes(q)));
+ if(!items.length){S.gridBox.replaceChildren(h('div',{class:'ord-empty',text:admin()?'No menu items yet. Open the Menu tab and add your first item.':'No menu items yet. Ask your admin to add them in the Menu tab.'}));return}
+ S.gridBox.replaceChildren(...(list.length?list.map(tile):[h('div',{class:'ord-empty',text:'Nothing matches.'})]))}
+function tile(m){const n=S.cart[m.id]||0,out=m.track_stock&&m.stock_qty<=0,max=m.track_stock&&n>=m.stock_qty;
+ return h('button',{type:'button',class:'ord-tile'+(n?' sel':''),disabled:out||max,'aria-label':'Add '+m.name,onclick:()=>{S.cart[m.id]=n+1;paintCart();paintGrid()}},pic(m),h('span',{class:'ord-tn',text:m.name}),h('span',{class:'ord-tp'},h('b',{text:peso(m.price)}),stockEl(m)),n?h('span',{class:'ord-badge',text:String(n)}):null)}
+function paintCart(){if(!S.cartList)return;let tot=0,n=0;const rows=[];
+ for(const id of Object.keys(S.cart)){const m=S.menu.find(x=>x.id===id);if(!m||!m.active){delete S.cart[id];continue}
+  let q=S.cart[id];if(m.track_stock&&q>m.stock_qty)q=S.cart[id]=m.stock_qty;if(q<=0){delete S.cart[id];continue}
+  tot+=q*Number(m.price);n+=q;
+  rows.push(h('div',{class:'ord-line'},h('span',{text:m.name}),h('span',{class:'qt'},h('button',{type:'button','aria-label':'Less',onclick:()=>{S.cart[id]=q-1;if(S.cart[id]<=0)delete S.cart[id];paintCart();paintGrid()}},'−'),h('b',{text:String(q)}),h('button',{type:'button','aria-label':'More',disabled:m.track_stock&&q>=m.stock_qty,onclick:()=>{S.cart[id]=q+1;paintCart();paintGrid()}},'+')),h('span',{text:peso(q*m.price)})))}
+ S.cartList.replaceChildren(...(rows.length?rows:[h('div',{class:'ord-empty sm',text:'Tap items to add them.'})]));
+ S.totalEl.textContent=peso(tot);S.placeBtn.disabled=!n||S.busy;S.placeBtn.textContent=S.busy?'Placing…':'Place order'+(n?' ('+n+')':'')}
+async function place(){if(S.busy)return;const items=Object.entries(S.cart).map(([id,qty])=>({id,qty}));if(!items.length)return;
+ S.busy=true;paintCart();
+ try{const{error}=await sb().rpc('crm_place_order',{p_customer:S.cust,p_note:S.note,p_items:items});if(error)throw error;
+  S.cart={};S.cust='';S.note='';S.busy=false;toast('Order placed ✓');await load(true);paint()}
+ catch(e){S.busy=false;toast(er(e));await load(true);paintCart()}}
+function paintOrders(){if(!S.listBox)return;const f=S.filter,is=(o,k)=>k==='all'||(k==='open'?OPEN.includes(o.status):o.status===k);
+ S.filtBox.replaceChildren(...[['open','Open'],['completed','Completed'],['cancelled','Cancelled'],['all','All']].map(([k,t])=>h('button',{type:'button',class:'ord-chip'+(f===k?' on':''),onclick:()=>{S.filter=k;paintOrders()}},t+' ',h('small',{text:String(S.orders.filter(o=>is(o,k)).length)}))));
+ const list=S.orders.filter(o=>is(o,f));
+ S.listBox.replaceChildren(...(list.length?list.map(orderCard):[h('div',{class:'ord-empty',text:f==='open'?'No open orders. New orders appear here.':'No orders here.'})]))}
+function orderCard(o){const its=(o.crm_order_items||[]).slice().sort((a,b)=>a.created_at<b.created_at?-1:1),closed=!OPEN.includes(o.status),nx=NEXT[o.status];
+ return h('div',{class:'card ord-o st-'+o.status},
+  h('div',{class:'ord-oh'},h('b',{text:'#'+o.order_no}),h('span',{class:'ord-pill '+o.status,text:LBL[o.status]}),h('span',{class:'ord-t',text:when(o.created_at)}),o.customer_name?h('span',{class:'ord-cu',text:'· '+o.customer_name}):null,h('b',{class:'ord-tt',text:peso(o.total)})),
+  h('ul',{class:'ord-its'},its.map(i=>h('li',{},h('span',{text:i.qty+'× '+i.name}),h('span',{text:peso(i.qty*i.unit_price)})))),
+  o.note?h('div',{class:'ord-nt',text:'Note: '+o.note}):null,
+  h('div',{class:'ord-act'},closed?h('span',{class:'ord-lock',text:'🔒 Closed'}):[nx?h('button',{class:'btn primary sm',type:'button',onclick:()=>setStatus(o,nx[0])},nx[1]):null,h('button',{class:'btn ghost sm',type:'button',onclick:()=>{if(confirm('Cancel order #'+o.order_no+'? Its items go back into stock.'))setStatus(o,'cancelled')}},'Cancel')],h('span',{class:'ord-by',text:o.created_by?'by '+o.created_by.split('@')[0]:''})))}
+async function setStatus(o,st){try{const{error}=await sb().rpc('crm_set_order_status',{p_id:o.id,p_status:st});if(error)throw error;toast('Order #'+o.order_no+': '+LBL[st])}catch(e){toast(er(e))}await load(true)}
+
+/* ---------- menu ---------- */
+function menuTab(){if(S.form)return formView();
+ const rows=S.menu.map(m=>h('div',{class:'card ord-mi'+(m.active?'':' off')},pic(m),h('div',{class:'ord-mb'},h('b',{text:m.name}),h('br'),h('small',{text:(m.category||'No category')+(m.active?'':' · Hidden')}),m.description?h('p',{text:m.description}):null),
+  h('div',{class:'ord-mr'},h('b',{text:peso(m.price)}),m.track_stock?h('span',{class:'ord-st'+(m.stock_qty<=0?' out':m.stock_qty<=m.low_stock_at?' low':''),text:m.stock_qty<=0?'Sold out':m.stock_qty+' in stock'}):h('span',{class:'ord-st',text:'Stock not tracked'})),
+  admin()?h('button',{class:'btn ghost sm',type:'button',onclick:()=>{S.form={...m};paint()}},'Edit'):null));
+ return h('div',{},h('div',{class:'ord-sech'},h('h3',{text:'Menu & products'}),admin()?h('button',{class:'btn primary sm',type:'button',onclick:()=>{S.form={track_stock:true,active:true,low_stock_at:5};paint()}},'+ Add item'):h('span',{class:'ord-hint',text:'Only an admin can edit the menu.'})),
+  rows.length?h('div',{class:'ord-ml'},rows):h('div',{class:'ord-empty',text:'No menu items yet.'}))}
+function shrink(file){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const r=Math.min(1,900/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?res(b):rej(new Error('x')),'image/jpeg',.82)};img.onerror=()=>rej(new Error('x'));img.src=u})}
+function formView(){const f=S.form,edit=!!f.id,cats=[...new Set(S.menu.map(m=>m.category).filter(Boolean))];
+ const prev=h('div'),showPrev=()=>prev.replaceChildren(f._url||f.image_url?h('img',{src:f._url||f.image_url,alt:'',class:'ord-img big'}):h('span',{class:'ord-img big ph',text:'Photo'}));showPrev();
+ const file=h('input',{type:'file',accept:'image/*','aria-label':'Item picture',onchange:async e=>{const x=e.target.files[0];if(!x)return;try{f._blob=await shrink(x);f._url=URL.createObjectURL(f._blob);showPrev()}catch(er2){toast('Could not read that picture.')}}});
+ const fld=(l,el)=>h('label',{class:'ord-f'},h('span',{text:l}),el);
+ const inp=(k,type,x)=>h('input',{type,value:f[k]==null?'':f[k],oninput:e=>{f[k]=e.target.value},...(x||{})});
+ const desc=h('textarea',{rows:3,placeholder:'Ingredients, size, notes…',oninput:e=>{f.description=e.target.value},value:f.description||''});
+ const trk=h('input',{type:'checkbox',checked:f.track_stock!==false,onchange:e=>{f.track_stock=e.target.checked}}),act=h('input',{type:'checkbox',checked:f.active!==false,onchange:e=>{f.active=e.target.checked}});
+ const save=h('button',{class:'btn primary',type:'button',onclick:()=>saveItem(save)},edit?'Save changes':'Add to menu');
+ return h('div',{class:'card ord-form'},h('h3',{text:edit?'Edit item':'New menu item'}),
+  h('div',{class:'ord-f'},h('span',{text:'Picture'}),prev,file),
+  fld('Name',inp('name','text',{placeholder:'e.g. Iced latte'})),fld('Category',inp('category','text',{list:'ordCats',placeholder:'e.g. Drinks'})),h('datalist',{id:'ordCats'},cats.map(c=>h('option',{value:c}))),
+  fld('Price (₱)',inp('price','number',{min:'0',step:'0.01'})),fld('Description',desc),
+  h('div',{class:'ord-2'},fld('Stock on hand',inp('stock_qty','number',{min:'0',step:'1'})),fld('Low-stock alert at',inp('low_stock_at','number',{min:'0',step:'1'}))),
+  h('label',{class:'ord-ck'},trk,' Track stock (needed for the daily inventory)'),h('label',{class:'ord-ck'},act,' Available to order'),
+  h('div',{class:'ord-act'},save,h('button',{class:'btn ghost',type:'button',onclick:()=>{S.form=null;paint()}},'Cancel'),edit?h('button',{class:'btn ghost',type:'button',style:'color:var(--danger)',onclick:()=>delItem(f)},'Delete'):null))}
+async function saveItem(btn){const f=S.form,name=String(f.name||'').trim();if(!name)return toast('Please enter a name.');
+ const price=Number(f.price||0),stock=Math.max(0,Math.floor(Number(f.stock_qty||0))),low=Math.max(0,Math.floor(Number(f.low_stock_at===undefined||f.low_stock_at===''?5:f.low_stock_at)));
+ if(!isFinite(price)||price<0||!isFinite(stock)||!isFinite(low))return toast('Please check the price and stock numbers.');
+ const label=btn.textContent;btn.disabled=true;btn.textContent='Saving…';
+ try{let url=f.image_url||null;const st=sb().storage.from('crm-menu');
+  if(f._blob){const path='items/'+(crypto.randomUUID?crypto.randomUUID():Date.now())+'.jpg',up=await st.upload(path,f._blob,{contentType:'image/jpeg',cacheControl:'31536000'});if(up.error)throw up.error;
+   const old=f.image_url?f.image_url.split('/crm-menu/')[1]:null;url=st.getPublicUrl(path).data.publicUrl;if(old)st.remove([old]).catch(()=>{})}
+  const row={name,category:String(f.category||'').trim()||null,description:String(f.description||'').trim()||null,price,stock_qty:stock,low_stock_at:low,track_stock:f.track_stock!==false,active:f.active!==false,image_url:url,updated_at:new Date().toISOString()};
+  const{error}=await(f.id?sb().from('crm_menu_items').update(row).eq('id',f.id):sb().from('crm_menu_items').insert({...row,created_by:String((D().me&&D().me.email)||'').toLowerCase()}));if(error)throw error;
+  S.form=null;toast('Saved ✓');await load(true);paint()}
+ catch(e){toast(er(e));btn.disabled=false;btn.textContent=label}}
+async function delItem(f){if(!confirm('Delete “'+f.name+'”? Past orders and inventory sheets keep their records. Tip: untick “Available to order” to hide it instead.'))return;
+ try{const{error}=await sb().from('crm_menu_items').delete().eq('id',f.id);if(error)throw error;const old=f.image_url?f.image_url.split('/crm-menu/')[1]:null;if(old)sb().storage.from('crm-menu').remove([old]).catch(()=>{});S.form=null;toast('Deleted');await load(true);paint()}catch(e){toast(er(e))}}
+
+/* ---------- daily inventory (sheets are locked by the database) ---------- */
+function invTab(){const s=S.set||{},tz=s.timezone||'Asia/Manila',tzs=[...new Set(['Asia/Manila','Asia/Singapore','Asia/Hong_Kong','Asia/Tokyo','Asia/Dubai','Europe/London','America/New_York','America/Chicago','America/Los_Angeles','Australia/Sydney','UTC',tz])];
+ const en=h('input',{type:'checkbox',checked:s.enabled!==false,disabled:!admin()}),tm=h('input',{type:'time',value:String(s.gen_time||'22:00').slice(0,5),disabled:!admin(),'aria-label':'Generate time'}),zs=h('select',{disabled:!admin(),'aria-label':'Time zone'},tzs.map(z=>h('option',{value:z,text:z,selected:z===tz})));
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),has=S.days.some(d=>d.day===today);
+ const save=h('button',{class:'btn primary sm',type:'button',onclick:async()=>{if(!tm.value)return toast('Pick a time.');save.disabled=true;try{const{error}=await sb().rpc('crm_save_inventory_settings',{p_enabled:en.checked,p_time:tm.value,p_tz:zs.value});if(error)throw error;toast('Schedule saved ✓');await load(true);paint()}catch(e){toast(er(e));save.disabled=false}}},'Save schedule');
+ const gen=h('button',{class:'btn ghost sm',type:'button',onclick:async()=>{if(!confirm('Generate today’s inventory sheet now? It is locked immediately, and no other sheet will be made for today.'))return;gen.disabled=true;try{const{error}=await sb().rpc('crm_generate_inventory_now');if(error)throw error;toast('Inventory sheet created and locked ✓');S.openDay=null;await load(true);paint()}catch(e){toast(er(e));gen.disabled=false}}},'Generate today’s sheet now');
+ const card=h('div',{class:'card ord-set'},h('h3',{text:'Daily inventory schedule'}),
+  h('p',{class:'sub',text:'Every day at the time below, the system builds that day’s sheet by itself: opening stock, units sold and closing stock for every tracked item. The moment a sheet is created it is locked. Nobody, not even an admin, can edit or delete it.'}),
+  h('div',{class:'ord-sr'},h('label',{class:'ord-ck'},en,' Auto-generate every day'),h('label',{class:'ord-f in'},h('span',{text:'Time'}),tm),h('label',{class:'ord-f in'},h('span',{text:'Time zone'}),zs),admin()?save:null),
+  h('div',{class:'ord-note',text:(has?'✓ Today’s sheet is ready and locked.':'Today’s sheet has not been generated yet.')+(admin()?'':' Only an admin can change the schedule.')}),admin()?h('div',{},gen):null);
+ const list=S.days.map(d=>{const open=S.openDay===d.id;
+  return h('div',{class:'card ord-day'},h('button',{type:'button',class:'ord-dh','aria-expanded':String(open),onclick:()=>toggleDay(d)},h('b',{text:fmtDay(d.day)}),h('span',{class:'ord-lock',text:'🔒 Locked'}),h('small',{text:'Generated '+new Date(d.generated_at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+(d.source==='manual'?' (by hand)':' (automatic)')}),h('span',{class:'car',text:open?'▲':'▼'})),open?dayBody(d):null)});
+ return h('div',{},card,h('div',{class:'ord-sech'},h('h3',{text:'Daily sheets'})),list.length?list:h('div',{class:'ord-empty',text:'No sheets yet. The first one appears at the time you set above.'}))}
+async function toggleDay(d){if(S.openDay===d.id){S.openDay=null;paint();return}
+ S.openDay=d.id;paint();
+ if(!S.lines[d.id]){try{const{data,error}=await sb().from('crm_inventory_lines').select('*').eq('day_id',d.id).order('name');if(error)throw error;S.lines[d.id]=data||[]}catch(e){toast(er(e));S.openDay=null}paint()}}
+function dayBody(d){const L=S.lines[d.id];if(!L)return h('div',{class:'ord-empty sm',text:'Loading…'});if(!L.length)return h('div',{class:'ord-empty sm',text:'No tracked items on this day.'});
+ const adj=x=>x.closing_qty-x.opening_qty+x.sold_qty,sold=L.reduce((a,x)=>a+x.sold_qty,0),val=L.reduce((a,x)=>a+x.sold_qty*Number(x.unit_price),0);
+ return h('div',{class:'ord-wrap'},h('table',{class:'ord-tb'},h('thead',{},h('tr',{},['Item','Opening','Sold','Added','Closing','Sales'].map(t=>h('th',{text:t})))),
+  h('tbody',{},L.map(x=>h('tr',{},h('td',{text:x.name}),h('td',{text:String(x.opening_qty)}),h('td',{text:String(x.sold_qty)}),h('td',{text:adj(x)>0?'+'+adj(x):adj(x)<0?String(adj(x)):'–'}),h('td',{text:String(x.closing_qty)}),h('td',{text:peso(x.sold_qty*x.unit_price)})))),
+  h('tfoot',{},h('tr',{},h('td',{text:'Total'}),h('td'),h('td',{text:String(sold)}),h('td'),h('td'),h('td',{text:peso(val)})))),
+  h('div',{style:'margin-top:10px'},h('button',{class:'btn ghost sm',type:'button',onclick:()=>csv(d,L)},'Download CSV')))}
+function csv(d,L){const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"',rows=[['Date','Item','Category','Unit price','Opening','Sold','Added/adjusted','Closing','Sales'],...L.map(x=>[d.day,x.name,x.category||'',x.unit_price,x.opening_qty,x.sold_qty,x.closing_qty-x.opening_qty+x.sold_qty,x.closing_qty,x.sold_qty*x.unit_price])];
+ const a=h('a',{href:URL.createObjectURL(new Blob([rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv'})),download:'inventory-'+d.day+'.csv'});document.body.append(a);a.click();a.remove()}
+
+/* keep orders fresh while the page is open; light background refresh keeps the tab badge current */
+let tick=0;setInterval(()=>{try{if(document.hidden||!D().me)return;if(D().view==='orders'||++tick%3===0)load(true)}catch(e){}},20000);
+setTimeout(()=>{try{if(D().me&&D().view!=='orders')load(true)}catch(e){}},5000);
+})();</script>

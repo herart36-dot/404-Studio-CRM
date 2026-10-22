@@ -1,0 +1,337 @@
+<style id="oa-css">
+#oai-fab,#oai-panel{display:none!important}
+#oa-fab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:41;display:none;align-items:center;gap:8px;padding:13px 18px;border:0;border-radius:999px;background:linear-gradient(135deg,#0176d3,#1b96ff);color:#fff;font:700 .88rem/1 Nunito,Figtree,Inter,system-ui,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(1,118,211,.38)}
+#oa-fab.on{display:inline-flex}#oa-fab b{min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:99px;background:#fff;color:#0176d3;font-size:.74rem;display:grid;place-items:center}#oa-fab b[hidden]{display:none}
+#oa-fab.ping{animation:oa-p 1s 3}@keyframes oa-p{50%{box-shadow:0 0 0 10px rgba(27,150,255,.28)}}html.oa-open #oa-fab,html.oa-open #oa-bub{display:none!important}
+#oa-bub{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:41;max-width:250px;border:0;text-align:left;background:#0f2a4a;color:#fff;padding:11px 14px;border-radius:14px;font:600 .82rem/1.4 Nunito,Figtree,Inter,sans-serif;cursor:pointer;box-shadow:0 10px 28px rgba(15,42,74,.3)}#oa-bub[hidden]{display:none}
+#oa{position:fixed;top:0;right:0;bottom:0;width:400px;z-index:55;display:flex;flex-direction:column;background:#fff;color:#0f172a;border-left:1px solid #dbe4f0;box-shadow:-14px 0 40px rgba(15,23,42,.12);font-family:Nunito,Figtree,Inter,system-ui,sans-serif}#oa[hidden]{display:none}
+html.oa-open body{margin-right:400px}
+.oa-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #e5eaf2}.oa-av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#0176d3,#1b96ff)}.oa-ti{flex:1;min-width:0}.oa-ti b{display:block;font-size:.98rem}.oa-ti small{color:#64748b;font-size:.74rem}
+.oa-x{border:0;background:#eef3fa;color:#334155;width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:1rem}
+.oa-tabs{display:flex;border-bottom:1px solid #e5eaf2}.oa-tabs button{flex:1;border:0;background:#fff;padding:12px 6px;font:700 .82rem Nunito,Figtree,Inter,sans-serif;color:#64748b;border-bottom:3px solid transparent;cursor:pointer}.oa-tabs button[aria-selected=true]{color:#0176d3;border-color:#0176d3}
+.oa-body{flex:1;min-height:0;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:#f6f8fc}
+.oa-step{font-size:.78rem;font-weight:700;color:#0176d3}.oa-lb{color:#64748b;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}
+.oa-card{background:#fff;border:1px solid #dbe4f0;border-radius:14px;padding:16px;box-shadow:0 4px 16px rgba(3,45,96,.08)}.oa-card h3{margin:4px 0 4px;font-size:1.08rem}.oa-card p{margin:0;color:#475569;font-size:.86rem;line-height:1.45}
+.oa-tag{font-weight:800;font-size:.66rem;letter-spacing:.08em;color:#0176d3;background:#e8f2fd;padding:3px 8px;border-radius:6px}
+.oa-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.oa-ex{display:flex;flex-direction:column;gap:10px;margin-top:12px}.oa-ex:empty{display:none}
+.oa-b{border:1px solid #c9d6e8;background:#fff;color:#0f2a4a;border-radius:10px;padding:10px 14px;font:700 .82rem Nunito,Figtree,Inter,sans-serif;cursor:pointer}.oa-b.p{background:#0176d3;border-color:#0176d3;color:#fff}.oa-b.g{border-color:transparent;background:transparent;color:#64748b}.oa-b:disabled{opacity:.55;cursor:default}
+.oa-row{display:flex;flex-direction:column;gap:2px;text-align:left;padding:11px 13px;background:#fff;border:1px solid #e1e8f2;border-radius:11px;cursor:pointer;font-family:inherit}.oa-row b{font-size:.86rem;color:#0f172a}.oa-row span{font-size:.76rem;color:#64748b}.oa-row:hover{border-color:#0176d3}
+.oa-rc{font-size:.8rem;color:#166534;background:#ecfdf3;border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+.oa-okc{border-color:#bbf7d0;background:#f0fdf4}.oa-hi{background:#fff;border:1px solid #dbe4f0;border-radius:12px;padding:12px 14px;font-size:.86rem;line-height:1.5}
+.oa-chips{display:flex;flex-wrap:wrap;gap:8px}.oa-chips.col{flex-direction:column;align-items:stretch}.oa-chips.col .oa-b{text-align:left}
+.oa-in{display:flex;gap:8px;padding:12px;border-top:1px solid #e5eaf2;background:#fff}.oa-in input{flex:1;min-width:0;border:1px solid #c9d6e8;border-radius:10px;padding:11px 12px;font:500 .86rem Nunito,Figtree,Inter,sans-serif;color:#0f172a;background:#fff}
+#oa .oh-m{max-width:92%;padding:10px 13px;border-radius:12px;font-size:.86rem;line-height:1.5;white-space:pre-wrap;word-break:break-word}#oa .oh-m.u{align-self:flex-end;background:#0176d3;color:#fff}#oa .oh-m.a{align-self:flex-start;background:#fff;border:1px solid #dbe4f0}#oa .oh-m.e{background:#fff1f2;color:#9f1239;border:1px solid #fecdd3}
+#oa .oh-dots{display:flex;gap:4px;padding:4px 2px}#oa .oh-dots i{width:7px;height:7px;border-radius:50%;background:#94a3b8;animation:oa-d 1s infinite}#oa .oh-dots i:nth-child(2){animation-delay:.15s}#oa .oh-dots i:nth-child(3){animation-delay:.3s}@keyframes oa-d{50%{transform:translateY(-4px);opacity:.4}}
+#oa .oh-ac{background:#fff;border:1px solid #bcd3f2;border-left:4px solid #0176d3;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:.84rem}#oa .oh-ac b{font-size:.9rem}#oa .oh-ac span{color:#475569}
+#oa .oh-ac input,#oa .oh-ac textarea{width:100%;box-sizing:border-box;border:1px solid #c9d6e8;border-radius:8px;padding:8px;font:inherit;background:#fff;color:inherit}#oa .oh-ac textarea{min-height:130px;resize:vertical}#oa .oh-a{display:flex;gap:8px}
+#oa .oh-b{border:0;border-radius:9px;padding:9px 14px;font:700 .8rem Nunito,Figtree,Inter,sans-serif;background:#0176d3;color:#fff;cursor:pointer}#oa .oh-b.g{background:#eef3fa;color:#334155}#oa .oh-b:disabled{opacity:.55}
+#oa button:focus-visible,#oa-fab:focus-visible{outline:2px solid #0176d3;outline-offset:2px}
+@media(max-width:1100px){html.oa-open body{margin-right:0}}
+@media(max-width:760px){#oa{top:auto;left:0;width:auto;height:86vh;border-left:0;border-top:1px solid #dbe4f0;border-radius:18px 18px 0 0}#oa-fab{bottom:calc(76px + env(safe-area-inset-bottom,0px))}#oa-bub{bottom:calc(134px + env(safe-area-inset-bottom,0px))}}
+@media(prefers-reduced-motion:reduce){#oa-fab.ping,#oa .oh-dots i{animation:none}}
+
+#oa,#oa-fab,#oa-bub,#oa-intro{font-family:Nunito,Figtree,Inter,system-ui,sans-serif}
+#oa{background:linear-gradient(170deg,#f1e8ff 0,#e5e5ff 48%,#d6ebff 100%);border-left:1px solid #dcd6f8}
+.oa-h,.oa-tabs,.oa-body,.oa-in{position:relative;z-index:1}
+.oa-h{background:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom-color:#e4dffa}
+.oa-av{width:48px;height:48px;border-radius:50%;background:none;box-shadow:none;overflow:visible}.oa-av canvas{width:100%;height:100%;display:block}
+.oa-ti b{font-size:1.12rem;font-weight:800;color:#2a4a9e}.oa-ti small{font-size:.8rem;font-weight:600;color:#6f7fb4}
+.oa-x{background:rgba(255,255,255,.85);color:#4a5a9a}
+.oa-tabs{background:rgba(255,255,255,.4);border-bottom-color:#e4dffa}.oa-tabs button{background:transparent;font-size:.9rem;font-weight:800;color:#7482b3}.oa-tabs button[aria-selected=true]{color:#5348ee;border-color:#5348ee}
+.oa-body{background:transparent}
+.oa-card,.oa-row,.oa-hi{background:rgba(255,255,255,.9);border-color:#e1ddf8;box-shadow:0 6px 20px rgba(80,80,200,.1)}
+.oa-card h3{font-size:1.18rem;font-weight:800;color:#25368a}.oa-card p,.oa-row span{font-size:.92rem}.oa-row b{font-size:.94rem}.oa-row:hover{border-color:#6b66f0}
+.oa-tag{color:#4b46d8;background:#e9e7ff}.oa-step{color:#5348ee;font-size:.82rem;font-weight:800}.oa-lb{color:#7b86b8}
+.oa-b{font-size:.9rem;font-weight:800;border-color:#d9d6f7}.oa-b.p,#oa .oh-b{background:linear-gradient(135deg,#7b8cff,#5a4ff0);border-color:transparent;color:#fff}#oa .oh-b.g{background:#ecebff;color:#45508f}
+#oa .oh-m{font-size:.94rem}#oa .oh-m.u{background:linear-gradient(135deg,#7b8cff,#5a4ff0)}#oa .oh-ac{border-left-color:#5a4ff0;font-size:.9rem}
+/* hero: greeting, orb, quick actions */
+#oa .oa-hero{background:none;border:0;box-shadow:none;padding:0;text-align:center;display:flex;flex-direction:column;gap:10px}
+.oa-hero h2{margin:6px 0 0;font-size:1.4rem;line-height:1.3;font-weight:800;color:#2a4a9e}.oa-hero h2 span{display:block}
+.oa-hero canvas{width:210px;height:210px;display:block;margin:0 auto}
+.oa-qa{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.oa-qa button{display:flex;align-items:center;gap:9px;padding:12px;border:1px solid rgba(255,255,255,.95);background:rgba(255,255,255,.72);border-radius:14px;font:700 .86rem Nunito,Figtree,Inter,system-ui,sans-serif;color:#2f3f86;text-align:left;cursor:pointer;box-shadow:0 4px 14px rgba(90,90,210,.1)}
+.oa-qa button:hover{background:#fff}
+.oa-qa i{flex:none;width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#e6e3ff,#d3e6ff);display:grid;place-items:center;color:#5348ee}
+.oa-hero .oa-chips{justify-content:center}
+/* input bar: plus, field, send (no mic) */
+.oa-in{background:transparent;border-top:0;padding:8px 14px 16px;align-items:center;gap:10px}
+.oa-in .oa-ib{flex:1;min-width:0;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.95);border-radius:999px;padding:5px;box-shadow:0 6px 18px rgba(90,90,210,.14);border:1px solid transparent}
+.oa-in .oa-ib:focus-within{border-color:#8f8cff}
+.oa-in .oa-ib input{flex:1;min-width:0;border:0;outline:0;background:transparent;padding:9px 6px;border-radius:0;font:600 .92rem Nunito,Figtree,Inter,system-ui,sans-serif;color:#25368a}
+.oa-in .oa-ib input::placeholder{color:#8b95bd}
+.oa-plus{flex:none;width:38px;height:38px;border:0;border-radius:50%;background:#e6e4ff;color:#5348ee;font:600 1.5rem/1 Nunito,sans-serif;cursor:pointer;display:grid;place-items:center;padding:0}
+#oa .oh-b.oa-send{flex:none;width:48px;height:48px;padding:0;border-radius:50%;display:grid;place-items:center;box-shadow:0 8px 18px rgba(90,79,240,.35)}
+/* floating button + welcome card */
+#oa-fab{background:linear-gradient(135deg,#6f86ff,#8a5cf6);box-shadow:0 10px 26px rgba(98,92,240,.42);font-size:.95rem;font-weight:800;padding:9px 18px 9px 10px}#oa-fab b{color:#5348ee}
+.oa-fi{width:30px;height:30px;border-radius:50%;position:relative;background:radial-gradient(circle at 50% 32%,#d680ff 0,#9a62ff 45%,#4f7bff 100%);box-shadow:0 0 0 3px rgba(255,255,255,.5),0 0 12px rgba(255,255,255,.8)}
+.oa-fi:before{content:'';position:absolute;left:9px;top:8px;width:4px;height:11px;border-radius:3px;background:#fff;box-shadow:8px 0 #fff}
+#oa-bub{background:#2f3f86}#oa{top:auto;left:auto;right:16px;bottom:16px;width:min(420px,calc(100vw - 32px));height:min(740px,calc(100dvh - 32px));z-index:98;border:1px solid rgba(255,255,255,.8);border-radius:26px;overflow:hidden;box-shadow:0 30px 80px rgba(30,41,120,.32),0 8px 22px rgba(30,41,120,.14);transform-origin:bottom right;animation:oa-pop .24s cubic-bezier(.2,.9,.3,1.15)}@keyframes oa-pop{from{opacity:0;transform:translateY(16px) scale(.95)}}html.oa-open body{margin-right:0!important}@media(max-width:760px){#oa{left:0;right:0;bottom:0;width:auto;height:88dvh;border-radius:24px 24px 0 0}}@media(prefers-reduced-motion:reduce){#oa{animation:none}}
+#oa-intro{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:18px;background:rgba(22,20,64,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);animation:oa-fi .3s ease}@keyframes oa-fi{from{opacity:0}}
+.oi-c{width:min(450px,100%);max-height:96vh;overflow:auto;border-radius:28px;padding:20px 26px 20px;text-align:center;background:linear-gradient(165deg,#f6f0ff,#e7e8ff 60%,#dcefff);box-shadow:0 30px 80px rgba(40,40,120,.45)}
+.oi-c canvas{width:230px;height:230px;display:block;margin:0 auto}
+.oi-k{display:inline-block;font-weight:800;font-size:.72rem;letter-spacing:.12em;color:#4b46d8;background:#e6e4ff;padding:5px 12px;border-radius:99px}
+.oi-c h3{margin:10px 0 8px;font-size:1.75rem;font-weight:800;color:#25368a}.oi-c h3 b{color:#6a4cf0}
+.oi-c p{margin:0 0 14px;color:#44507e;line-height:1.55;font-size:1rem;font-weight:600}
+.oi-l{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:8px;text-align:left}.oi-l li{background:rgba(255,255,255,.85);border:1px solid #dedbf8;border-radius:12px;padding:10px 13px;font-size:.92rem;color:#33407f;font-weight:700}
+.oi-b{display:flex;gap:10px;justify-content:center}.oi-d{display:block;margin-top:12px;font-size:.8rem;color:#6f7aa8;font-weight:600;cursor:pointer}
+#oa,#oa *,#oa-fab,#oa-bub,#oa-intro,#oa-intro *{font-family:Outfit,Nunito,system-ui,sans-serif}
+#oa .oh-m,#oa .oh-ac,.oa-hi{letter-spacing:.005em;line-height:1.6}
+@media(max-width:760px){.oa-hero canvas{width:170px;height:170px}}
+@media(prefers-reduced-motion:reduce){#oa-intro{animation:none}}
+/* draft style: header gear, settings view, draft preview bar (also used inside the Inbox draft modal) */
+.oa-x svg{display:block;margin:auto}.oa-x[aria-pressed=true]{background:#e6e4ff;color:#5348ee}
+.oa-fs{border:1px solid #e1ddf8;border-radius:14px;background:rgba(255,255,255,.6);margin:0;padding:12px;min-width:0;display:flex;flex-direction:column;gap:8px}
+.oa-fs legend{padding:0 6px;font-weight:800;font-size:.84rem;color:#25368a}
+.oa-opt{position:relative;display:flex}.oa-opt input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.oa-opt span{flex:1;display:flex;flex-direction:column;gap:1px;padding:10px 12px;border:1.5px solid #e1ddf8;border-radius:11px;background:rgba(255,255,255,.9)}
+.oa-opt b{font-size:.92rem;color:#25368a}.oa-opt small{font-size:.78rem;color:#64748b}
+.oa-opt input:checked+span{border-color:#5a4ff0;background:#fff;box-shadow:0 0 0 3px rgba(90,79,240,.15)}.oa-opt input:focus-visible+span{outline:2px solid #5a4ff0;outline-offset:2px}
+.oa-smp{white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid #e1ddf8;border-radius:12px;padding:12px 14px;font-size:.92rem;line-height:1.6;color:#25368a}
+.oa-fn{margin:0;font-size:.76rem;color:#64748b}
+.oa-pv{font-size:.76rem;line-height:1.4;color:#334155;background:#eef2ff;border-radius:8px;padding:6px 8px}.oa-fl{font-weight:700;font-size:.72rem;color:#64748b;margin-top:2px}
+.oa-sb{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px dashed rgba(90,79,240,.5);border-radius:10px;background:rgba(123,140,255,.08);color:inherit;font-size:.8rem}
+.oa-sh{font-weight:800;font-size:.78rem}.oa-sr{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}.oa-sr.b{align-items:center;gap:10px}
+.oa-sl{display:flex;flex-direction:column;gap:3px;flex:1 1 100px;min-width:0;font-size:.7rem;font-weight:700}
+.oa-sl select{font-family:inherit;font-weight:600;font-size:.82rem;padding:7px 8px;border:1px solid #c9d6e8;border-radius:8px;background:#fff;color:#0f172a}
+.oa-sbb{font-family:inherit;font-weight:700;font-size:.78rem;padding:8px 12px;border-radius:9px;border:1px solid rgba(90,79,240,.45);background:transparent;color:inherit;cursor:pointer}
+.oa-sbb.p{background:linear-gradient(135deg,#7b8cff,#5a4ff0);border-color:transparent;color:#fff}.oa-sbb.g{border-color:transparent;padding:2px 0;text-decoration:underline}
+.oa-sbb:disabled{opacity:.5;cursor:default}.oa-sbb[hidden]{display:none}.oa-sbb:focus-visible,.oa-sl select:focus-visible{outline:2px solid #5a4ff0;outline-offset:2px}
+.oa-sm{font-size:.76rem;line-height:1.4}.oa-sm:empty{display:none}.oa-sm.w{color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:6px 8px}
+</style>
+<script id="oa-js">(()=>{
+if(window.__oassist)return;window.__oassist=1;
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches,H=36e5,sbc=()=>window.__orchidSb,D=()=>window.__orc&&window.__orc.d;
+const E=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const ago=h=>h<1?'<1h':h<48?Math.round(h)+'h':Math.round(h/24)+'d';
+const live=s=>s!=='won'&&s!=='lost';
+let think=false,sample=false,A=null,R=null,tab='brief',hist=[],busy=false,hero=null;
+
+function analyse(){const d=D()||{};
+ const inq=d.inquiries||[],tk=d.tasks||[],cs=d.cases||[],t0=ymd(new Date());
+ const rows=inq.filter(i=>live(i.status)).map(i=>{const hrs=Math.max(0,(Date.now()-new Date(i.last_touch||i.created_at||Date.now()))/H);
+  let s=({new:42,contacted:32,quoted:48}[i.status]||35)+(i.email?8:0)+(i.phone?7:0)+(i.priority==='high'?12:i.priority==='low'?-6:0)+((i.message||'').length>40?5:0)-Math.min(38,hrs/5);
+  s=Math.max(3,Math.min(99,Math.round(s)));return{i,hrs,score:s,cold:hrs>(i.status==='new'?24:48),risk:s*Math.min(1,hrs/24)}}).sort((a,b)=>b.risk-a.risk);
+ const od=tk.filter(t=>!t.done&&t.due_date&&t.due_date<t0),oc=cs.filter(c=>!['resolved','closed','done'].includes(String(c.status).toLowerCase()));
+ return{d,rows,od,oc,openT:tk.filter(t=>!t.done),cold:rows.filter(r=>r.cold),hot:rows.filter(r=>r.score>=60)}}
+function ctx(a){return'[Live analysis'+(sample?' (SAMPLE data)':'')+'] open inquiries '+a.rows.length+', going cold '+a.cold.length+', overdue tasks '+a.od.length+', open cases '+a.oc.length+'. Most at risk: '+(a.rows.slice(0,6).map(r=>r.i.name+' ('+r.i.status+', heat '+r.score+', silent '+ago(r.hrs)+')').join('; ')||'none')+'. Overdue: '+(a.od.slice(0,4).map(t=>t.title).join('; ')||'none')+'.'}
+/* ---------- draft style: tone and language for DRAFTED messages only (never for facts) ----------
+   Stored per user in the CRM's synced prefs (window.__orc.pref, table crm_user_settings), with a per-user
+   localStorage fallback if the host page does not provide it. */
+const TONES={concise:{l:'Concise',h:'Short and to the point.',ai:'Concise: 2 to 4 short sentences, no filler or small talk, one clear next step.'},
+ friendly:{l:'Friendly',h:'Warm and conversational.',ai:'Friendly: warm, polite and conversational, like a helpful teammate, with a brief greeting.'},
+ formal:{l:'Formal',h:'Polished and professional.',ai:'Formal: professional and courteous, complete sentences, no slang, with a proper salutation and closing.'}},
+LANGS={english:{l:'English',h:'Clear business English.',ai:'English.'},
+ filipino:{l:'Filipino',h:'Tagalog, with a respectful \u201Cpo\u201D.',ai:'Filipino (Tagalog). Use the respectful po and opo when writing to customers. Keep brand names and common business words (quotation, invoice, schedule) as they are when that sounds natural.'},
+ taglish:{l:'Taglish',h:'The natural English and Tagalog mix.',ai:'Taglish: the natural English and Tagalog mix Filipinos use in business chat. Use po and opo when writing to customers.'}};
+/* static examples for the settings preview: same made-up facts in every style, to show that only the wording moves */
+const SAMPLES={
+ concise:{english:'Hi Anna, following up on the \u20B145,000 quote I sent. Any questions, or shall we proceed?',
+  filipino:'Magandang araw po, Anna. Follow-up ko lang po ang quotation na \u20B145,000. May tanong po ba kayo, o maaari na po ba nating ituloy?',
+  taglish:'Hi Anna! Follow-up lang po sa \u20B145,000 quote na na-send ko. May questions po ba, or tuloy na po tayo?'},
+ friendly:{english:'Hi Anna! Hope your week is going well. I wanted to check in on the \u20B145,000 quote I sent over. Happy to answer any questions, and we can get started whenever you are ready.',
+  filipino:'Kumusta po, Anna! Sana po ay maayos ang inyong linggo. Gusto ko lang pong kumustahin ang quotation na \u20B145,000 na ipinadala ko. Masaya po akong sumagot sa anumang tanong, at puwede po tayong magsimula kapag handa na kayo.',
+  taglish:'Hi Anna! Kumusta po kayo? Gusto ko lang pong i-check ang \u20B145,000 quote na na-send ko. Sabihin n\u2019yo lang po kung may questions, and we can start whenever you are ready!'},
+ formal:{english:'Dear Anna Cruz,\n\nI am writing to follow up on the quotation of \u20B145,000 that I sent previously. Please let me know if you require any clarification or would like to proceed.\n\nKind regards,\n[Your name]',
+  filipino:'Magandang araw po, Anna Cruz.\n\nSumusulat po ako upang alamin ang inyong tugon sa quotation na nagkakahalaga ng \u20B145,000. Kung mayroon po kayong nais linawin o nais nang ituloy, ipaalam lamang po sa akin.\n\nMaraming salamat po.\n[Your name]',
+  taglish:'Good day po, Anna Cruz.\n\nSumusulat po ako to follow up on the quotation na nagkakahalaga ng \u20B145,000. Kung may nais po kayong i-clarify o ready na po kayong mag-proceed, please let me know.\n\nThank you po.\n[Your name]'}};
+const clampS=s=>({tone:TONES[s&&s.tone]?s.tone:'friendly',lang:LANGS[s&&s.lang]?s.lang:'english'}),
+ stKey=()=>{let e='';try{e=meE()}catch(x){}return'oa_style:'+e},
+ stGet=()=>{let r=null;try{const o=window.__orc;r=o&&o.pref?{tone:o.pref('aiTone'),lang:o.pref('aiLang')}:JSON.parse(localStorage.getItem(stKey())||'null')}catch(e){}return clampS(r)},
+ stSet=s=>{s=clampS(s);try{const o=window.__orc;if(o&&o.pref){o.pref('aiTone',s.tone);o.pref('aiLang',s.lang)}else localStorage.setItem(stKey(),JSON.stringify(s))}catch(e){}return s};
+/* the instruction sent with every AI request. It scopes the style to the wording of drafts and protects facts. */
+const sd=s=>{s=clampS(s);return'[Drafting style: applies ONLY to the wording of messages you draft for the user to send (the subject and body of send_email and send_chat actions). Tone: '+TONES[s.tone].ai+' Language: '+LANGS[s.lang].ai+' Do not apply this style to anything else: not your own explanations or analysis, not case notes, not CRM fields or records. Facts must stay exactly as they are in the CRM or the user\u2019s request: names, email addresses, phone numbers, amounts, dates, times, statuses and IDs are never translated, converted, rounded or invented. If a detail is missing, leave a [placeholder]. If the user asks for a different tone or language in this request, follow the user.]'};
+/* fact guard: after a rewrite, compare the numbers, emails and links before and after, and say so if any moved */
+const FACT=/[\w.+-]+@[\w-]+(?:\.[\w-]+)+|https?:\/\/[^\s)>\]"']+|[\u20B1$\u20AC\u00A3]?\d[\d,]*(?:\.\d+)?%?/g,
+ facts=t=>{const o=new Set();(String(t||'').match(FACT)||[]).forEach(x=>{x=x.replace(/[.,]+$/,'').replace(/^[\u20B1$\u20AC\u00A3]/,'').toLowerCase();if(x)o.add(x)});return o},
+ factWarn=(a,b)=>{const A=facts(a),B=facts(b),lost=[...A].filter(x=>!B.has(x)),add=[...B].filter(x=>!A.has(x)),p=[];if(lost.length)p.push('missing: '+lost.slice(0,6).join(', '));if(add.length)p.push('new: '+add.slice(0,6).join(', '));return p.length?'Check these details before sending ('+p.join('; ')+'). Press Undo if the rewrite changed a fact.':''};
+const STY=new WeakMap(),tagActions=(d,s)=>{if(s&&d&&Array.isArray(d.actions))d.actions.forEach(a=>{if(a&&typeof a==='object')STY.set(a,s)});return d};
+let styleBack='next';
+/* rewrite an existing draft in a chosen style. Wording only: facts are re-checked afterwards. */
+async function restyle(o,s){s=clampS(s);const em=o.kind==='email',
+ p='Rewrite the draft '+(em?'email':'message')+' below in this style. Tone: '+TONES[s.tone].ai+' Language: '+LANGS[s.lang].ai+' Change only the wording and tone. Keep every fact identical: names, email addresses, phone numbers, amounts, dates, times, links and IDs. Do not add or remove information, and do not propose any action. Reply with '+(em?'the subject on the first line as "Subject: ..." followed by the message body':'only the message text')+', nothing else.\n\n'+(em?'Subject: '+(o.subject||'')+'\n':'')+String(o.body||'');
+ const d=await callAI([{role:'user',text:p}],null),t=clean(d.reply).trim();let subject=o.subject,body=t;
+ if(em){const m=t.match(/^subject:[ \t]*(.+)\n+([\s\S]*)$/i);if(m&&m[2].trim()){subject=m[1].trim();body=m[2].trim()}}
+ if(!body)throw new Error('The rewrite came back empty. Your draft is unchanged.');
+ return{subject,body,warn:factWarn((o.subject||'')+'\n'+(o.body||''),(subject||'')+'\n'+body)}}
+/* preview bar shown under every draft: style in use, switch tone/language, rewrite, undo, make default */
+function styleBar(o){let applied=o.style?clampS(o.style):null,cur=applied?Object.assign({},applied):stGet(),undo=null,run=false;
+ const w=E('div','oa-sb'),hd=E('div','oa-sh'),row=E('div','oa-sr'),row2=E('div','oa-sr b'),msg=E('div','oa-sm');msg.setAttribute('role','status');msg.setAttribute('aria-live','polite');
+ const pick=(lab,map,key)=>{const l=E('label','oa-sl'),s=E('select');l.append(E('span','',lab),s);s.setAttribute('aria-label',lab+' for this draft');Object.keys(map).forEach(k=>{const op=E('option','',map[k].l);op.value=k;s.append(op)});s.value=cur[key];s.onchange=()=>{cur[key]=s.value;sync()};row.append(l);return s},
+  ts=pick('Tone',TONES,'tone'),ls=pick('Language',LANGS,'lang'),
+  rw=E('button','oa-sbb p','Rewrite'),un=E('button','oa-sbb','Undo'),df=E('button','oa-sbb g','Make this my default');[rw,un,df].forEach(x=>x.type='button');
+ const same=(x,y)=>!!y&&x.tone===y.tone&&x.lang===y.lang,lab=s=>s?TONES[s.tone].l+' \u00B7 '+LANGS[s.lang].l:'Standard (no style applied)';
+ function sync(){hd.textContent='Draft style: '+lab(applied);rw.disabled=run||same(cur,applied);un.hidden=!undo;un.disabled=run;df.hidden=same(cur,stGet())}
+ rw.onclick=async()=>{run=true;rw.textContent='Rewriting\u2026';msg.className='oa-sm';msg.textContent='';sync();o.busy&&o.busy(true);const before=o.get();
+  try{const r=await restyle({kind:o.kind,subject:before.subject,body:before.body},cur);undo=Object.assign({},before,{ap:applied});o.set(r);applied=Object.assign({},cur);msg.textContent=r.warn||'Rewritten. Read it through, you can still edit everything.';msg.className='oa-sm'+(r.warn?' w':'')}
+  catch(e){msg.className='oa-sm w';msg.textContent=(e&&e.message)||'Could not rewrite. Your draft is unchanged.'}
+  run=false;rw.textContent='Rewrite';o.busy&&o.busy(false);sync()};
+ un.onclick=()=>{if(!undo)return;o.set(undo);applied=undo.ap;cur=applied?Object.assign({},applied):stGet();ts.value=cur.tone;ls.value=cur.lang;undo=null;msg.className='oa-sm';msg.textContent='Back to your previous text.';sync()};
+ df.onclick=()=>{stSet(cur);msg.className='oa-sm';msg.textContent='Saved. New drafts will use '+lab(cur)+'.';sync()};
+ row2.append(rw,un,df);w.append(hd,row,row2,msg);if(o.note){msg.className='oa-sm w';msg.textContent=o.note}sync();return w}
+/* settings view (gear in the Orchie header): pick tone and language, see a sample */
+function styleTab(b){let s=stGet();
+ const c=E('div','oa-card'),smp=E('div','oa-smp'),cap=E('small','oa-lb'),sv=E('div','oa-sm');sv.setAttribute('role','status');sv.setAttribute('aria-live','polite');
+ const show=()=>{smp.textContent=SAMPLES[s.tone][s.lang];cap.textContent='Example preview \u00B7 '+TONES[s.tone].l+' \u00B7 '+LANGS[s.lang].l};
+ const grp=(name,map,key)=>{const f=E('fieldset','oa-fs');f.append(E('legend','',name));Object.keys(map).forEach(k=>{const l=E('label','oa-opt'),i=E('input'),t=E('span');i.type='radio';i.name='oa-st-'+key;i.value=k;i.checked=s[key]===k;
+   i.onchange=()=>{s=stSet(Object.assign({},s,{[key]:k}));show();sv.textContent='Saved'+(window.__orc&&window.__orc.pref?' to your account.':' on this device.')};t.append(E('b','',map[k].l),E('small','',map[k].h));l.append(i,t);f.append(l)});return f};
+ c.append(E('span','oa-tag','DRAFT STYLE'),E('h3','','How should I write for you?'),E('p','','This changes only the wording of the emails and team messages I draft. Names, amounts, dates and your CRM data are never changed. You always get a preview and can edit every draft before it is sent.'));
+ const back=E('button','oa-b g','Done');back.type='button';back.onclick=()=>{tab=styleBack;paint()};
+ b.append(c,grp('Tone',TONES,'tone'),grp('Language',LANGS,'lang'),cap,smp,E('p','oa-fn','A sample with made-up details. In real drafts I use your real CRM details.'),sv,back);show()}
+window.__orchidStyle={get:stGet,set:stSet,restyle,bar:styleBar,TONES,LANGS};
+
+/* ---------- AI call: your deployed crm-ai Edge Function (key never in the browser) ---------- */
+async function callAI(msgs,st){const c=sbc(),{data:{session}}=await c.auth.getSession();if(!session)throw new Error('Please log in again.');let sx=null;if(st!==null){sx=clampS(st||stGet());msgs=msgs.slice();const li=msgs.length-1;msgs[li]=Object.assign({},msgs[li],{text:msgs[li].text+'\n\n'+sd(sx)})}think=true;
+ try{for(const fn of ['crm-agent','crm-ai']){const r=await fetch(c.supabaseUrl+'/functions/v1/'+fn,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:c.supabaseKey},body:JSON.stringify({messages:msgs,today:ymd(new Date()),tz:Intl.DateTimeFormat().resolvedOptions().timeZone})});
+  if(r.status===404&&fn==='crm-agent')continue;let d={};try{d=await r.json()}catch(e){}if(!r.ok||!d.reply)throw new Error(d.error||'The AI is busy. Try again in a minute.');return tagActions(d,sx)}throw new Error('The AI is not deployed.')}finally{think=false}}
+function clean(t){return String(t==null?'':t).replace(/\*\*(.+?)\*\*/gs,'$1').replace(/__(.+?)__/gs,'$1').replace(/`([^`]*)`/g,'$1').replace(/^\s{0,3}#{1,6}\s+/gm,'').replace(/^(\s*)[-*]\s+/gm,'$1\u2022 ').replace(/\*+/g,'')}
+function typeInto(n,txt,cb){txt=clean(txt);if(RM||txt.length>1200){n.textContent=txt;cb&&cb();return}let i=0;const f=()=>{i=Math.min(txt.length,i+3);n.textContent=txt.slice(0,i);if(i<txt.length)requestAnimationFrame(f);else cb&&cb()};f()}
+const W=async q=>{const r=await q;if(r.error)throw new Error(r.error.message||'Something went wrong.');return r},hx=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),meE=()=>String(D().me.email||'').toLowerCase();
+const TT={create_lead:'Add lead',create_task:'Add task',set_schedule:'Set schedule',create_client:'Add client',update_inquiry:'Update inquiry',log_touch:'Log a touch',update_task:'Update task',create_case:'Open a case',update_case:'Update case',add_case_note:'Add case note',create_deal:'Add deal',move_deal:'Move deal',send_email:'Send email',send_chat:'Send team chat'};
+const stage=async n=>{const st=(await W(sbc().from('crm_deal_stages').select('*').order('position'))).data||[],o=st.filter(x=>x.kind==='open');const s=o.find(x=>n&&x.name.toLowerCase().includes(String(n).toLowerCase()))||(n?null:o[0]);if(!s)throw new Error('No open deal stage called "'+n+'". Use the Deals tab for won or lost.');return s};
+const EX={
+ create_client:async a=>{await W(sbc().from('crm_clients').insert({name:a.name,email:a.email,phone:a.phone,company:a.company,notes:a.notes}));return 'Client '+a.name+' added.'},
+ update_inquiry:async a=>{const v={};if(a.status)v.status=a.status;if(a.priority)v.priority=a.priority;
+  if(D().isAdmin){await W(sbc().from('crm_inquiries').update(v).eq('id',a.id));return 'Inquiry updated.'}
+  await W(sbc().from('crm_approvals').insert({requested_by:meE(),action:'inq_edit',target_id:a.id,summary:('AI: update '+(a.label||'inquiry')+' → '+Object.values(v).join(', ')).slice(0,600),payload:{values:v}}));return 'Sent to the admin for approval. Nothing changes until they approve.'},
+ log_touch:async a=>{const i=(D().inquiries||[]).find(x=>x.id===a.id);if(!i)throw new Error('That inquiry no longer exists.');await window.__orc.logTouch(i);return D().isAdmin?'Touch logged. The clock restarts.':'Sent to the admin for approval.'},
+ update_task:async a=>{const v={};['done','due_date','priority'].forEach(k=>{if(a[k]!==undefined)v[k]=a[k]});await W(sbc().from('crm_tasks').update(v).eq('id',a.id));return 'Task updated.'},
+ create_case:async a=>{await W(sbc().from('crm_cases').insert({subject:a.subject,description:a.description,priority:a.priority,requester_name:a.requester_name,requester_email:a.requester_email}));return 'Case opened. It went to the right person and its deadline timers started.'},
+ update_case:async a=>{const v={};['status','priority','assigned_to'].forEach(k=>{if(a[k])v[k]=a[k]});await W(sbc().from('crm_cases').update(v).eq('id',a.id));return 'Case updated.'},
+ add_case_note:async a=>{await W(sbc().from('crm_case_notes').insert({case_id:a.case_id,kind:'note',body:a.body,author:meE()}));return 'Note added to the case.'},
+ create_deal:async a=>{const s=await stage(a.stage||null),c=a.client&&(D().clients||[]).find(x=>x.name.toLowerCase()===a.client.toLowerCase());await W(sbc().from('crm_deals').insert({title:a.title,value:a.value,stage_id:s.id,probability:s.probability,owner_email:meE(),expected_close:a.expected_close,client_id:c?c.id:null,account_id:(c&&c.account_id)||null}));return 'Deal added in '+s.name+'.'},
+ move_deal:async a=>{const s=await stage(a.stage);await W(sbc().from('crm_deals').update({stage_id:s.id,probability:s.probability,closed_at:null,win_loss_reason:null,win_loss_note:null}).eq('id',a.id));return 'Deal moved to '+s.name+'.'},
+ send_email:async a=>{const r=await sbc().functions.invoke('crm-send-email',{body:{to:a.to,subject:a.subject,body:a.body,html:'<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.55;white-space:pre-wrap">'+hx(a.body)+'</div>',request_id:crypto.randomUUID(),inquiry_id:a.inquiry_id||null,client_id:a.client_id||null,reply_to_message_id:null}});
+  if(r.error){let m='Could not reach the email service.';try{const j=await r.error.context.json();if(j&&j.error)m=j.error}catch(e){}throw new Error(m)}if(!r.data||!r.data.ok)throw new Error((r.data&&r.data.error)||'The email was not sent.');return 'Email sent to '+a.to+'.'},
+ send_chat:async a=>{await W(sbc().from('crm_team_messages').insert({sender_email:meE(),recipient_email:a.to,body:a.body}));return 'Message sent to '+a.to+'.'}};
+function actionCard(a,box){const viaPlan=!EX[a.type],p=viaPlan&&window.__orchidCrm&&window.__orchidCrm.plan(a),c=E('div','oh-ac');
+ if(viaPlan&&(!p||p.error)){c.textContent=(p&&p.error)||'I could not prepare that action.';box.append(c);return}
+ c.append(E('b','',viaPlan?p.title:(TT[a.type]||a.type)+(a.label?' · '+a.label:'')));let ta=null,sj=null;
+ if(viaPlan)p.lines.forEach(l=>c.append(E('span','',l)));else{
+  Object.keys(a).forEach(k=>{if(!['type','id','case_id','label','body','subject','inquiry_id','client_id'].includes(k)&&a[k]!=null&&a[k]!=='')c.append(E('span','',k.replace(/_/g,' ')+': '+a[k]))});
+  const dr=a.type==='send_email'||a.type==='send_chat';
+  if(dr)c.append(E('span','oa-pv','Draft preview. Nothing is sent until you press Send, and you can edit every part of it.'));
+  if(a.type==='send_email'){c.append(E('small','oa-fl','Subject'));sj=E('input');sj.value=a.subject||'';sj.setAttribute('aria-label','Subject');c.append(sj)}
+  if(a.body!=null){if(dr)c.append(E('small','oa-fl','Message'));ta=E('textarea');ta.value=a.body;ta.setAttribute('aria-label','Message (editable)');c.append(ta)}
+  if(dr&&ta)c.append(styleBar({kind:a.type==='send_email'?'email':'chat',style:STY.get(a)||stGet(),get:()=>({subject:sj?sj.value:'',body:ta.value}),set:o=>{if(sj&&o.subject!=null)sj.value=o.subject;ta.value=o.body},busy:v=>{ta.readOnly=v;if(sj)sj.readOnly=v;if(c.__ok)c.__ok.disabled=v}}))}
+ const bar=E('div','oh-a'),ok=E('button','oh-b s',viaPlan?(p.confirm||'Confirm'):a.type==='send_email'||a.type==='send_chat'?'Send':'Confirm'),no=E('button','oh-b g s','Cancel');
+ ok.onclick=async()=>{if(sj)a.subject=sj.value;if(ta)a.body=ta.value;ok.disabled=no.disabled=true;ok.textContent='Working…';
+  try{const m=viaPlan?await p.exec():await EX[a.type](a);c.replaceChildren(E('b','','✓ '+m));logAI(a.type,m);if(box.__ok)box.__ok(a,m);if(window.__orc.refresh)window.__orc.refresh().then(()=>{A=analyse()}).catch(()=>{})}catch(e){c.replaceChildren(E('b','',e.message||'Something went wrong.'),E('span','','Nothing was changed.'))}};
+ no.onclick=()=>c.replaceChildren(E('span','','Cancelled.'));bar.append(ok,no);c.append(bar);box.append(c);c.__ok=ok;c.__t=a.type;return c}
+
+const $=s=>document.querySelector(s);
+const uid=async()=>{try{const{data:{session}}=await sbc().auth.getSession();return session&&session.user.id}catch(e){return null}};
+async function logAI(kind,s){try{const u=await uid();if(u)await sbc().from('crm_ai_activity').insert({user_id:u,kind,summary:String(s).slice(0,500)})}catch(e){}}
+const VIEW={overview:'Home',inquiries:'Inquiries',clients:'Clients',tasks:'Tasks',cases:'Cases',deals:'Deals',messages:'Inbox',chat:'Team chat',calendar:'Calendar',sales:'Sales',automation:'Automations',productivity:'Productivity',tools:'Tools',members:'Members',team:'Team',approvals:'Approvals'};
+const VC={inquiries:['Who should I follow up first?','Write an email to my hottest lead'],tasks:['Plan my day','Which task should I do first?'],cases:['Summarize my open cases','Which case is most at risk?'],deals:['Which deals are at risk?','Suggest next steps for my deals'],clients:['Which clients need attention?'],messages:['Reply to my latest email'],chat:['What should I reply to my latest team chat?'],calendar:['Add an event for tomorrow']};
+const EG=['Add a lead: Anna Cruz, 0917 123 4567, wants a quote','Add a task for tomorrow: call Cafe Luna','Write a reply to my latest email','Set a meeting with Maria on Friday at 2pm','Tell me everything I should do today'];
+const who=()=>{let n='';try{const d=D()||{},me=d.me||{},em=String(me.email||'').toLowerCase(),mb=(d.members||[]).find(x=>String(x.email||'').toLowerCase()===em);n=String((mb&&mb.name)||(d.profile&&(d.profile.name||d.profile.full_name))||'').trim().split(/\s+/)[0]||''}catch(e){}return n||'there'};
+const ic=p=>'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
+const QA=[[ic('<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/>'),'Draft an email','Write a follow-up email to my hottest lead.'],[ic('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>'),'Give me ideas','Give me ideas on how to win more of my leads and deals today.'],[ic('<rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/>'),'Do the task','Do the next best step for me and propose the action.'],[ic('<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/>'),'Plan my day','What should I do today? Plan my day in simple steps.']];
+const done=new Set(),skip=new Set(),logs=[],tmr=()=>ymd(new Date(Date.now()+864e5));
+let P,fab,bub,inp,open=false,pin=null,lastN=0,shown=false,S=[],introDone=false;tab='next';
+const pg=()=>VIEW[(D()||{}).view]||'this page',scr=()=>{const b=P.querySelector('.oa-body');b.scrollTop=b.scrollHeight};
+
+/* ---------- the queue: what needs the person, most urgent first ---------- */
+function queue(){const a=A=analyse(),q=[],t0=ymd(new Date());
+ a.od.forEach(t=>q.push({k:'t'+t.id,w:90,type:'task',t,title:t.title,why:'Overdue since '+t.due_date+'.'}));
+ a.rows.forEach(r=>{const i=r.i,hot=r.score>=60;if(r.cold||hot||i.status==='new')q.push({k:'i'+i.id,w:r.cold?80+r.score/10:hot?60:50,type:'inq',r,title:i.name,why:(r.cold?'Going cold: ':hot?'Hot lead: ':'New, not contacted yet: ')+i.status+', heat '+r.score+', silent '+ago(r.hrs)+'.'})});
+ a.openT.filter(t=>t.due_date===t0).forEach(t=>q.push({k:'t'+t.id,w:55,type:'task',t,title:t.title,why:'Due today.'}));
+ a.oc.slice(0,5).forEach(c=>q.push({k:'c'+c.id,w:40,type:'case',c,title:c.subject||'Case',why:'Open case'+(c.priority?' · '+c.priority+' priority':'')+'.'}));
+ const seen=new Set();return q.filter(x=>!done.has(x.k)&&!seen.has(x.k)&&seen.add(x.k)).sort((x,y)=>(skip.has(x.k)-skip.has(y.k))||y.w-x.w).slice(0,15)}
+
+/* ---------- one-tap actions for each kind of item ---------- */
+function acts(x,ex){const T=tmr(),ai=async p=>{ex.replaceChildren();const w=E('div','oh-m a'),dd=E('div','oh-dots');dd.append(E('i'),E('i'),E('i'));w.append(dd);ex.append(w);
+  try{const d=await callAI([{role:'user',text:p+'\n\n'+ctx(A)}]);w.textContent='';typeInto(w,d.reply);(d.actions||[]).slice(0,3).forEach(a=>actionCard(a,ex))}catch(e){w.className='oh-m e';w.textContent=e.message}return null};
+ if(x.type==='task')return[['✓ Mark it done',()=>EX.update_task({id:x.t.id,done:true}).then(()=>'Done: '+x.t.title),1],['Do it tomorrow',()=>EX.update_task({id:x.t.id,due_date:T}).then(()=>'Moved to tomorrow: '+x.t.title)],['How do I do this?',()=>ai('Give me a short concrete plan (max 3 bullets) to finish this task today: "'+x.t.title+'". If an email, task or note would help, propose it as an action.')]];
+ if(x.type==='inq'){const i=x.r.i,r=x.r,L=[['✉ Write the email for me',()=>ai('Compose a follow-up email to '+i.name+' (inquiry id '+i.id+', '+i.status+', silent '+ago(r.hrs)+') based on everything in the CRM about them: their message, our emails, tasks and notes. Then propose sending it with a send_email action.'),1],['☎ I already contacted them',()=>EX.log_touch({id:i.id})]];
+  if(i.status==='new')L.push(['Mark as contacted',()=>EX.update_inquiry({id:i.id,status:'contacted',label:i.name})]);
+  L.push(['+ Follow-up task for tomorrow',async()=>{const p=window.__orchidCrm.plan({type:'create_task',title:'Follow up with '+i.name,due_date:T,priority:r.cold?'high':'normal'});if(p.error)throw new Error(p.error);return p.exec()}]);return L}
+ return[['What should I do?',()=>ai('Case "'+(x.c.subject||'')+'" (id '+x.c.id+', '+(x.c.priority||'')+'): tell me in max 3 bullets what to do next, and propose a case note or status update as an action if useful.'),1],['Open the cases page',()=>{setOpen(false);window.__orc.go('cases');return null}]]}
+function finish(x,m){done.add(x.k);pin=null;logs.unshift('✓ '+m);logs.length=Math.min(logs.length,6);logAI(x.type,m);window.__orc.refresh&&window.__orc.refresh().catch(()=>{});paint()}
+function card(x,b){const c=E('div','oa-card'),ex=E('div','oa-ex'),bar=E('div','oa-btns');ex.__ok=(a,m)=>finish(x,m);
+ c.append(E('span','oa-tag',{task:'TASK',inq:'LEAD',case:'CASE'}[x.type]),E('h3','',x.title),E('p','',x.why));
+ const bs=()=>bar.querySelectorAll('button');
+ acts(x,ex).forEach(([l,fn,pri])=>{const bt=E('button','oa-b'+(pri?' p':''),l);bt.onclick=async()=>{bs().forEach(n=>n.disabled=true);bt.textContent='Working…';try{const m=await fn();if(m)finish(x,m);else{bs().forEach(n=>n.disabled=false);bt.textContent=l}}catch(e){bs().forEach(n=>n.disabled=false);bt.textContent=l;ex.append(E('div','oh-m e',e.message||'Something went wrong.'))}};bar.append(bt)});
+ const sk=E('button','oa-b g','Skip for now');sk.onclick=()=>{skip.add(x.k);pin=null;paint()};bar.append(sk);c.append(bar,ex);b.append(c)}
+function nextTab(b){const q=queue();
+ if(!q.length){const ok=E('div','oa-card oa-okc');ok.append(E('h3','','You are all caught up ✓'),E('p','','Nothing urgent right now. I keep watching your CRM and will tell you the moment something needs you. You can also tell me anything to do in the “Ask / do it for me” tab.'));b.append(ok)}
+ else{const x=q.find(i=>i.k===pin)||q[0];q.splice(q.indexOf(x),1);q.unshift(x);b.append(E('div','oa-step','NEXT STEP · '+q.length+' waiting · just tap, I do the work'));card(x,b);
+  if(q.length>1){b.append(E('small','oa-lb','Up next'));q.slice(1,6).forEach(y=>{const r=E('button','oa-row');r.append(E('b','',y.title),E('span','',y.why));r.onclick=()=>{pin=y.k;paint()};b.append(r)})}}
+ if(logs.length){const rc=E('div','oa-rc');rc.append(E('b','','Done so far'),...logs.slice(0,4).map(l=>E('div','',l)));b.append(rc)}}
+
+/* ---------- chat: say it in plain words, it does it ---------- */
+async function say(t){t=t.trim();if(!t||busy)return;busy=true;if(tab!=='ask'){tab='ask';paint()}const log=$('.oa-log');hero&&hero();hero=null;log.querySelectorAll('.oa-fu,.oa-hi').forEach(n=>n.remove());
+ log.append(E('div','oh-m u',t));const w=E('div','oh-m a'),dd=E('div','oh-dots');dd.append(E('i'),E('i'),E('i'));w.append(dd);log.append(w);scr();hist.push({role:'user',text:t});A=analyse();
+ try{const d=await callAI(hist.slice(0,-1).concat({role:'user',text:t+'\n\n'+ctx(A)+'\n[Screen] The user is on the "'+((D()||{}).view||'overview')+'" page. You are Orchie, the friendly AI assistant of Orchid CRM. Act like a patient guide: do the work for them, propose actions to confirm, keep it short and simple, and end with the single best next step.'}));
+  hist.push({role:'model',text:d.reply});w.textContent='';typeInto(w,d.reply,scr);(d.actions||[]).slice(0,4).forEach(a=>actionCard(a,log));
+  const fu=E('div','oa-chips oa-fu');[['Do the next step for me','Do the next best step for me and propose the action.'],['Explain it simply','Explain that again in simple words, step by step.']].forEach(([l,q])=>{const b=E('button','oa-b g',l);b.onclick=()=>say(q);fu.append(b)});log.append(fu)}
+ catch(e){hist.pop();w.className='oh-m e';w.textContent=e.message}busy=false;scr()}
+function askTab(b){const log=E('div','oa-log');log.style.cssText='display:flex;flex-direction:column;gap:10px';b.append(log);
+ if(!hist.length){const hr=E('div','oa-hero oa-hi'),h2=E('h2'),cv=E('canvas'),qa=E('div','oa-qa');
+  h2.append(E('span','','Hello, '+who()+'!'),E('span','','How can I help you today?'));
+  QA.forEach(([svg,l,q])=>{const x=E('button');x.type='button';const i=E('i');i.innerHTML=svg;x.append(i,E('span','',l));x.onclick=()=>say(q);qa.append(x)});
+  const sc0=stGet(),ds=E('button','oa-b');ds.type='button';ds.textContent='Draft style: '+TONES[sc0.tone].l+' \u00B7 '+LANGS[sc0.lang].l+' \u203A';ds.onclick=()=>{styleBack=tab;tab='style';paint()};hr.append(h2,cv,qa,ds);
+  const vs=(VC[(D()||{}).view]||[]).slice(0,2);if(vs.length){const g=E('div','oa-chips');vs.forEach(s=>{const x=E('button','oa-b',s);x.onclick=()=>say(s);g.append(x)});hr.append(E('small','oa-lb','Try on '+pg()),g)}
+  log.append(hr);hero=orchie(cv,true)}
+ hist.forEach(m=>log.append(E('div','oh-m '+(m.role==='user'?'u':'a'),m.role==='user'?m.text:clean(m.text))))}
+
+/* ---------- Orchie: glowing blue-violet orb with two pill eyes (Three.js) ---------- */
+function orchie(cv,big,wave){const T=window.THREE;if(!T||!cv)return null;let r;try{r=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true})}catch(e){return null}
+ const w=cv.clientWidth||96,h=cv.clientHeight||96;r.setPixelRatio(Math.min(devicePixelRatio||1,2));r.setSize(w,h,false);
+ const sc=new T.Scene(),cam=new T.PerspectiveCamera(35,w/h,.1,60);cam.position.set(0,big?-.25:0,big?9.8:7.2);
+ const R=1.5,g=new T.Group();sc.add(g);
+ const tex=(stops,sz)=>{const c=document.createElement('canvas');c.width=c.height=sz;const x=c.getContext('2d'),q=sz/2,gr=x.createRadialGradient(q,q,0,q,q,q);stops.forEach(s=>gr.addColorStop(s[0],s[1]));x.fillStyle=gr;x.fillRect(0,0,sz,sz);return new T.CanvasTexture(c)};
+ const spr=(t,sx,sy,x,y,z,par)=>{const s=new T.Sprite(new T.SpriteMaterial({map:t,transparent:true,depthWrite:false}));s.scale.set(sx,sy,1);s.position.set(x,y,z);par.add(s);return s};
+ /* soft shadow under the orb (hero and welcome card only) */
+ const sh=big?spr(tex([[0,'rgba(88,70,200,.42)'],[.55,'rgba(88,70,200,.14)'],[1,'rgba(88,70,200,0)']],128),2.9,.55,0,-2.5,-.3,sc):null;
+ /* fuzzy white halo around the edge */
+ const GS=big?5.3:4,f0=R/(GS/2);
+ const glow=spr(tex([[0,'rgba(215,205,255,0)'],[f0*.8,'rgba(205,195,255,.4)'],[f0,'rgba(255,255,255,.92)'],[Math.min(f0+.2,.97),'rgba(214,206,255,.26)'],[1,'rgba(214,206,255,0)']],256),GS,GS,0,0,-.2,g);
+ const orb=new T.Mesh(new T.SphereGeometry(R,64,48),new T.ShaderMaterial({uniforms:{uT:{value:0}},
+  vertexShader:'varying vec3 vN;varying vec3 vP;void main(){vN=normalize(normalMatrix*normal);vec4 p=modelViewMatrix*vec4(position,1.0);vP=p.xyz;gl_Position=projectionMatrix*p;}',
+  fragmentShader:'varying vec3 vN;varying vec3 vP;uniform float uT;void main(){vec3 n=normalize(vN);vec3 v=normalize(-vP);float fr=pow(1.0-max(dot(n,v),0.0),2.4);vec2 c=vec2(0.12*sin(uT*0.7),0.38+0.05*cos(uT*0.6));float d=length(n.xy-c);vec3 mg=vec3(0.80,0.30,0.98),vi=vec3(0.52,0.30,0.97),bl=vec3(0.22,0.45,1.0),cy=vec3(0.30,0.72,1.0);vec3 col=mix(mg,vi,smoothstep(0.0,0.5,d));col=mix(col,bl,smoothstep(0.35,1.0,d));col=mix(col,cy,smoothstep(-0.1,-0.95,n.y)*0.65);col=mix(col,vec3(1.0),fr*0.85);float sp=pow(max(dot(reflect(-normalize(vec3(-0.4,0.7,0.6)),n),v),0.0),28.0);col+=sp*0.35;gl_FragColor=vec4(col,1.0);}'}));g.add(orb);
+ /* two white pill eyes that glide over the surface toward the pointer */
+ const wm=new T.MeshBasicMaterial({color:0xffffff}),mk=x=>{const e=new T.Group(),cy=new T.Mesh(new T.CylinderGeometry(.13,.13,.26,20),wm),a=new T.Mesh(new T.SphereGeometry(.13,20,16),wm),c=a.clone();a.position.y=.13;c.position.y=-.13;e.add(cy,a,c);e.userData.x=x;g.add(e);return e},eyes=[mk(-.44),mk(.44)];
+ let t=0,raf,mx=0,my=0,lx=0,ly=0;const pm=e=>{const b=cv.getBoundingClientRect();mx=Math.max(-1,Math.min(1,(e.clientX-b.left-b.width/2)/500));my=Math.max(-1,Math.min(1,(e.clientY-b.top-b.height/2)/500))};addEventListener('pointermove',pm,{passive:true});
+ const fr=()=>{if(!RM)raf=requestAnimationFrame(fr);if(document.hidden)return;const k=busy?2.4:1;t+=.016*k;
+  let y,sx,sy;if(wave){const hp=Math.abs(Math.sin(t*3));y=hp*.45;sx=1+(1-hp)*.05;sy=1-(1-hp)*.05}else{const bo=Math.sin(t*2);y=bo*.1;sx=1-bo*.015;sy=1+bo*.015}
+  g.position.y=y;g.scale.set(sx,sy,1);if(sh){const q=Math.max(.6,1-y*.25);sh.scale.set(2.9*q,.55*q,1);sh.material.opacity=Math.max(.35,1-y*.8)}
+  glow.material.opacity=busy?.78+.22*Math.sin(t*6):1;orb.material.uniforms.uT.value=t;
+  lx+=(mx*.35-lx)*.1;ly+=(-my*.22-ly)*.1;const bk=(t%3.4)>3.28?.12:1;
+  eyes.forEach(e=>{const ex=e.userData.x+lx,ey=.1+ly,ez=Math.sqrt(Math.max(R*R-ex*ex-ey*ey,.1))+.02;e.position.set(ex,ey,ez);e.rotation.y=Math.atan2(ex,ez);e.rotation.x=-Math.atan2(ey,ez);e.scale.set(1,bk*(busy?.75:1),.4)});
+  r.render(sc,cam)};fr();
+ return()=>{cancelAnimationFrame(raf);removeEventListener('pointermove',pm);try{glow.material.map.dispose();sh&&sh.material.map.dispose();orb.geometry.dispose();orb.material.dispose()}catch(e){}r.dispose();try{r.forceContextLoss()}catch(e){}}}
+/* soft floating glossy bubbles behind the panel */
+function bg(cv){const T=window.THREE;if(!T||RM||!cv)return null;let r;try{r=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true})}catch(e){return null}
+ const sc=new T.Scene(),cam=new T.PerspectiveCamera(50,1,.1,100);cam.position.z=18;sc.add(new T.AmbientLight(0xffffff,.85));const dl=new T.DirectionalLight(0xffffff,.8);dl.position.set(4,6,8);sc.add(dl);
+ const cols=[0xf3a8e8,0xc9a6ff,0x9fd0ff,0xffc2e2,0xb7e4ff],ms=[];
+ for(let i=0;i<16;i++){const o=new T.Mesh(i%3?new T.SphereGeometry(.5+Math.random()*1.1,24,24):new T.TorusGeometry(.7,.28,16,32),new T.MeshPhongMaterial({color:cols[i%5],shininess:140,specular:0xffffff,transparent:true,opacity:.5}));o.position.set((Math.random()-.5)*16,(Math.random()-.5)*26,(Math.random()-.5)*8-2);o.userData={s:.3+Math.random()*.5,p:Math.random()*6};ms.push(o);sc.add(o)}
+ const size=()=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;r.setPixelRatio(Math.min(devicePixelRatio||1,2));r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()};size();addEventListener('resize',size);let raf,t=0;
+ const f=()=>{raf=requestAnimationFrame(f);if(document.hidden)return;t+=.01;ms.forEach(o=>{o.position.y+=Math.sin(t*o.userData.s+o.userData.p)*.008;o.rotation.x+=.004;o.rotation.y+=.006});r.render(sc,cam)};f();
+ return()=>{cancelAnimationFrame(raf);removeEventListener('resize',size);r.dispose();try{r.forceContextLoss()}catch(e){}}}
+/* welcome prompt after login */
+function intro(){if(document.getElementById('oa-intro'))return;const o=E('div');o.id='oa-intro';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Meet Orchie');
+ o.innerHTML='<div class="oi-c"><canvas width="460" height="460"></canvas><small class="oi-k">ORCHID CRM IS NOW AI ASSISTED</small><h3>Hi, I am <b>Orchie</b>!</h3><p>I am your AI assistant. I watch your leads, tasks and cases, tell you what needs you each day, and do the work for you. You stay in control and confirm everything.</p><ul class="oi-l"><li>I tell you what to do next, one step at a time</li><li>I write emails and follow-ups for you</li><li>I add leads, tasks and updates when you just say so</li></ul><div class="oi-b"><button class="oa-b g" data-n>Maybe later</button><button class="oa-b p" data-y>Show me my day</button></div><label class="oi-d"><input type="checkbox"> Do not show this again</label></div>';
+ document.body.append(o);const stop=orchie(o.querySelector('canvas'),true,true),ek=e=>{if(e.key==='Escape')end(false)},end=go=>{try{if(o.querySelector('input').checked)localStorage.setItem('oa_intro_off','1')}catch(e){}stop&&stop();o.remove();document.removeEventListener('keydown',ek);if(go){tab='next';setOpen(true)}};
+ document.addEventListener('keydown',ek);o.querySelector('[data-n]').onclick=()=>end(false);o.querySelector('[data-y]').onclick=()=>end(true);o.onclick=e=>{if(e.target===o)end(false)};o.querySelector('[data-y]').focus()}
+
+/* ---------- shell ---------- */
+function paint(){if(!P)return;const b=P.querySelector('.oa-body'),n=Qs();P.querySelector('.oa-pg').textContent='Your AI assistant · '+pg();
+ P.querySelectorAll('[role=tab]').forEach(t=>{t.setAttribute('aria-selected',String(t.dataset.t===tab));if(t.dataset.t==='next')t.textContent='Next steps'+(n?' · '+n:'')});hero&&hero();hero=null;b.replaceChildren();const gr=P.querySelector('.oa-gear');gr&&gr.setAttribute('aria-pressed',String(tab==='style'));(tab==='next'?nextTab:tab==='style'?styleTab:askTab)(b)}
+const Qs=()=>queue().length;
+function setOpen(v){open=v;document.documentElement.classList.toggle('oa-open',v);P.hidden=!v;fab.setAttribute('aria-expanded',String(v));S.forEach(f=>f&&f());S=[];hero&&hero();hero=null;if(v){bub.hidden=true;paint();S=[orchie(P.querySelector('.oa-av canvas'))];setTimeout(()=>inp.focus(),80)}}
+function init(){fab=E('button','');fab.id='oa-fab';fab.type='button';fab.setAttribute('aria-label','Open Orchie, your AI assistant (Ctrl+K)');fab.innerHTML='<i class="oa-fi"></i><span>Ask Orchie</span><b hidden></b>';bub=E('button','');bub.id='oa-bub';bub.hidden=true;
+ P=E('aside');P.id='oa';P.hidden=true;P.setAttribute('aria-label','Orchie, your AI assistant');
+ P.innerHTML='<div class="oa-h"><div class="oa-av"><canvas></canvas></div><div class="oa-ti"><b>Orchie</b><small class="oa-pg"></small></div><button class="oa-x oa-gear" type="button" aria-label="Draft style: tone and language" title="Draft style" aria-pressed="false"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button><button class="oa-x" aria-label="Close">✕</button></div><div class="oa-tabs" role="tablist"><button role="tab" data-t="next">Next steps</button><button role="tab" data-t="ask">Ask / do it for me</button></div><div class="oa-body"></div><div class="oa-in"><div class="oa-ib"><button class="oa-plus" type="button" aria-label="New chat" title="New chat">+</button><input aria-label="Tell Orchie what to do" placeholder="Ask me anything..."></div><button class="oh-b oa-send" type="button" aria-label="Send"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>';
+ document.body.append(fab,bub,P);if(!document.getElementById('oa-font')){const l=document.createElement('link');l.id='oa-font';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap';document.head.append(l)}
+ try{sbc().auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT'){try{sessionStorage.removeItem('oa_intro');sessionStorage.removeItem('oa_b')}catch(e){}introDone=false;shown=false}})}catch(e){}inp=P.querySelector('.oa-in input');const sn=P.querySelector('.oa-send'),go=()=>{const v=inp.value;inp.value='';say(v)};
+ sn.onclick=go;P.querySelector('.oa-plus').onclick=()=>{if(busy)return;hist=[];tab='ask';paint();inp.focus()};inp.onkeydown=e=>{if(e.key==='Enter')go()};fab.onclick=bub.onclick=()=>setOpen(true);P.querySelector('.oa-x[aria-label=Close]').onclick=()=>setOpen(false);P.querySelector('.oa-gear').onclick=()=>{if(tab==='style')tab=styleBack;else{styleBack=tab;tab='style'}paint()};
+ P.querySelectorAll('[role=tab]').forEach(t=>t.onclick=()=>{tab=t.dataset.t;paint()});
+ addEventListener('keydown',e=>{if(e.key==='Escape'&&open)setOpen(false);if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'&&fab.classList.contains('on')){e.preventDefault();setOpen(!open)}});
+ setInterval(()=>{const d=D(),ok=!!(d&&d.me);fab.classList.toggle('on',ok);if(!ok)return;if(!introDone){introDone=true;let s=null,off=null;try{s=sessionStorage.getItem('oa_intro');off=localStorage.getItem('oa_intro_off')}catch(e){}if(!s&&!off){try{sessionStorage.setItem('oa_intro','1')}catch(e){}shown=true;setTimeout(intro,900)}}const n=Qs(),bd=fab.querySelector('b');bd.hidden=!n;bd.textContent=n;
+  if(n>lastN&&!open){fab.classList.remove('ping');void fab.offsetWidth;fab.classList.add('ping')}lastN=n;
+  if(open){const t=P.querySelector('[data-t=next]');t.textContent='Next steps'+(n?' · '+n:'');P.querySelector('.oa-pg').textContent='Your AI assistant · '+pg()}
+  if(!shown&&n&&!open){shown=true;let s=null;try{s=sessionStorage.getItem('oa_b')}catch(e){}if(!s){bub.textContent='Hi, I am Orchie! I found '+n+' thing'+(n>1?'s':'')+' for you today. Tap and I will walk you through them.';bub.hidden=false;try{sessionStorage.setItem('oa_b','1')}catch(e){}setTimeout(()=>{bub.hidden=true},14000)}}},4000)}
+document.readyState==='loading'?addEventListener('DOMContentLoaded',init):init()
+})();</script>
