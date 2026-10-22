@@ -1,0 +1,20 @@
+.ai-fab{position:fixed;right:20px;bottom:20px;z-index:60;width:52px;height:52px;border-radius:50%;border:0;background:var(--blue);color:#fff;font-size:1.3rem;cursor:pointer;box-shadow:0 10px 30px rgba(37,99,235,.35)}
+.ai-panel{position:fixed;right:20px;bottom:84px;z-index:60;width:min(380px,calc(100vw - 24px));height:min(560px,calc(100vh - 110px));display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 60px rgba(15,23,42,.2);overflow:hidden}
+.ai-panel header{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.ai-panel header span{color:var(--muted);font-size:.8rem}
+.ai-body{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--canvas)}
+.ai-empty p{margin:0 0 8px;color:var(--muted)}
+.ai-empty button{display:block;width:100%;text-align:left;margin-bottom:6px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}
+.ai-msg p{margin:0;padding:9px 12px;border-radius:12px;line-height:1.45;white-space:pre-wrap;max-width:88%}
+.ai-msg.me p{background:var(--blue);color:#fff;margin-left:auto}
+.ai-msg.bot p{background:#fff;border:1px solid var(--line)}
+.ai-card{margin-top:8px;padding:10px 12px;border:1px solid #bfd3fb;background:#eff5ff;border-radius:12px;display:flex;flex-direction:column;gap:3px;font-size:.88rem}
+.ai-card.muted{background:#f3f4f6;border-color:var(--line);color:var(--muted)}
+.ai-card.done{background:#ecfdf5;border-color:#a7f3d0}
+.ai-card .err,.ai-error{color:#b91c1c}
+.ai-card div{display:flex;gap:8px;margin-top:6px}
+.ai-card button,.ai-panel form button{padding:7px 14px;border:0;border-radius:999px;background:var(--blue);color:#fff;font-weight:600;cursor:pointer}
+.ai-card button.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.ai-card button:disabled,.ai-panel form button:disabled{opacity:.5;cursor:default}
+.ai-panel form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line)}
+.ai-panel form input{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--line);border-radius:999px}
